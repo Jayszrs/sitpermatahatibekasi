@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Login Portal Internal | TBZ</title>
+    <title>Login Portal Internal | PHB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="login-visual-overlay"></div>
         <div class="login-visual-content">
             <div class="portal-brand">
-                <span class="portal-brand-logo"><img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo.png" alt="Logo TBZ"></span>
-                <span>PortalTBZ</span>
+                <span class="portal-brand-logo"><img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo.png" alt="Logo PHB"></span>
+                <span>PortalPHB</span>
             </div>
             <span class="version-pill">Sistem Internal</span>
             <div class="visual-copy">
@@ -53,13 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <small>Admin, Humas, dan Kasir SPMB memperoleh menu sesuai tanggung jawab masing-masing.</small>
                 </div>
             </div>
-            <small class="portal-copyright">&copy; 2026 LPIT Thariq Bin Ziyad. Portal administrasi internal.</small>
+            <small class="portal-copyright">&copy; 2026 SIT Permata Hati Bekasi. Portal administrasi internal.</small>
         </div>
     </section>
 
     <section class="login-form-side">
         <div class="login-box">
-            <span class="mobile-brand">PortalTBZ</span>
+            <span class="mobile-brand">PortalPHB</span>
             <div class="login-heading-mark"></div>
             <span class="role-badge">Akses Petugas</span>
             <h2>Selamat datang</h2>
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <button class="login-submit" type="submit">Masuk <span>&rarr;</span></button>
             </form>
-            <p class="login-help">Akun portal dikelola oleh Administrator LPIT Thariq Bin Ziyad.</p>
+            <p class="login-help">Akun portal dikelola oleh Administrator SIT Permata Hati Bekasi.</p>
         </div>
     </section>
   </main>

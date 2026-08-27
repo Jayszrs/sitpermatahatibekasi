@@ -21,7 +21,7 @@ $portalNav = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title><?php echo esc($portalTitle); ?> | Portal TBZ</title>
+    <title><?php echo esc($portalTitle); ?> | Portal PHB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -31,8 +31,8 @@ $portalNav = [
 <div class="portal-layout">
     <aside class="portal-sidebar" id="portalSidebar">
         <a class="sidebar-brand" href="<?php echo SITE_URL; ?>/portal/dashboard">
-            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo.png" alt="Logo TBZ">
-            <span>PortalTBZ</span>
+            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo.png" alt="Logo PHB">
+            <span>PortalPHB</span>
         </a>
         <div class="sidebar-role">
             <small>Akses aktif</small>

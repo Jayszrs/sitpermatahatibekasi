@@ -3,8 +3,27 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Galeri';
 
-$stmt = $pdo->query("SELECT * FROM gallery ORDER BY created_at DESC");
-$photos = $stmt->fetchAll();
+$stmt = $pdo->query("
+    SELECT a.*,
+        (SELECT COUNT(*) FROM gallery_photos p WHERE p.album_id = a.id) AS photo_count
+    FROM gallery_albums a
+    WHERE a.is_active = 1
+    ORDER BY a.sort_order ASC, a.created_at DESC, a.id DESC
+");
+$albums = $stmt->fetchAll();
+
+$photoStmt = $pdo->prepare("
+    SELECT title, image
+    FROM gallery_photos
+    WHERE album_id = ?
+    ORDER BY sort_order ASC, created_at DESC, id DESC
+    LIMIT 5
+");
+$albumSlides = [];
+foreach ($albums as $album) {
+    $photoStmt->execute([(int)$album['id']]);
+    $albumSlides[(int)$album['id']] = $photoStmt->fetchAll();
+}
 
 require_once __DIR__ . '/../components/header.php';
 ?>
@@ -18,19 +37,49 @@ require_once __DIR__ . '/../components/header.php';
 
 <section class="section">
     <div class="container">
-        <?php if (count($photos) > 0): ?>
-        <div class="gallery-grid">
-            <?php foreach ($photos as $photo): ?>
-            <a href="galeri-detail.php?id=<?php echo (int)$photo['id']; ?>" class="gallery-item">
-                <img src="<?php echo esc($photo['image']); ?>" alt="<?php echo esc($photo['title']); ?>" loading="lazy">
-                <span class="gallery-caption"><?php echo esc($photo['title']); ?></span>
+        <?php if (count($albums) > 0): ?>
+        <div class="album-grid">
+            <?php foreach ($albums as $album): ?>
+            <?php $slides = $albumSlides[(int)$album['id']] ?? []; ?>
+            <a href="galeri-detail.php?id=<?php echo (int)$album['id']; ?>" class="gallery-album-card">
+                <div class="album-carousel" data-album-carousel>
+                    <?php if ($slides): ?>
+                        <?php foreach ($slides as $index => $slide): ?>
+                        <img class="album-slide<?php echo $index === 0 ? ' active' : ''; ?>" src="<?php echo esc($slide['image']); ?>" alt="<?php echo esc($slide['title']); ?>" loading="lazy">
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="album-empty-cover">Belum ada foto</div>
+                    <?php endif; ?>
+                </div>
+                <div class="album-card-content">
+                    <span class="album-count"><?php echo (int)$album['photo_count']; ?> Foto</span>
+                    <h2><?php echo esc($album['title']); ?></h2>
+                    <?php if (!empty($album['description'])): ?>
+                    <p><?php echo esc($album['description']); ?></p>
+                    <?php endif; ?>
+                </div>
             </a>
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <p style="text-align:center; color: var(--muted);">Belum ada foto galeri.</p>
+        <p style="text-align:center; color: var(--muted);">Belum ada album galeri.</p>
         <?php endif; ?>
     </div>
 </section>
 
 <?php require_once __DIR__ . '/../components/footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-album-carousel]').forEach((carousel) => {
+        const slides = carousel.querySelectorAll('.album-slide');
+        if (slides.length <= 1) return;
+        let activeIndex = 0;
+        window.setInterval(() => {
+            slides[activeIndex].classList.remove('active');
+            activeIndex = (activeIndex + 1) % slides.length;
+            slides[activeIndex].classList.add('active');
+        }, 3200);
+    });
+});
+</script>

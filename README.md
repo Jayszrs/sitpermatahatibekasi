@@ -32,9 +32,9 @@ Login menggunakan username (tanpa email). Menu di dashboard otomatis disesuaikan
 
 Akun awal:
 
-- `admin` / `AdminTBZ#2026`
-- `humas` / `HumasTBZ#2026`
-- `kasir` / `KasirTBZ#2026`
+- `admin` / `AdminPHB#2026`
+- `humas` / `HumasPHB#2026`
+- `kasir` / `KasirPHB#2026`
 
 Akun awal dibuat otomatis ketika salah satu halaman portal pertama kali dibuka. Admin dapat mengganti password, menambah akun, atau menonaktifkan akun melalui menu **Manajemen Pengguna**.
 

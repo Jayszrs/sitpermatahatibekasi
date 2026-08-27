@@ -112,6 +112,29 @@ function portal_bootstrap_database(PDO $pdo): void
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS gallery_albums (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(180) NOT NULL,
+        slug VARCHAR(190) NOT NULL UNIQUE,
+        description VARCHAR(255) NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_gallery_album_active (is_active, sort_order, id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS gallery_photos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        album_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        image VARCHAR(255) NOT NULL,
+        description VARCHAR(255) DEFAULT NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_gallery_photo_album (album_id, sort_order, id),
+        CONSTRAINT fk_gallery_photo_album FOREIGN KEY (album_id) REFERENCES gallery_albums(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS spmb_payments (
         id INT AUTO_INCREMENT PRIMARY KEY,
         registration_id INT NOT NULL,
@@ -131,12 +154,13 @@ function portal_bootstrap_database(PDO $pdo): void
         CONSTRAINT fk_payment_recorder FOREIGN KEY (recorded_by) REFERENCES portal_users(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    portal_seed_gallery_albums($pdo);
     portal_seed_site_content($pdo);
 
     $defaults = [
-        ['Administrator', 'admin', 'AdminTBZ#2026', 'admin'],
-        ['Tim Humas', 'humas', 'HumasTBZ#2026', 'humas'],
-        ['Kasir SPMB', 'kasir', 'KasirTBZ#2026', 'kasir'],
+        ['Administrator', 'admin', 'AdminPHB#2026', 'admin'],
+        ['Tim Humas', 'humas', 'HumasPHB#2026', 'humas'],
+        ['Kasir SPMB', 'kasir', 'KasirPHB#2026', 'kasir'],
     ];
     if ((int)$pdo->query('SELECT COUNT(*) FROM portal_users')->fetchColumn() === 0) {
         $insert = $pdo->prepare('INSERT INTO portal_users (name, username, password, role) VALUES (?, ?, ?, ?)');
@@ -146,18 +170,138 @@ function portal_bootstrap_database(PDO $pdo): void
     }
 }
 
+function portal_seed_gallery_albums(PDO $pdo): void
+{
+    $ensureAlbum = function (string $title, string $slug, ?string $description, int $sortOrder) use ($pdo): int {
+        $stmt = $pdo->prepare('INSERT IGNORE INTO gallery_albums (title, slug, description, sort_order, is_active) VALUES (?,?,?,?,1)');
+        $stmt->execute([$title, $slug, $description, $sortOrder]);
+        $select = $pdo->prepare('SELECT id FROM gallery_albums WHERE slug=? LIMIT 1');
+        $select->execute([$slug]);
+        return (int)$select->fetchColumn();
+    };
+
+    $documentationAlbumId = $ensureAlbum(
+        'Dokumentasi Sekolah',
+        'dokumentasi-sekolah',
+        'Kumpulan dokumentasi fasilitas, suasana, dan aktivitas sekolah.',
+        5
+    );
+    $pdo->prepare('UPDATE gallery_albums SET sort_order=? WHERE slug=?')->execute([5, 'dokumentasi-sekolah']);
+
+    $legacyExists = $pdo->prepare("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME='gallery'");
+    $legacyExists->execute([DB_NAME]);
+    if ((int)$legacyExists->fetchColumn() > 0) {
+        $legacyPhotos = $pdo->query('SELECT title, image, description, created_at FROM gallery ORDER BY created_at ASC, id ASC')->fetchAll();
+        $insertLegacy = $pdo->prepare('INSERT INTO gallery_photos (album_id, title, image, description, sort_order, created_at) VALUES (?,?,?,?,?,?)');
+        $existsPhoto = $pdo->prepare('SELECT COUNT(*) FROM gallery_photos WHERE image=?');
+        foreach ($legacyPhotos as $index => $photo) {
+            $existsPhoto->execute([$photo['image']]);
+            if ((int)$existsPhoto->fetchColumn() > 0) continue;
+            $insertLegacy->execute([
+                $documentationAlbumId,
+                $photo['title'],
+                $photo['image'],
+                $photo['description'] ?: null,
+                $index + 1,
+                $photo['created_at'] ?? date('Y-m-d H:i:s'),
+            ]);
+        }
+    }
+
+    $activityAlbumId = $ensureAlbum(
+        'Kegiatan Sekolah',
+        'kegiatan-sekolah',
+        'Dokumentasi kegiatan belajar, ruang kelas, dan suasana pembelajaran SIT Permata Hati Bekasi.',
+        1
+    );
+    $activityPhotos = [
+        ['Pembelajaran Interaktif di Kelas', SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg', 'Siswa aktif bertanya dan berdiskusi dalam suasana kelas yang nyaman.'],
+        ['Digital Learning dan Diskusi Kelas', SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-02.jpeg', 'Pemanfaatan media digital untuk mendukung proses belajar yang fokus dan terarah.'],
+        ['Suasana Belajar Nyaman', SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-03.jpeg', 'Ruang kelas tertata rapi untuk kegiatan belajar yang tertib dan menyenangkan.'],
+        ['Kelas SMPIT Aktif', SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-04.jpeg', 'Kegiatan belajar SMPIT yang membangun konsentrasi, adab, dan kemandirian.'],
+    ];
+    $insertActivity = $pdo->prepare('INSERT INTO gallery_photos (album_id, title, image, description, sort_order) VALUES (?,?,?,?,?)');
+    $existsPhoto = $pdo->prepare('SELECT COUNT(*) FROM gallery_photos WHERE image=?');
+    foreach ($activityPhotos as $index => $photo) {
+        $existsPhoto->execute([$photo[1]]);
+        if ((int)$existsPhoto->fetchColumn() > 0) continue;
+        $insertActivity->execute([$activityAlbumId, $photo[0], $photo[1], $photo[2], $index + 1]);
+    }
+
+    $sportsAlbumId = $ensureAlbum(
+        'Kegiatan Olahraga',
+        'kegiatan-olahraga',
+        'Dokumentasi kegiatan lapangan, permainan bola, dan pembiasaan hidup aktif siswa SIT Permata Hati Bekasi.',
+        2
+    );
+    $pdo->prepare('UPDATE gallery_albums SET sort_order=? WHERE slug=?')->execute([2, 'kegiatan-olahraga']);
+    $sportsPhotos = [
+        ['Latihan Basket Lapangan', SITE_URL . '/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-01.jpeg', 'Siswa berlatih kerja sama, koordinasi, dan sportivitas melalui permainan basket.'],
+        ['Motorik Ceria TKIT', SITE_URL . '/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-02.jpeg', 'Anak-anak belajar menangkap, melempar, dan bekerja sama lewat aktivitas bola yang menyenangkan.'],
+        ['Basket Outdoor SMPIT', SITE_URL . '/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-03.jpeg', 'Kegiatan olahraga luar ruang untuk menjaga kebugaran, keberanian, dan kekompakan siswa.'],
+        ['Stimulasi Bola Daycare', SITE_URL . '/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-04.jpeg', 'Aktivitas bola ringan untuk melatih motorik kasar anak usia dini dengan suasana aman.'],
+        ['Permainan Bola SDIT', SITE_URL . '/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-05.jpeg', 'Siswa menikmati permainan basket sebagai bagian dari kegiatan jasmani yang sehat.'],
+    ];
+    foreach ($sportsPhotos as $index => $photo) {
+        $existsPhoto->execute([$photo[1]]);
+        if ((int)$existsPhoto->fetchColumn() > 0) continue;
+        $insertActivity->execute([$sportsAlbumId, $photo[0], $photo[1], $photo[2], $index + 1]);
+    }
+
+    $mosqueAlbumId = $ensureAlbum(
+        'Masjid Sekolah',
+        'masjid-sekolah',
+        'Dokumentasi pembiasaan ibadah, membaca Al-Quran, dan kegiatan ruhiyah siswa di lingkungan sekolah.',
+        3
+    );
+    $pdo->prepare('UPDATE gallery_albums SET sort_order=? WHERE slug=?')->execute([3, 'masjid-sekolah']);
+    $mosquePhotos = [
+        ['Tilawah Bersama di Masjid', SITE_URL . '/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg', 'Siswa membaca Al-Quran bersama dalam suasana masjid yang tenang dan khidmat.'],
+        ['Halaqah Al-Quran', SITE_URL . '/frontend/assets/images/gallery/masjid-sekolah/masjid-02.jpeg', 'Kegiatan halaqah dan pembiasaan tilawah untuk menguatkan kedekatan siswa dengan Al-Quran.'],
+        ['Literasi Islami Anak Usia Dini', SITE_URL . '/frontend/assets/images/gallery/masjid-sekolah/masjid-03.jpeg', 'Anak-anak mengenal bacaan dan adab Islami melalui aktivitas literasi yang lembut dan menyenangkan.'],
+    ];
+    foreach ($mosquePhotos as $index => $photo) {
+        $existsPhoto->execute([$photo[1]]);
+        if ((int)$existsPhoto->fetchColumn() > 0) continue;
+        $insertActivity->execute([$mosqueAlbumId, $photo[0], $photo[1], $photo[2], $index + 1]);
+    }
+
+    $buildingAlbumId = $ensureAlbum(
+        'Gedung Sekolah',
+        'gedung-sekolah',
+        'Dokumentasi gedung dan lingkungan unit pendidikan SIT Permata Hati Bekasi.',
+        4
+    );
+    $pdo->prepare('UPDATE gallery_albums SET sort_order=? WHERE slug=?')->execute([4, 'gedung-sekolah']);
+    $buildingPhotos = [
+        ['Gedung Daycare, TKIT, dan SDIT', SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg', 'Gedung utama SIT Permata Hati Bekasi di kawasan Buwek Jaya, Tambun Selatan.'],
+        ['Gedung SMPIT Permata Hati', SITE_URL . '/frontend/assets/images/school/gedung-smpit.jpeg', 'Gedung SMPIT Permata Hati Bekasi dengan fasilitas belajar dan lapangan sekolah.'],
+    ];
+    foreach ($buildingPhotos as $index => $photo) {
+        $existsPhoto->execute([$photo[1]]);
+        if ((int)$existsPhoto->fetchColumn() > 0) continue;
+        $insertActivity->execute([$buildingAlbumId, $photo[0], $photo[1], $photo[2], $index + 1]);
+    }
+}
+
 function portal_seed_site_content(PDO $pdo): void
 {
     $seeds = [
         'unit' => [
-            ['SD Islam Terpadu', 'SD', 'Jenjang pendidikan dasar yang menanamkan fondasi akademik, keimanan, dan akhlak sejak usia dini melalui pembelajaran tematik yang aktif dan menyenangkan.', 'Tahfidz Juz 30\nCalistung\nEkstrakurikuler\nFull Day School'],
-            ['SMP Islam Terpadu', 'SMP', 'Menguatkan kompetensi akademik dan kepemimpinan siswa melalui kurikulum terintegrasi, program tahfidz lanjutan, dan pembinaan organisasi siswa.', 'Tahfidz Juz Pilihan\nEnglish Club\nKlub Sains\nKepemimpinan'],
-            ['SMA Islam Terpadu', 'SMA', 'Mempersiapkan siswa menghadapi perguruan tinggi dan dunia kerja dengan penguatan akademik, minat bakat, dan karakter Islami.', 'Bimbingan PTN\nPeminatan IPA/IPS\nLeadership Camp\nKarya Ilmiah'],
+            ['Daycare Permata Hati Bekasi', 'Daycare', 'Layanan pengasuhan anak usia dini dengan suasana aman, hangat, dan pembiasaan adab Islami sejak awal.', 'Stimulasi motorik\nPembiasaan doa\nAktivitas sensorik\nLaporan harian'],
+            ['TKIT Permata Hati Bekasi', 'TKIT', 'Jenjang taman kanak-kanak Islam terpadu yang menumbuhkan kemandirian, kreativitas, dan cinta Al-Quran.', 'Sentra bermain\nTahsin dasar\nDoa harian\nKemandirian'],
+            ['SDIT Permata Hati Bekasi', 'SDIT', 'Pendidikan dasar terpadu yang menguatkan akademik, tahfidz, adab, dan karakter mandiri siswa.', 'Tahfidz Juz 30\nLiterasi numerasi\nEkstrakurikuler\nFull Day School'],
+            ['SMPIT Permata Hati Bekasi', 'SMPIT', 'Jenjang menengah pertama yang membangun kompetensi akademik, kepemimpinan, dan akhlak remaja muslim.', 'Tahfidz lanjutan\nEnglish Club\nKlub Sains\nLeadership Project'],
         ],
         'achievement' => [
-            ['Juara 1 Olimpiade Matematika', 'Tingkat Nasional', 'Prestasi siswa dalam Olimpiade Matematika.', 'Nasional|2026'],
-            ['Juara 2 MTQ Pelajar', 'Tingkat Provinsi', 'Prestasi siswa dalam Musabaqah Tilawatil Quran.', 'Provinsi|2025'],
-            ['Juara 1 Lomba Sains', 'Tingkat Kota', 'Prestasi siswa dalam kompetisi sains.', 'Kota|2025'],
+            ['Apresiasi Kemandirian Anak', 'Sekolah', 'Penghargaan perkembangan kemandirian dan kerja sama anak melalui aktivitas bermain terarah.', 'Sekolah|2026', SITE_URL . '/frontend/assets/images/activities/daycare-kegiatan.jpeg', 'Daycare'],
+            ['Apresiasi Kreativitas TKIT', 'Sekolah', 'Penghargaan untuk kreativitas, keberanian berekspresi, dan kemampuan motorik anak TKIT.', 'Sekolah|2026', SITE_URL . '/frontend/assets/images/activities/tkit-kegiatan.jpeg', 'TKIT'],
+            ['Juara 1 Gaya Bebas Fins', 'Kabupaten', 'Bastian Bachtiar Agam meraih Juara 1 25M Gaya Bebas Fins dan Juara 3 50M Gaya Bebas Fins pada Piala KONI Kabupaten Bekasi 2026.', 'Kabupaten|2026', SITE_URL . '/frontend/assets/images/achievements/sdit-bastian-bachtiar.webp', 'SDIT'],
+            ['Juara 1 Papan Kaki Bebas Fins', 'Kabupaten', 'Khansa Adzkiya Banafsha meraih Juara 1 25M Papan Kaki Bebas Fins pada Piala KONI Kabupaten Bekasi 2026.', 'Kabupaten|2026', SITE_URL . '/frontend/assets/images/achievements/sdit-khansa-adzkiya.webp', 'SDIT'],
+            ['Juara 1 Gaya Bebas & Kupu Fins', 'Kabupaten', 'Teuku Uwais Lawdee Habibi meraih Juara 1 25M Gaya Bebas Fins dan 25M Gaya Kupu Fins pada Piala KONI Kabupaten Bekasi 2026.', 'Kabupaten|2026', SITE_URL . '/frontend/assets/images/achievements/sdit-teuku-uwais.webp', 'SDIT'],
+            ['Juara 2 Gaya Bebas dan Papan Bebas Fins', 'Kabupaten', 'Aracelly Freissy Noushafarina meraih Juara 2 pada nomor 25M Gaya Bebas Fins dan 25M Papan Bebas Fins.', 'Kabupaten|2026', SITE_URL . '/frontend/assets/images/achievements/sdit-aracelly-freissy.webp', 'SDIT'],
+            ['Juara 3 Gaya Kupu Fins', 'Kabupaten', 'Shaqueena Nazla Hakim meraih Juara 3 25M Gaya Kupu Fins pada Piala KONI Kabupaten Bekasi 2026.', 'Kabupaten|2026', SITE_URL . '/frontend/assets/images/achievements/sdit-shaqueena-nazla.webp', 'SDIT'],
+            ['Juara 3 Youthswim Series 3', 'Event', 'Nizar Alvaro meraih Juara 3 25M Gaya Bebas dan Juara 3 25M Gaya Kupu dalam event Youthswim Series 3.', 'Event|2026', SITE_URL . '/frontend/assets/images/achievements/smpit-nizar-alvaro.webp', 'SMPIT'],
         ],
         'leadership' => [
             ['Nama Kepala Sekolah', 'Kepala Sekolah', 'Memimpin arah pendidikan dan pengembangan mutu sekolah secara keseluruhan.', ''],
@@ -165,16 +309,20 @@ function portal_seed_site_content(PDO $pdo): void
             ['Nama Wakil Kepala Sekolah', 'Wakil Kepala Bidang Kesiswaan', 'Membina kegiatan dan pengembangan karakter siswa.', ''],
         ],
         'program' => [
-            ["Tahfidz Al-Qur'an", 'Q', "Program hafalan Al-Qur'an dengan target setiap jenjang dan bimbingan guru tahfidz.", ''],
-            ['English Program', 'E', 'Penguatan kemampuan bahasa Inggris aktif melalui kelas percakapan dan klub bahasa.', ''],
-            ['Character Building', 'C', 'Pembinaan akhlak dan karakter Islami dalam kegiatan belajar sehari-hari.', ''],
-            ['Digital Learning', 'D', 'Pemanfaatan teknologi untuk mempersiapkan siswa menghadapi era digital.', ''],
-            ['Leadership Program', 'L', 'Melatih kepemimpinan melalui organisasi, proyek kolaboratif, dan kegiatan sosial.', ''],
+            ["Tahfidz & Tahsin Al-Qur'an", 'Quran', "Program bacaan dan hafalan Al-Qur'an bertahap dari TKIT, SDIT, hingga SMPIT.", ''],
+            ['Stimulasi Anak Usia Dini', 'Daycare', 'Aktivitas sensorik, motorik, bahasa, dan sosial untuk anak daycare secara aman dan menyenangkan.', ''],
+            ['Sentra Kreativitas TKIT', 'TKIT', 'Kegiatan bermain terarah untuk menumbuhkan kreativitas, kemandirian, dan adab Islami.', ''],
+            ['Literasi & Numerasi SDIT', 'SDIT', 'Penguatan kemampuan membaca, menulis, berhitung, dan berpikir logis sejak sekolah dasar.', ''],
+            ['Digital Learning', 'Digital', 'Pemanfaatan teknologi pembelajaran yang terarah untuk mendukung kesiapan era digital.', ''],
+            ['English Active Class', 'English', 'Pembiasaan bahasa Inggris aktif melalui percakapan, permainan, dan proyek kelas.', ''],
+            ['Character Building', 'Adab', 'Pembinaan akhlak, kedisiplinan, tanggung jawab, dan kepedulian dalam keseharian siswa.', ''],
+            ['Leadership Project SMPIT', 'SMPIT', 'Proyek kolaboratif dan organisasi siswa untuk melatih kepemimpinan remaja muslim.', ''],
         ],
         'activity' => [
-            ['Pesantren Ramadhan', '', 'Rangkaian kegiatan keagamaan selama bulan Ramadhan untuk seluruh siswa.', ''],
-            ['Field Trip', '', 'Kunjungan edukatif untuk memperluas wawasan siswa.', ''],
-            ['Wisuda Tahfidz', '', "Prosesi kelulusan siswa yang menyelesaikan target hafalan Al-Qur'an.", ''],
+            ['Taman Main Sensorik', 'Daycare', 'Belajar mengenal warna, bentuk, dan kerja sama melalui permainan balok serta eksplorasi taman yang aman dan hangat.', '', SITE_URL . '/frontend/assets/images/activities/daycare-kegiatan.jpeg'],
+            ['Eksplorasi Ceria', 'TKIT', 'Aktivitas bermain gelembung dan motorik halus untuk menumbuhkan rasa ingin tahu, keberanian, dan keceriaan anak.', '', SITE_URL . '/frontend/assets/images/activities/tkit-kegiatan.jpeg'],
+            ['Kreasi Seni Angklung', 'SDIT', 'Pembelajaran seni budaya yang melatih kekompakan, percaya diri, dan apresiasi siswa terhadap kekayaan Indonesia.', '', SITE_URL . '/frontend/assets/images/activities/sdit-kegiatan.jpeg'],
+            ['Riset Kebun Sekolah', 'SMPIT', 'Kegiatan observasi tanaman yang mengajak siswa berpikir ilmiah, peduli lingkungan, dan aktif berdiskusi.', '', SITE_URL . '/frontend/assets/images/activities/smpit-kegiatan.jpeg'],
         ],
     ];
     $count = $pdo->prepare('SELECT COUNT(*) FROM site_content_items WHERE type=?');
@@ -184,17 +332,19 @@ function portal_seed_site_content(PDO $pdo): void
         if ((int)$count->fetchColumn() > 0) continue;
         foreach ($items as $index => $item) {
             [$title, $subtitle, $description, $extra] = $item;
+            $image = $item[4] ?? null;
+            $unit = $item[5] ?? null;
             $badge = null; $year = null;
             if ($type === 'achievement' && strpos($extra, '|') !== false) {
-                [$badge, $year] = explode('|', $extra, 2); $extra = '';
+                [$badge, $year] = explode('|', $extra, 2); $extra = $unit ?: '';
             }
-            $insert->execute([$type, $title, $subtitle ?: null, $description, null, $badge, $year, $extra ?: null, $index + 1]);
+            $insert->execute([$type, $title, $subtitle ?: null, $description, $image, $badge, $year, $extra ?: null, $index + 1]);
         }
     }
     $profile = $pdo->prepare('INSERT IGNORE INTO site_profile (id,history_title,history_content,vision,mission) VALUES (1,?,?,?,?)');
     $profile->execute([
         'Perjalanan ' . SITE_NAME,
-        'Didirikan dengan semangat mencetak generasi Qurani yang cerdas dan berakhlak mulia, LPIT Thariq Bin Ziyad berkembang menjadi lembaga pendidikan Islam terpadu terpercaya. Selama lebih dari dua dekade, kami konsisten memadukan kurikulum nasional, pendidikan Al-Quran, dan pembentukan karakter.',
+        'Didirikan dengan semangat mencetak generasi sholeh, cerdas, mandiri, dan berakhlak mulia, SIT Permata Hati Bekasi berkembang menjadi sekolah Islam terpadu terpercaya di Tambun Selatan. Kami konsisten memadukan kurikulum nasional, pembelajaran Al-Quran, dan pembinaan karakter.',
         'Menjadi lembaga pendidikan Islam terpadu terdepan yang melahirkan generasi cerdas, berakhlak mulia, dan berdaya saing global.',
         'Menyelenggarakan pendidikan berbasis Al-Quran dan Sunnah, mengembangkan potensi akademik secara optimal, serta membangun karakter dan kepemimpinan sejak dini.'
     ]);

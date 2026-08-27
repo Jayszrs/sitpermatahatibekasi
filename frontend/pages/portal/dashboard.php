@@ -7,7 +7,7 @@ portal_require_auth();
 $user = portal_user();
 $stats = [];
 $stats['news'] = (int)$pdo->query('SELECT COUNT(*) FROM news')->fetchColumn();
-$stats['gallery'] = (int)$pdo->query('SELECT COUNT(*) FROM gallery')->fetchColumn();
+$stats['gallery'] = (int)$pdo->query('SELECT COUNT(*) FROM gallery_photos')->fetchColumn();
 $stats['registrations'] = (int)$pdo->query('SELECT COUNT(*) FROM spmb_registrations')->fetchColumn();
 $stats['paid'] = (int)$pdo->query("SELECT COUNT(*) FROM spmb_registrations WHERE payment_status = 'lunas'")->fetchColumn();
 $logs = $pdo->query("SELECT l.*, u.name FROM portal_activity_logs l LEFT JOIN portal_users u ON u.id = l.user_id ORDER BY l.created_at DESC LIMIT 7")->fetchAll();
