@@ -3,6 +3,13 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'SPMB - Penerimaan Murid Baru';
 $spmbUnits = $pdo->query("SELECT * FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+$spmbUnitNames = array_map(static fn(array $unit): string => (string) ($unit['subtitle'] ?: $unit['title']), $spmbUnits);
+$spmbUnitImageMap = [
+    'daycare' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+    'tkit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+    'sdit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+    'smpit' => SITE_URL . '/frontend/assets/images/school/gedung-smpit.jpeg',
+];
 require_once __DIR__ . '/../components/header.php';
 ?>
 
@@ -19,14 +26,14 @@ require_once __DIR__ . '/../components/header.php';
         <div class="hero-content">
             <span class="hero-eyebrow">SPMB <?php echo date('Y'); ?>/<?php echo date('Y') + 1; ?></span>
             <h1>Bergabunglah Bersama <span><?php echo esc(SITE_NAME); ?></span></h1>
-            <p>Pendaftaran murid baru tahun ajaran <?php echo date('Y'); ?>/<?php echo date('Y') + 1; ?> resmi dibuka untuk jenjang SD, SMP, dan SMA. Persiapkan masa depan terbaik untuk putra-putri Anda bersama kami.</p>
+            <p>Pendaftaran murid baru tahun ajaran <?php echo date('Y'); ?>/<?php echo date('Y') + 1; ?> resmi dibuka untuk <?php echo esc(implode(', ', $spmbUnitNames)); ?>. Persiapkan masa depan terbaik untuk putra-putri Anda bersama kami.</p>
             <div class="hero-actions">
                 <a href="form-spmb.php" class="btn btn-primary">Daftar Sekarang</a>
-                <a href="https://wa.me/<?php echo esc(SITE_WHATSAPP); ?>" target="_blank" rel="noopener" class="btn btn-outline">Hubungi WhatsApp</a>
+                <a href="https://wa.me/<?php echo esc(SITE_WHATSAPP); ?>" target="_blank" rel="noopener" class="btn btn-outline-light">Hubungi WhatsApp</a>
             </div>
         </div>
         <div class="hero-media">
-            <img src="https://placehold.co/700x525/0f5132/ffffff?text=SPMB+<?php echo date('Y'); ?>" alt="SPMB">
+            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="Gedung SIT Permata Hati Bekasi">
         </div>
     </div>
 </section>
@@ -39,7 +46,7 @@ require_once __DIR__ . '/../components/header.php';
             <h2>Jenjang Pendaftaran</h2>
         </div>
         <div class="grid-3">
-            <?php foreach($spmbUnits as $unit): ?><div class="card"><?php if($unit['image']): ?><img src="<?php echo esc($unit['image']); ?>" alt="<?php echo esc($unit['title']); ?>"><?php endif; ?><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,150,'...')); ?></p><a class="btn btn-outline btn-sm" href="form-spmb.php?level=<?php echo urlencode($unit['subtitle']); ?>">Pilih Jenjang</a></div></div><?php endforeach; ?>
+            <?php foreach($spmbUnits as $unit): ?><?php $unitKey = strtolower((string) $unit['subtitle']); $unitImage = $unit['image'] ?: ($spmbUnitImageMap[$unitKey] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?><div class="card"><img src="<?php echo esc($unitImage); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>"><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,150,'...')); ?></p><a class="btn btn-outline btn-sm" href="form-spmb.php?level=<?php echo urlencode($unit['subtitle']); ?>">Pilih Jenjang</a></div></div><?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -71,7 +78,7 @@ require_once __DIR__ . '/../components/header.php';
                 <li>Fotokopi akta kelahiran</li>
                 <li>Fotokopi kartu keluarga</li>
                 <li>Fotokopi rapor terakhir</li>
-                <li>Fotokopi ijazah (untuk SMP/SMA)</li>
+                <li>Fotokopi ijazah atau rapor sesuai jenjang</li>
                 <li>Pas foto berwarna 3x4 (2 lembar)</li>
             </ul>
         </div>
@@ -81,9 +88,7 @@ require_once __DIR__ . '/../components/header.php';
             <div class="table-wrap">
                 <table class="schedule">
                     <tr><th>Jenjang</th><th>Biaya Pendaftaran</th></tr>
-                    <tr><td>SD Islam Terpadu</td><td>Rp 350.000</td></tr>
-                    <tr><td>SMP Islam Terpadu</td><td>Rp 400.000</td></tr>
-                    <tr><td>SMA Islam Terpadu</td><td>Rp 450.000</td></tr>
+                    <?php foreach ($spmbUnits as $unit): ?><tr><td><?php echo esc($unit['title']); ?></td><td>Hubungi Admin SPMB</td></tr><?php endforeach; ?>
                 </table>
             </div>
             <p style="color: var(--muted); font-size:0.85rem; margin-top:14px;">*Biaya dapat berubah, informasi terbaru hubungi bagian pendaftaran.</p>

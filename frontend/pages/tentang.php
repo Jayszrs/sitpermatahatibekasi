@@ -16,7 +16,7 @@ require_once __DIR__ . '/../components/header.php';
 
 <section class="section">
     <div class="container about-grid">
-        <img src="<?php echo esc($profile['image'] ?: 'https://placehold.co/700x525/0f5132/ffffff?text=Sejarah+Sekolah'); ?>" alt="Sejarah Sekolah">
+        <img src="<?php echo esc($profile['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="Sejarah Sekolah">
         <div class="about-text">
             <span class="section-eyebrow">Sejarah Kami</span>
             <h2><?php echo esc($profile['history_title']); ?></h2>
@@ -50,7 +50,7 @@ require_once __DIR__ . '/../components/header.php';
             <p>Dipimpin oleh tenaga pendidik profesional dan berpengalaman.</p>
         </div>
         <div class="grid-3">
-            <?php foreach($leaders as $leader): ?><div class="card"><img src="<?php echo esc($leader['image'] ?: 'https://placehold.co/400x400/0f5132/ffffff?text='.urlencode($leader['subtitle'])); ?>" alt="<?php echo esc($leader['title']); ?>"><div class="card-body"><span class="section-eyebrow"><?php echo esc($leader['subtitle']); ?></span><h3><?php echo esc($leader['title']); ?></h3><p><?php echo nl2br(esc($leader['description'])); ?></p></div></div><?php endforeach; ?>
+            <?php foreach($leaders as $leader): ?><div class="card"><img src="<?php echo esc($leader['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($leader['title']); ?>"><div class="card-body"><span class="section-eyebrow"><?php echo esc($leader['subtitle']); ?></span><h3><?php echo esc($leader['title']); ?></h3><p><?php echo nl2br(esc($leader['description'])); ?></p></div></div><?php endforeach; ?>
         </div>
     </div>
 </section>

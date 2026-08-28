@@ -168,6 +168,61 @@ CREATE TABLE IF NOT EXISTS `spmb_payments` (
     CONSTRAINT `fk_payment_recorder` FOREIGN KEY (`recorded_by`) REFERENCES `portal_users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- ============================================================
+-- Tabel: portal karir dan lamaran kandidat
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `job_vacancies` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(180) NOT NULL,
+    `slug` VARCHAR(190) NOT NULL UNIQUE,
+    `unit` VARCHAR(80) NOT NULL,
+    `department` VARCHAR(100) NOT NULL,
+    `employment_type` VARCHAR(60) NOT NULL,
+    `work_location` VARCHAR(180) NOT NULL,
+    `education` VARCHAR(180) DEFAULT NULL,
+    `experience` VARCHAR(180) DEFAULT NULL,
+    `summary` VARCHAR(255) NOT NULL,
+    `description` TEXT NOT NULL,
+    `responsibilities` TEXT NOT NULL,
+    `requirements` TEXT NOT NULL,
+    `benefits` TEXT DEFAULT NULL,
+    `salary_note` VARCHAR(150) DEFAULT NULL,
+    `deadline` DATE DEFAULT NULL,
+    `is_featured` TINYINT(1) NOT NULL DEFAULT 0,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_job_public` (`is_active`,`deadline`,`created_at`),
+    INDEX `idx_job_filter` (`unit`,`employment_type`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `job_applications` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `vacancy_id` INT NOT NULL,
+    `full_name` VARCHAR(150) NOT NULL,
+    `email` VARCHAR(190) NOT NULL,
+    `phone` VARCHAR(30) NOT NULL,
+    `city` VARCHAR(100) DEFAULT NULL,
+    `education` VARCHAR(180) DEFAULT NULL,
+    `experience_years` DECIMAL(4,1) NOT NULL DEFAULT 0,
+    `cover_letter` TEXT NOT NULL,
+    `cv_file` VARCHAR(255) NOT NULL,
+    `cv_original_name` VARCHAR(255) NOT NULL,
+    `portfolio_url` VARCHAR(255) DEFAULT NULL,
+    `status` ENUM('baru','ditinjau','wawancara','diterima','ditolak') NOT NULL DEFAULT 'baru',
+    `admin_notes` TEXT DEFAULT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_application_vacancy` (`vacancy_id`,`status`,`created_at`),
+    CONSTRAINT `fk_application_vacancy` FOREIGN KEY (`vacancy_id`) REFERENCES `job_vacancies` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+INSERT IGNORE INTO `job_vacancies` (`title`,`slug`,`unit`,`department`,`employment_type`,`work_location`,`education`,`experience`,`summary`,`description`,`responsibilities`,`requirements`,`benefits`,`salary_note`,`deadline`,`is_featured`,`is_active`) VALUES
+('Guru Kelas SDIT','guru-kelas-sdit','SDIT','Pendidikan','Penuh Waktu','Tambun Selatan, Bekasi','S1 PGSD/Pendidikan','Minimal 1 tahun','Mendampingi pembelajaran tematik, literasi, numerasi, dan pembentukan karakter Islami siswa SDIT.','Kami mencari pendidik yang hangat, adaptif, dan mampu menghadirkan pengalaman belajar bermakna bagi siswa SDIT.','Menyusun dan menjalankan modul ajar\nMelakukan asesmen perkembangan siswa\nBerkomunikasi aktif dengan orang tua\nBerpartisipasi dalam program sekolah','Muslim/Muslimah dan berakhlak baik\nS1 PGSD atau bidang pendidikan relevan\nMampu bekerja dalam tim\nMenguasai teknologi pembelajaran dasar','Lingkungan kerja Islami\nPelatihan dan pengembangan guru\nMakan siang dan tunjangan sesuai kebijakan','Kompetitif',DATE_ADD(CURDATE(),INTERVAL 60 DAY),1,1),
+('Guru Tahfidz dan Tahsin','guru-tahfidz-tahsin','Semua Unit','Al Quran','Penuh Waktu','Tambun Selatan, Bekasi','S1 atau pesantren/mahad relevan','Minimal 1 tahun','Membina bacaan, hafalan, adab, serta kecintaan siswa terhadap Al Quran.','Posisi ini berperan menjaga kualitas program Al Quran lintas unit melalui pendampingan yang terukur dan menyenangkan.','Membimbing tahsin dan tahfidz\nMenyusun target hafalan\nMencatat perkembangan siswa\nMendukung kegiatan ruhiyah sekolah','Bacaan Al Quran baik dan bersanad menjadi nilai tambah\nBerpengalaman mengajar anak\nSabar, komunikatif, dan disiplin','Program pengembangan kompetensi\nLingkungan kerja suportif\nTunjangan sesuai kebijakan','Kompetitif',DATE_ADD(CURDATE(),INTERVAL 75 DAY),1,1),
+('Guru Pendamping TKIT','guru-pendamping-tkit','TKIT','Pendidikan Anak Usia Dini','Penuh Waktu','Tambun Selatan, Bekasi','S1 PAUD/Psikologi/Pendidikan','Terbuka untuk fresh graduate','Mendampingi aktivitas bermain-belajar, pembiasaan adab, dan perkembangan anak usia dini.','Kami membuka kesempatan bagi pendidik kreatif yang menyukai dunia anak dan pembelajaran berbasis eksplorasi.','Menyiapkan area dan media bermain\nMendampingi rutinitas kelas\nMencatat perkembangan anak\nMenjaga komunikasi dengan wali murid','Menyukai dunia anak\nKreatif dan komunikatif\nMampu bekerja dalam tim\nSehat jasmani dan rohani','Mentoring guru senior\nPelatihan PAUD\nLingkungan kerja Islami','Kompetitif',DATE_ADD(CURDATE(),INTERVAL 45 DAY),0,1),
+('Staf Humas dan Konten Digital','staf-humas-konten-digital','Yayasan','Humas','Penuh Waktu','Tambun Selatan, Bekasi','D3/S1 Komunikasi/Desain/Multimedia','Minimal 1 tahun','Mengelola publikasi, dokumentasi, media sosial, dan komunikasi digital sekolah.','Posisi ini membantu menyampaikan cerita dan informasi sekolah secara akurat, menarik, serta konsisten dengan identitas lembaga.','Menyusun kalender konten\nMendokumentasikan kegiatan\nMengelola media sosial dan website\nBerkoordinasi dengan seluruh unit','Mampu menulis copy dengan baik\nMenguasai desain atau video dasar\nMemiliki portofolio\nResponsif dan terorganisir','Perangkat kerja pendukung\nKesempatan mengembangkan portofolio\nTunjangan sesuai kebijakan','Kompetitif',DATE_ADD(CURDATE(),INTERVAL 60 DAY),0,1);
+
 -- Konten awal CMS agar halaman publik langsung terisi setelah import.
 INSERT INTO `site_profile` (`id`,`history_title`,`history_content`,`vision`,`mission`) VALUES
 (1, 'Profil SIT Permata Hati Bekasi', 'Didirikan dengan semangat mencetak generasi sholeh, cerdas, mandiri, dan berakhlak mulia, SIT Permata Hati Bekasi berkembang menjadi sekolah Islam terpadu terpercaya di Tambun Selatan. Kami konsisten memadukan kurikulum nasional, pembelajaran Al-Quran, dan pembinaan karakter.', 'Menjadi sekolah Islam terpadu yang melahirkan generasi sholeh, cerdas, mandiri, dan berwawasan global.', 'Menyelenggarakan pendidikan berbasis Al-Quran dan Sunnah, mengembangkan potensi akademik secara optimal, serta membangun karakter dan kepemimpinan sejak dini.');
@@ -206,17 +261,17 @@ INSERT INTO `site_content_items` (`type`,`title`,`subtitle`,`description`,`image
 -- ============================================================
 INSERT INTO `news` (`title`, `slug`, `image`, `excerpt`, `content`, `published_at`) VALUES
 ('Pesantren Ramadhan 1447 H Resmi Dibuka', 'pesantren-ramadhan-1447-h-resmi-dibuka',
- 'https://placehold.co/800x500/0f5132/ffffff?text=Pesantren+Ramadhan',
+ 'http://localhost/school-website/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg',
  'Kegiatan Pesantren Ramadhan tahun ini diikuti oleh seluruh siswa SD, SMP, dan SMA dengan berbagai rangkaian acara keagamaan.',
  'Kegiatan Pesantren Ramadhan tahun ini diikuti oleh seluruh siswa SD, SMP, dan SMA dengan berbagai rangkaian acara keagamaan seperti tadarus bersama, kajian akhlak, buka puasa bersama, dan santunan anak yatim. Kegiatan ini bertujuan untuk memperkuat nilai-nilai spiritual siswa selama bulan suci Ramadhan sekaligus mempererat ukhuwah antar siswa dan guru.',
  '2026-03-10'),
 ('Siswa Raih Juara 1 Olimpiade Matematika Nasional', 'siswa-raih-juara-1-olimpiade-matematika-nasional',
- 'https://placehold.co/800x500/0f5132/ffffff?text=Olimpiade+Matematika',
+ 'http://localhost/school-website/frontend/assets/images/achievements/sdit-bastian-bachtiar.webp',
  'Prestasi membanggakan kembali diraih oleh siswa SMP kami dalam ajang Olimpiade Sains Nasional bidang Matematika.',
  'Prestasi membanggakan kembali diraih oleh siswa SMP kami dalam ajang Olimpiade Sains Nasional bidang Matematika. Setelah melalui seleksi ketat tingkat kota, provinsi, hingga nasional, siswa kami berhasil membawa pulang medali emas. Pencapaian ini merupakan hasil dari bimbingan intensif guru pembina serta kerja keras siswa selama berbulan-bulan.',
  '2026-02-20'),
 ('Wisuda Tahfidz Angkatan XII Berlangsung Khidmat', 'wisuda-tahfidz-angkatan-xii-berlangsung-khidmat',
- 'https://placehold.co/800x500/0f5132/ffffff?text=Wisuda+Tahfidz',
+ 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg',
  'Sebanyak 45 siswa mengikuti prosesi Wisuda Tahfidz Al-Quran angkatan XII yang dihadiri oleh orang tua dan wali murid.',
  'Sebanyak 45 siswa mengikuti prosesi Wisuda Tahfidz Al-Quran angkatan XII yang dihadiri oleh orang tua dan wali murid. Acara ini menjadi momen istimewa bagi para siswa yang telah menyelesaikan target hafalan juz yang ditentukan. Kepala sekolah berharap program tahfidz ini terus mencetak generasi penghafal Al-Quran yang berakhlak mulia.',
  '2026-01-15');
@@ -225,12 +280,12 @@ INSERT INTO `news` (`title`, `slug`, `image`, `excerpt`, `content`, `published_a
 -- SAMPLE DATA: gallery
 -- ============================================================
 INSERT INTO `gallery` (`title`, `image`, `description`) VALUES
-('Gedung Sekolah', 'https://placehold.co/600x450/0f5132/ffffff?text=Gedung+Sekolah', 'Tampak depan gedung sekolah'),
-('Kegiatan Belajar Mengajar', 'https://placehold.co/600x450/0f5132/ffffff?text=Kegiatan+Belajar', 'Suasana kelas yang nyaman'),
-('Lapangan Olahraga', 'https://placehold.co/600x450/0f5132/ffffff?text=Lapangan+Olahraga', 'Fasilitas olahraga siswa'),
-('Perpustakaan', 'https://placehold.co/600x450/0f5132/ffffff?text=Perpustakaan', 'Ruang baca dan koleksi buku'),
-('Laboratorium Komputer', 'https://placehold.co/600x450/0f5132/ffffff?text=Lab+Komputer', 'Fasilitas digital learning'),
-('Masjid Sekolah', 'https://placehold.co/600x450/0f5132/ffffff?text=Masjid+Sekolah', 'Pusat kegiatan keagamaan siswa');
+('Gedung Sekolah', 'http://localhost/school-website/frontend/assets/images/school/gedung-sekolah.jpeg', 'Tampak depan gedung sekolah'),
+('Kegiatan Belajar Mengajar', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg', 'Suasana kelas yang nyaman'),
+('Lapangan Olahraga', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-01.jpeg', 'Fasilitas olahraga siswa'),
+('Perpustakaan', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-02.jpeg', 'Ruang baca dan koleksi buku'),
+('Laboratorium Komputer', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-03.jpeg', 'Fasilitas digital learning'),
+('Masjid Sekolah', 'http://localhost/school-website/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg', 'Pusat kegiatan keagamaan siswa');
 
 INSERT INTO `gallery_albums` (`id`,`title`,`slug`,`description`,`sort_order`,`is_active`) VALUES
 (1, 'Kegiatan Sekolah', 'kegiatan-sekolah', 'Dokumentasi kegiatan belajar, ruang kelas, dan suasana pembelajaran SIT Permata Hati Bekasi.', 1, 1),
@@ -254,11 +309,11 @@ INSERT INTO `gallery_photos` (`album_id`,`title`,`image`,`description`,`sort_ord
 (3, 'Literasi Islami Anak Usia Dini', 'http://localhost/school-website/frontend/assets/images/gallery/masjid-sekolah/masjid-03.jpeg', 'Anak-anak mengenal bacaan dan adab Islami melalui aktivitas literasi yang lembut dan menyenangkan.', 3),
 (4, 'Gedung Daycare, TKIT, dan SDIT', 'http://localhost/school-website/frontend/assets/images/school/gedung-sekolah.jpeg', 'Gedung utama SIT Permata Hati Bekasi di kawasan Buwek Jaya, Tambun Selatan.', 1),
 (4, 'Gedung SMPIT Permata Hati', 'http://localhost/school-website/frontend/assets/images/school/gedung-smpit.jpeg', 'Gedung SMPIT Permata Hati Bekasi dengan fasilitas belajar dan lapangan sekolah.', 2),
-(5, 'Gedung Sekolah', 'https://placehold.co/600x450/0f5132/ffffff?text=Gedung+Sekolah', 'Tampak depan gedung sekolah', 1),
-(5, 'Kegiatan Belajar Mengajar', 'https://placehold.co/600x450/0f5132/ffffff?text=Kegiatan+Belajar', 'Suasana kelas yang nyaman', 2),
-(5, 'Lapangan Olahraga', 'https://placehold.co/600x450/0f5132/ffffff?text=Lapangan+Olahraga', 'Fasilitas olahraga siswa', 3),
-(5, 'Perpustakaan', 'https://placehold.co/600x450/0f5132/ffffff?text=Perpustakaan', 'Ruang baca dan koleksi buku', 4),
-(5, 'Laboratorium Komputer', 'https://placehold.co/600x450/0f5132/ffffff?text=Lab+Komputer', 'Fasilitas digital learning', 5),
-(5, 'Masjid Sekolah', 'https://placehold.co/600x450/0f5132/ffffff?text=Masjid+Sekolah', 'Pusat kegiatan keagamaan siswa', 6);
+(5, 'Gedung Sekolah', 'http://localhost/school-website/frontend/assets/images/school/gedung-sekolah.jpeg', 'Tampak depan gedung sekolah', 1),
+(5, 'Kegiatan Belajar Mengajar', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg', 'Suasana kelas yang nyaman', 2),
+(5, 'Lapangan Olahraga', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-01.jpeg', 'Fasilitas olahraga siswa', 3),
+(5, 'Perpustakaan', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-02.jpeg', 'Ruang baca dan koleksi buku', 4),
+(5, 'Laboratorium Komputer', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-03.jpeg', 'Fasilitas digital learning', 5),
+(5, 'Masjid Sekolah', 'http://localhost/school-website/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg', 'Pusat kegiatan keagamaan siswa', 6);
 
 -- Selesai

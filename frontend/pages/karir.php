@@ -1,68 +1,64 @@
 <?php
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
-$page_title = 'Karir';
+$page_title = 'Karir & Lowongan Kerja';
+
+$q = trim($_GET['q'] ?? '');
+$unit = trim($_GET['unit'] ?? '');
+$employmentType = trim($_GET['type'] ?? '');
+$where = ["is_active=1", "(deadline IS NULL OR deadline>=CURDATE())"];
+$params = [];
+if ($q !== '') {
+    $where[] = '(title LIKE ? OR department LIKE ? OR summary LIKE ? OR work_location LIKE ?)';
+    $like = '%' . $q . '%';
+    array_push($params, $like, $like, $like, $like);
+}
+if ($unit !== '') { $where[] = 'unit=?'; $params[] = $unit; }
+if ($employmentType !== '') { $where[] = 'employment_type=?'; $params[] = $employmentType; }
+$stmt = $pdo->prepare('SELECT * FROM job_vacancies WHERE ' . implode(' AND ', $where) . ' ORDER BY is_featured DESC, deadline ASC, created_at DESC');
+$stmt->execute($params);
+$jobs = $stmt->fetchAll();
+$units = $pdo->query("SELECT DISTINCT unit FROM job_vacancies WHERE is_active=1 ORDER BY unit")->fetchAll(PDO::FETCH_COLUMN);
+$types = $pdo->query("SELECT DISTINCT employment_type FROM job_vacancies WHERE is_active=1 ORDER BY employment_type")->fetchAll(PDO::FETCH_COLUMN);
+$jobStats = $pdo->query("SELECT COUNT(*) total, COUNT(DISTINCT unit) units, SUM(is_featured=1) featured FROM job_vacancies WHERE is_active=1 AND (deadline IS NULL OR deadline>=CURDATE())")->fetch();
+
 require_once __DIR__ . '/../components/header.php';
 ?>
 
-<section class="page-header career-page-header">
+<section class="career-board-hero">
+    <div class="container career-board-hero-grid">
+        <div><span class="career-kicker">Karir di SIT Permata Hati Bekasi</span><h1>Tumbuh Bersama,<br><span>Mendidik dengan Makna.</span></h1><p>Temukan peran yang sesuai dengan keahlian Anda dan ikut membangun generasi sholeh, cerdas, mandiri, dan berwawasan global.</p></div>
+        <div class="career-hero-card"><span>Kesempatan Terbuka</span><strong><?php echo (int)$jobStats['total']; ?> Posisi</strong><p>Untuk pendidik dan tenaga profesional yang ingin berkarya di lingkungan Islami dan kolaboratif.</p></div>
+    </div>
     <div class="container">
-        <h1>Karir</h1>
-        <p class="breadcrumb"><a href="index.php">Beranda</a> / Karir</p>
+        <form class="job-search-bar" method="get" action="karir.php">
+            <label><span>Cari posisi</span><input type="search" name="q" value="<?php echo esc($q); ?>" placeholder="Contoh: Guru, Humas, Al Quran"></label>
+            <label><span>Unit</span><select name="unit"><option value="">Semua unit</option><?php foreach ($units as $option): ?><option value="<?php echo esc($option); ?>" <?php echo $unit===$option?'selected':''; ?>><?php echo esc($option); ?></option><?php endforeach; ?></select></label>
+            <label><span>Tipe pekerjaan</span><select name="type"><option value="">Semua tipe</option><?php foreach ($types as $option): ?><option value="<?php echo esc($option); ?>" <?php echo $employmentType===$option?'selected':''; ?>><?php echo esc($option); ?></option><?php endforeach; ?></select></label>
+            <button class="btn btn-gold" type="submit">Cari Lowongan</button>
+        </form>
     </div>
 </section>
 
-<section class="section career-section">
-    <div class="container career-intro">
-        <div>
-            <span class="section-eyebrow">Bergabung Bersama Kami</span>
-            <h2>Menjadi Bagian Dari Pendidikan Islam Yang Bermakna</h2>
-            <p>SIT Permata Hati Bekasi membuka ruang bagi pendidik dan tenaga profesional yang ingin bertumbuh bersama dalam lingkungan kerja Islami, kolaboratif, dan berorientasi pada perkembangan anak.</p>
-            <a href="mailto:<?php echo esc(SITE_EMAIL); ?>?subject=Lamaran%20Karir%20SIT%20Permata%20Hati%20Bekasi" class="btn btn-primary">Kirim Lamaran</a>
-        </div>
-        <div class="career-note">
-            <h3>Dokumen Lamaran</h3>
-            <ul>
-                <li>CV terbaru</li>
-                <li>Surat lamaran</li>
-                <li>Ijazah dan transkrip</li>
-                <li>Portofolio atau sertifikat pendukung</li>
-            </ul>
-        </div>
-    </div>
-</section>
-
-<section class="section section-alt">
-    <div class="container">
-        <div class="section-head">
-            <span class="section-eyebrow">Posisi</span>
-            <h2>Kebutuhan Tenaga Pendidikan</h2>
-            <p>Daftar posisi dapat berubah sesuai kebutuhan unit sekolah.</p>
-        </div>
-        <div class="career-grid">
-            <div class="career-card"><h3>Guru Daycare/TKIT</h3><p>Mendampingi tumbuh kembang anak usia dini dengan pendekatan hangat dan kreatif.</p></div>
-            <div class="career-card"><h3>Guru Kelas SDIT</h3><p>Mengajar pembelajaran tematik, literasi, numerasi, dan pembiasaan karakter Islami.</p></div>
-            <div class="career-card"><h3>Guru Al Quran</h3><p>Membina tahsin, tahfidz, dan murojaah siswa secara bertahap.</p></div>
-            <div class="career-card"><h3>Guru SMPIT</h3><p>Menguatkan akademik, karakter, dan kepemimpinan siswa jenjang menengah.</p></div>
-            <div class="career-card"><h3>Staf Administrasi</h3><p>Mengelola layanan administrasi sekolah dengan rapi, ramah, dan teliti.</p></div>
-            <div class="career-card"><h3>Staf Humas</h3><p>Mendukung komunikasi sekolah, publikasi kegiatan, dan layanan informasi orang tua.</p></div>
-        </div>
-    </div>
-</section>
-
-<section class="section">
-    <div class="container">
-        <div class="career-cta">
-            <div>
-                <h2>Siap Mengirim Lamaran?</h2>
-                <p>Kirimkan berkas lamaran ke email sekolah atau hubungi admin melalui WhatsApp untuk informasi posisi terbaru.</p>
-            </div>
-            <div class="cta-actions">
-                <a href="mailto:<?php echo esc(SITE_EMAIL); ?>" class="btn btn-gold">Email Sekolah</a>
-                <a href="https://wa.me/<?php echo esc(SITE_WHATSAPP); ?>" target="_blank" rel="noopener" class="btn btn-outline-light">WhatsApp</a>
+<section class="job-board-section">
+    <div class="container job-board-layout">
+        <aside class="job-sidebar"><div><span class="section-eyebrow">Mengapa Kami</span><h2>Lebih dari tempat bekerja</h2><p>Lingkungan yang membantu Anda terus belajar sekaligus memberi dampak bagi pendidikan anak.</p></div><ul><li>Budaya kerja Islami</li><li>Pengembangan kompetensi</li><li>Kolaborasi lintas unit</li><li>Pekerjaan yang bermakna</li></ul><a href="karir.php" class="job-reset-link">Lihat semua posisi &rarr;</a></aside>
+        <div class="job-results">
+            <div class="job-results-head"><div><span>Lowongan tersedia</span><h2><?php echo count($jobs); ?> posisi ditemukan</h2></div><?php if ($q || $unit || $employmentType): ?><a href="karir.php">Hapus filter</a><?php endif; ?></div>
+            <div class="job-list">
+                <?php if (!$jobs): ?><div class="job-empty"><h3>Belum ada posisi yang cocok</h3><p>Coba kata kunci atau filter lain. Anda juga dapat kembali memeriksa halaman ini secara berkala.</p><a class="btn btn-primary" href="karir.php">Tampilkan Semua</a></div><?php endif; ?>
+                <?php foreach ($jobs as $job): ?>
+                <article class="job-card<?php echo $job['is_featured'] ? ' featured' : ''; ?>">
+                    <div class="job-logo"><img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo-sit-permata-hati.jpeg" alt=""></div>
+                    <div class="job-card-main"><div class="job-card-top"><?php if($job['is_featured']): ?><span class="job-featured">Prioritas</span><?php endif; ?><span><?php echo esc($job['department']); ?></span></div><h3><a href="detail-karir.php?slug=<?php echo urlencode($job['slug']); ?>"><?php echo esc($job['title']); ?></a></h3><p><?php echo esc($job['summary']); ?></p><div class="job-meta"><span><?php echo esc($job['unit']); ?></span><span><?php echo esc($job['employment_type']); ?></span><span><?php echo esc($job['work_location']); ?></span></div></div>
+                    <div class="job-card-side"><?php if($job['deadline']): ?><small>Batas lamaran</small><strong><?php echo esc(tanggal_indo($job['deadline'])); ?></strong><?php else: ?><small>Dibuka sampai</small><strong>Posisi terpenuhi</strong><?php endif; ?><a href="detail-karir.php?slug=<?php echo urlencode($job['slug']); ?>">Lihat Detail <span>&rarr;</span></a></div>
+                </article>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
 </section>
+
+<section class="career-process-section"><div class="container"><div class="section-head"><span class="section-eyebrow">Proses Rekrutmen</span><h2>Langkah Bergabung Bersama Kami</h2></div><div class="career-process-grid"><div><span>01</span><h3>Kirim Lamaran</h3><p>Pilih posisi dan lengkapi formulir beserta CV terbaru.</p></div><div><span>02</span><h3>Seleksi Administrasi</h3><p>Tim kami meninjau kesesuaian profil dan kebutuhan posisi.</p></div><div><span>03</span><h3>Wawancara &amp; Tes</h3><p>Kandidat terpilih mengikuti wawancara serta tes sesuai posisi.</p></div><div><span>04</span><h3>Penawaran</h3><p>Kandidat terbaik menerima informasi hasil dan penawaran kerja.</p></div></div></div></section>
 
 <?php require_once __DIR__ . '/../components/footer.php'; ?>

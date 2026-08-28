@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../../backend/auth.php';
 portal_require_auth(['admin', 'humas']);
 
 $contentTypes = [
-    'unit' => ['label' => 'Unit Sekolah', 'title' => 'Nama unit', 'subtitle' => 'Singkatan/jenjang', 'extra' => 'Program unggulan (satu per baris)', 'help' => 'Kelola gambar dan deskripsi SD, SMP, SMA, atau unit lainnya.'],
+    'unit' => ['label' => 'Unit Sekolah', 'title' => 'Nama unit', 'subtitle' => 'Singkatan/jenjang', 'extra' => 'Program unggulan (satu per baris)', 'help' => 'Kelola gambar dan deskripsi Daycare, TKIT, SDIT, SMPIT, atau unit lainnya.'],
     'achievement' => ['label' => 'Prestasi', 'title' => 'Nama prestasi', 'subtitle' => 'Tingkat perlombaan', 'extra' => null, 'help' => 'Publikasikan prestasi siswa lengkap dengan tingkat, tahun, dan dokumentasi.'],
     'leadership' => ['label' => 'Struktur Pimpinan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan', 'extra' => null, 'help' => 'Tampilkan foto, nama, jabatan, dan profil pimpinan sekolah.'],
     'program' => ['label' => 'Program Unggulan', 'title' => 'Nama program', 'subtitle' => 'Ikon/singkatan', 'extra' => null, 'help' => 'Kelola program pendidikan beserta gambar dan penjelasannya.'],

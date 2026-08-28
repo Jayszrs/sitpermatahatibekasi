@@ -31,11 +31,11 @@ require_once __DIR__ . '/../components/header.php';
                     $unit = $a['extra'] ?: 'SDIT';
                     $unitKey = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $unit));
                     $level = $a['badge'] ?: 'Prestasi';
-                    $image = $a['image'] ?: 'https://placehold.co/700x525/0f5132/ffffff?text=' . urlencode($a['title']);
+                    $image = $a['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg';
                 ?>
             <div class="card achieve-card" data-achievement-unit="<?php echo esc($unitKey); ?>">
                 <div class="achieve-image-wrap">
-                    <img src="<?php echo esc($image); ?>" alt="<?php echo esc($a['title']); ?>" loading="lazy">
+                    <img src="<?php echo esc($image); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($a['title']); ?>" loading="lazy">
                     <span class="achieve-tag"><?php echo esc($level); ?></span>
                     <span class="achieve-unit-badge"><?php echo esc($unit); ?></span>
                     <div class="achieve-overlay">

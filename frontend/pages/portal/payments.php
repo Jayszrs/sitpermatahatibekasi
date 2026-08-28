@@ -3,6 +3,12 @@ require_once __DIR__ . '/../../../backend/config/database.php';
 require_once __DIR__ . '/../../../backend/helpers/functions.php';
 require_once __DIR__ . '/../../../backend/auth.php';
 portal_require_auth(['admin', 'kasir']);
+$spmbLevelRows = $pdo->query("SELECT subtitle,title FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+$spmbLevels = [];
+foreach ($spmbLevelRows as $row) {
+    $value = trim((string) ($row['subtitle'] ?: $row['title']));
+    if ($value !== '') $spmbLevels[$value] = $row['title'];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     portal_verify_csrf();
@@ -14,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $studentName=trim($_POST['student_name']??''); $parentName=trim($_POST['parent_name']??''); $whatsapp=trim($_POST['whatsapp']??'');
             $email=trim($_POST['email']??'');
             $level=$_POST['level']??''; $registrationStatus=$_POST['registration_status']??'baru'; $documentStatus=$_POST['document_status']??'belum_lengkap'; $paymentStatus=$_POST['payment_status']??'belum_bayar';
-            if ($studentName===''||$parentName===''||$whatsapp===''||!in_array($level,['SD','SMP','SMA'],true)) throw new RuntimeException('Nama siswa, orang tua, WhatsApp, dan jenjang wajib diisi.');
+            if ($studentName===''||$parentName===''||$whatsapp===''||!isset($spmbLevels[$level])) throw new RuntimeException('Nama siswa, orang tua, WhatsApp, dan jenjang wajib diisi.');
             if ($email!=='' && !filter_var($email,FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Format email pendaftar tidak valid.');
             if (!in_array($registrationStatus,['baru','verifikasi','lulus','cadangan','ditolak','daftar_ulang'],true)||!in_array($documentStatus,['belum_lengkap','lengkap','terverifikasi'],true)||!in_array($paymentStatus,['belum_bayar','sebagian','lunas'],true)) throw new RuntimeException('Status data tidak valid.');
             $stmt=$pdo->prepare('UPDATE spmb_registrations SET registration_number=?,student_name=?,student_nik=?,gender=?,birth_place=?,birth_date=?,parent_name=?,parent_nik=?,family_card_number=?,whatsapp=?,email=?,level=?,previous_school=?,address=?,registration_status=?,document_status=?,payment_status=?,payment_notes=?,payment_updated_by=? WHERE id=?');
@@ -94,7 +100,7 @@ require __DIR__ . '/../../components/portal-header.php';
         <div class="field"><label>Tempat lahir</label><input name="birth_place" value="<?php echo esc($editPayment['birth_place']); ?>"></div><div class="field"><label>Tanggal lahir</label><input type="date" name="birth_date" value="<?php echo esc($editPayment['birth_date']); ?>"></div>
         <div class="field"><label>Nama orang tua/wali</label><input name="parent_name" value="<?php echo esc($editPayment['parent_name']); ?>" required></div><div class="field"><label>NIK orang tua/wali</label><input name="parent_nik" value="<?php echo esc($editPayment['parent_nik']); ?>"></div>
         <div class="field"><label>Nomor kartu keluarga</label><input name="family_card_number" value="<?php echo esc($editPayment['family_card_number']); ?>"></div><div class="field"><label>WhatsApp</label><input name="whatsapp" value="<?php echo esc($editPayment['whatsapp']); ?>" required></div>
-        <div class="field"><label>Email (opsional)</label><input type="email" name="email" value="<?php echo esc($editPayment['email']); ?>"></div><div class="field"><label>Jenjang</label><select name="level" required><?php foreach(['SD','SMP','SMA'] as $level): ?><option <?php echo $editPayment['level']===$level?'selected':''; ?>><?php echo $level; ?></option><?php endforeach; ?></select></div>
+        <div class="field"><label>Email (opsional)</label><input type="email" name="email" value="<?php echo esc($editPayment['email']); ?>"></div><div class="field"><label>Jenjang</label><select name="level" required><?php foreach($spmbLevels as $level=>$label): ?><option value="<?php echo esc($level); ?>" <?php echo $editPayment['level']===$level?'selected':''; ?>><?php echo esc($label); ?></option><?php endforeach; ?></select></div>
         <div class="field"><label>Asal sekolah</label><input name="previous_school" value="<?php echo esc($editPayment['previous_school']); ?>"></div><div class="field"><label>Status pendaftaran</label><select name="registration_status"><?php foreach(['baru'=>'Baru','verifikasi'=>'Verifikasi','lulus'=>'Lulus','cadangan'=>'Cadangan','ditolak'=>'Ditolak','daftar_ulang'=>'Daftar Ulang'] as $key=>$label): ?><option value="<?php echo $key; ?>" <?php echo $editPayment['registration_status']===$key?'selected':''; ?>><?php echo $label; ?></option><?php endforeach; ?></select></div>
         <div class="field"><label>Status dokumen</label><select name="document_status"><?php foreach(['belum_lengkap'=>'Belum Lengkap','lengkap'=>'Lengkap','terverifikasi'=>'Terverifikasi'] as $key=>$label): ?><option value="<?php echo $key; ?>" <?php echo $editPayment['document_status']===$key?'selected':''; ?>><?php echo $label; ?></option><?php endforeach; ?></select></div><div class="field"><label>Status pembayaran</label><select name="payment_status"><?php foreach(['belum_bayar'=>'Belum Bayar','sebagian'=>'Sebagian','lunas'=>'Lunas'] as $key=>$label): ?><option value="<?php echo $key; ?>" <?php echo $editPayment['payment_status']===$key?'selected':''; ?>><?php echo $label; ?></option><?php endforeach; ?></select></div>
         <div class="field full"><label>Alamat lengkap</label><textarea name="address" style="min-height:80px"><?php echo esc($editPayment['address']); ?></textarea></div><div class="field full"><label>Catatan administrasi</label><textarea name="payment_notes" style="min-height:80px"><?php echo esc($editPayment['payment_notes']); ?></textarea></div>

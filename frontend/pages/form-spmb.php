@@ -2,6 +2,12 @@
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Form Pendaftaran SPMB';
+$spmbLevelRows = $pdo->query("SELECT subtitle,title FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+$spmbLevels = [];
+foreach ($spmbLevelRows as $row) {
+    $value = trim((string) ($row['subtitle'] ?: $row['title']));
+    if ($value !== '') $spmbLevels[$value] = $row['title'];
+}
 
 $success = false;
 $errors = [];
@@ -26,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($old['student_name'] === '') $errors[] = 'Nama calon siswa wajib diisi.';
     if ($old['parent_name'] === '') $errors[] = 'Nama orang tua wajib diisi.';
     if ($old['whatsapp'] === '') $errors[] = 'Nomor WhatsApp wajib diisi.';
-    if ($old['level'] === '') $errors[] = 'Jenjang wajib dipilih.';
+    if ($old['level'] === '' || !isset($spmbLevels[$old['level']])) $errors[] = 'Jenjang yang dipilih tidak valid.';
     if ($old['email'] !== '' && !filter_var($old['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Format email tidak valid.';
 
     if (empty($errors)) {
@@ -100,9 +106,9 @@ require_once __DIR__ . '/../components/header.php';
                         <label for="level">Jenjang *</label>
                         <select id="level" name="level" class="form-control" required>
                             <option value="">-- Pilih Jenjang --</option>
-                            <option value="SD" <?php echo $old['level'] === 'SD' ? 'selected' : ''; ?>>SD Islam Terpadu</option>
-                            <option value="SMP" <?php echo $old['level'] === 'SMP' ? 'selected' : ''; ?>>SMP Islam Terpadu</option>
-                            <option value="SMA" <?php echo $old['level'] === 'SMA' ? 'selected' : ''; ?>>SMA Islam Terpadu</option>
+                            <?php foreach ($spmbLevels as $value => $label): ?>
+                            <option value="<?php echo esc($value); ?>" <?php echo $old['level'] === $value ? 'selected' : ''; ?>><?php echo esc($label); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group">

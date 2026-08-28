@@ -27,7 +27,7 @@ require_once __DIR__ . '/../components/header.php';
         <?php $unit_image = $unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>
         <div class="unit-block <?php echo $index % 2 ? 'reverse' : ''; ?>" id="<?php echo esc($unit_key); ?>">
             <button type="button" class="unit-media image-preview-trigger" data-lightbox-src="<?php echo esc($unit_image); ?>" data-lightbox-title="<?php echo esc($unit['title']); ?>">
-                <img src="<?php echo esc($unit_image); ?>" alt="<?php echo esc($unit['title']); ?>">
+                <img src="<?php echo esc($unit_image); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>">
                 <span class="unit-media-hint">Klik untuk lihat foto penuh</span>
             </button>
             <div class="unit-text"><span class="section-eyebrow"><?php echo esc($unit['subtitle'] ?: 'Unit Pendidikan'); ?></span><h2><?php echo esc($unit['title']); ?></h2><p><?php echo nl2br(esc($unit['description'])); ?></p>

@@ -23,7 +23,7 @@ require_once __DIR__ . '/../components/header.php';
             <?php foreach ($activities as $a): ?>
             <div class="card activity-card">
                 <div class="activity-photo">
-                    <img src="<?php echo esc($a['image'] ?: 'https://placehold.co/600x650/0f5132/ffffff?text='.urlencode($a['title'])); ?>" alt="<?php echo esc($a['title']); ?>" loading="lazy">
+                    <img src="<?php echo esc($a['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($a['title']); ?>" loading="lazy">
                     <?php if($a['subtitle']): ?><span><?php echo esc($a['subtitle']); ?></span><?php endif; ?>
                 </div>
                 <div class="card-body">

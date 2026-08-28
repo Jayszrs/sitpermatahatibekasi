@@ -154,8 +154,11 @@ function portal_bootstrap_database(PDO $pdo): void
         CONSTRAINT fk_payment_recorder FOREIGN KEY (recorded_by) REFERENCES portal_users(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    portal_migrate_legacy_brand_content($pdo);
     portal_seed_gallery_albums($pdo);
     portal_seed_site_content($pdo);
+    // Seed lama menyimpan pemisah baris sebagai teks "\\n"; normalkan agar tag tampil terpisah.
+    $pdo->exec("UPDATE site_content_items SET extra=REPLACE(extra, '\\\\n', CHAR(10)) WHERE extra LIKE '%\\\\n%'");
 
     $defaults = [
         ['Administrator', 'admin', 'AdminPHB#2026', 'admin'],
@@ -183,6 +186,71 @@ function portal_bootstrap_database(PDO $pdo): void
         if ($defaultUser && password_verify($legacyPassword, $defaultUser['password'])) {
             $updateDefaultPassword->execute([password_hash($currentPassword, PASSWORD_DEFAULT), $defaultUser['id']]);
         }
+    }
+}
+
+/**
+ * Bersihkan hanya data demo TBZ lama yang belum pernah dikustomisasi.
+ * Pengecekan judul dibuat ketat supaya konten yang sudah diedit dari CRM tidak tertimpa.
+ */
+function portal_migrate_legacy_brand_content(PDO $pdo): void
+{
+    $legacySets = [
+        'unit' => ['SD Islam Terpadu', 'SMP Islam Terpadu', 'SMA Islam Terpadu'],
+        'achievement' => ['Juara 1 Olimpiade Matematika', 'Juara 2 MTQ Pelajar', 'Juara 1 Lomba Sains'],
+        'program' => ["Tahfidz Al-Qur'an", 'English Program', 'Character Building', 'Digital Learning', 'Leadership Program'],
+        'activity' => ['Pesantren Ramadhan', 'Field Trip', 'Wisuda Tahfidz'],
+    ];
+
+    $selectTitles = $pdo->prepare('SELECT title FROM site_content_items WHERE type=? ORDER BY sort_order,id');
+    $deleteType = $pdo->prepare('DELETE FROM site_content_items WHERE type=?');
+    foreach ($legacySets as $type => $expectedTitles) {
+        $selectTitles->execute([$type]);
+        $actualTitles = $selectTitles->fetchAll(PDO::FETCH_COLUMN);
+        if ($actualTitles === $expectedTitles) {
+            $deleteType->execute([$type]);
+        }
+    }
+
+    $profile = $pdo->query('SELECT history_title FROM site_profile WHERE id=1')->fetchColumn();
+    if ($profile === 'Perjalanan LPIT Thariq Bin Ziyad') {
+        $stmt = $pdo->prepare('UPDATE site_profile SET history_title=?,history_content=?,vision=?,mission=?,image=? WHERE id=1');
+        $stmt->execute([
+            'Perjalanan ' . SITE_NAME,
+            'Didirikan dengan semangat mencetak generasi sholeh, cerdas, mandiri, dan berakhlak mulia, SIT Permata Hati Bekasi berkembang menjadi sekolah Islam terpadu terpercaya di Tambun Selatan. Kami konsisten memadukan kurikulum nasional, pembelajaran Al-Quran, dan pembinaan karakter.',
+            'Menjadi lembaga pendidikan Islam terpadu terdepan yang melahirkan generasi cerdas, berakhlak mulia, dan berdaya saing global.',
+            'Menyelenggarakan pendidikan berbasis Al-Quran dan Sunnah, mengembangkan potensi akademik secara optimal, serta membangun karakter dan kepemimpinan sejak dini.',
+            SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+        ]);
+    }
+
+    $newsImages = [
+        'pesantren-ramadhan-1447-h-resmi-dibuka' => SITE_URL . '/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg',
+        'siswa-raih-juara-1-olimpiade-matematika-nasional' => SITE_URL . '/frontend/assets/images/achievements/sdit-bastian-bachtiar.webp',
+        'wisuda-tahfidz-angkatan-xii-berlangsung-khidmat' => SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg',
+    ];
+    $updateNewsImage = $pdo->prepare("UPDATE news SET image=? WHERE slug=? AND image LIKE 'https://placehold.co/%'");
+    foreach ($newsImages as $slug => $image) {
+        $updateNewsImage->execute([$image, $slug]);
+    }
+
+    $galleryImages = [
+        'Gedung Sekolah' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+        'Kegiatan Belajar Mengajar' => SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg',
+        'Lapangan Olahraga' => SITE_URL . '/frontend/assets/images/gallery/kegiatan-olahraga/olahraga-01.jpeg',
+        'Perpustakaan' => SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-02.jpeg',
+        'Laboratorium Komputer' => SITE_URL . '/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-03.jpeg',
+        'Masjid Sekolah' => SITE_URL . '/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg',
+    ];
+    $updateGalleryPhoto = $pdo->prepare("UPDATE gallery_photos SET image=? WHERE title=? AND image LIKE 'https://placehold.co/%'");
+    $legacyGalleryExists = $pdo->prepare("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME='gallery'");
+    $legacyGalleryExists->execute([DB_NAME]);
+    $updateLegacyGallery = (int) $legacyGalleryExists->fetchColumn() > 0
+        ? $pdo->prepare("UPDATE gallery SET image=? WHERE title=? AND image LIKE 'https://placehold.co/%'")
+        : null;
+    foreach ($galleryImages as $title => $image) {
+        $updateGalleryPhoto->execute([$image, $title]);
+        if ($updateLegacyGallery) $updateLegacyGallery->execute([$image, $title]);
     }
 }
 
@@ -304,10 +372,10 @@ function portal_seed_site_content(PDO $pdo): void
 {
     $seeds = [
         'unit' => [
-            ['Daycare Permata Hati Bekasi', 'Daycare', 'Layanan pengasuhan anak usia dini dengan suasana aman, hangat, dan pembiasaan adab Islami sejak awal.', 'Stimulasi motorik\nPembiasaan doa\nAktivitas sensorik\nLaporan harian'],
-            ['TKIT Permata Hati Bekasi', 'TKIT', 'Jenjang taman kanak-kanak Islam terpadu yang menumbuhkan kemandirian, kreativitas, dan cinta Al-Quran.', 'Sentra bermain\nTahsin dasar\nDoa harian\nKemandirian'],
-            ['SDIT Permata Hati Bekasi', 'SDIT', 'Pendidikan dasar terpadu yang menguatkan akademik, tahfidz, adab, dan karakter mandiri siswa.', 'Tahfidz Juz 30\nLiterasi numerasi\nEkstrakurikuler\nFull Day School'],
-            ['SMPIT Permata Hati Bekasi', 'SMPIT', 'Jenjang menengah pertama yang membangun kompetensi akademik, kepemimpinan, dan akhlak remaja muslim.', 'Tahfidz lanjutan\nEnglish Club\nKlub Sains\nLeadership Project'],
+            ['Daycare Permata Hati Bekasi', 'Daycare', 'Layanan pengasuhan anak usia dini dengan suasana aman, hangat, dan pembiasaan adab Islami sejak awal.', "Stimulasi motorik\nPembiasaan doa\nAktivitas sensorik\nLaporan harian"],
+            ['TKIT Permata Hati Bekasi', 'TKIT', 'Jenjang taman kanak-kanak Islam terpadu yang menumbuhkan kemandirian, kreativitas, dan cinta Al-Quran.', "Sentra bermain\nTahsin dasar\nDoa harian\nKemandirian"],
+            ['SDIT Permata Hati Bekasi', 'SDIT', 'Pendidikan dasar terpadu yang menguatkan akademik, tahfidz, adab, dan karakter mandiri siswa.', "Tahfidz Juz 30\nLiterasi numerasi\nEkstrakurikuler\nFull Day School"],
+            ['SMPIT Permata Hati Bekasi', 'SMPIT', 'Jenjang menengah pertama yang membangun kompetensi akademik, kepemimpinan, dan akhlak remaja muslim.', "Tahfidz lanjutan\nEnglish Club\nKlub Sains\nLeadership Project"],
         ],
         'achievement' => [
             ['Apresiasi Kemandirian Anak', 'Sekolah', 'Penghargaan perkembangan kemandirian dan kerja sama anak melalui aktivitas bermain terarah.', 'Sekolah|2026', SITE_URL . '/frontend/assets/images/activities/daycare-kegiatan.jpeg', 'Daycare'],

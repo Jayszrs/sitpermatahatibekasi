@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo isset($page_title) ? esc($page_title) . ' - ' . SITE_NAME : SITE_NAME; ?></title>
 <meta name="description" content="<?php echo esc(SITE_TAGLINE); ?>">
+<link rel="icon" type="image/jpeg" href="<?php echo esc(asset_url('frontend/assets/images/logo-sit-permata-hati.jpeg')); ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?php echo SITE_URL; ?>/frontend/assets/css/style.css">
+<link rel="stylesheet" href="<?php echo esc(asset_url('frontend/assets/css/style.css')); ?>">
 </head>
 <body>
 

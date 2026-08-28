@@ -34,6 +34,7 @@ $home_programs = $pdo->query("SELECT * FROM site_content_items WHERE type='progr
 $home_achievements = $pdo->query("SELECT * FROM site_content_items WHERE type='achievement' AND is_active=1 ORDER BY sort_order,id LIMIT 6")->fetchAll();
 $home_profile = $pdo->query('SELECT * FROM site_profile WHERE id=1')->fetch();
 $home_activities = $pdo->query("SELECT * FROM site_content_items WHERE type='activity' AND is_active=1 ORDER BY sort_order,id LIMIT 4")->fetchAll();
+$school_advantages = school_advantages();
 $unit_image_map = [
     'daycare' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
     'tkit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
@@ -82,12 +83,13 @@ require_once __DIR__ . '/../components/header.php';
     </div>
 </section>
 
-<!-- RUNNING TEXT -->
-<div style="background: var(--primary-dark); color: #fff; padding: 10px 0; overflow: hidden; white-space: nowrap;">
-    <div class="container">
-        <marquee behavior="scroll" direction="left" scrollamount="6" style="font-size: 0.9rem; font-weight: 600;">
-            Selamat datang di website resmi SIT Permata Hati Bekasi | Pendaftaran Murid Baru Tahun Ajaran 2026/2027 telah dibuka | Sekolah Islam Terpadu yang membina generasi sholeh, cerdas, mandiri, dan berwawasan global | Alamat: Jl. Raya Buwek Jaya Gg. Buser No. 23-24, Tambun Selatan, Bekasi
-        </marquee>
+<!-- PENGUMUMAN -->
+<div class="announcement-bar" aria-label="Pengumuman sekolah">
+    <div class="announcement-track">
+        <span>Selamat datang di website resmi SIT Permata Hati Bekasi</span>
+        <span>Pendaftaran Murid Baru Tahun Ajaran 2026/2027 telah dibuka</span>
+        <span>Sekolah Islam Terpadu: sholeh, cerdas, mandiri, dan berwawasan global</span>
+        <span>Jl. Raya Buwek Jaya Gg. Buser No. 23-24, Tambun Selatan, Bekasi</span>
     </div>
 </div>
 
@@ -111,7 +113,7 @@ require_once __DIR__ . '/../components/header.php';
 </section>
 
 <!-- UNIT SEKOLAH -->
-<section class="section section-alt">
+<section class="section section-alt" id="unit-pendidikan">
     <div class="container">
         <div class="section-head">
             <span class="section-eyebrow">Unit Pendidikan</span>
@@ -119,7 +121,7 @@ require_once __DIR__ . '/../components/header.php';
             <p>Menyediakan jenjang pendidikan berkelanjutan dari usia dini hingga menengah atas.</p>
         </div>
         <div class="grid-4 unit-home-grid">
-            <?php foreach($home_units as $index => $unit): ?><?php $unit_key = strtolower($unit['subtitle'] ?: 'unit-'.$unit['id']); ?><div class="card unit-card"><div class="unit-card-photo"><img src="<?php echo esc($unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg')); ?>" alt="<?php echo esc($unit['title']); ?>"><span><?php echo $unit_icons[$index % count($unit_icons)]; ?><?php echo esc($unit['subtitle'] ?: $unit['title']); ?></span></div><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><a href="unit.php#<?php echo esc($unit_key); ?>" class="btn btn-outline btn-sm">Lihat Detail</a></div></div><?php endforeach; ?>
+            <?php foreach($home_units as $index => $unit): ?><?php $unit_key = strtolower($unit['subtitle'] ?: 'unit-'.$unit['id']); ?><div class="card unit-card"><div class="unit-card-photo"><img src="<?php echo esc($unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg')); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>"><span><?php echo $unit_icons[$index % count($unit_icons)]; ?><?php echo esc($unit['subtitle'] ?: $unit['title']); ?></span></div><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><a href="unit.php#<?php echo esc($unit_key); ?>" class="btn btn-outline btn-sm">Lihat Detail</a></div></div><?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -139,19 +141,19 @@ require_once __DIR__ . '/../components/header.php';
 </section>
 
 <!-- KENAPA MEMILIH SEKOLAH KAMI -->
-<section class="section section-alt">
+<section class="section section-alt" id="keunggulan">
     <div class="container">
         <div class="section-head">
             <span class="section-eyebrow">Keunggulan</span>
             <h2>Kenapa Memilih Sekolah Kami</h2>
         </div>
         <div class="why-grid">
-            <div class="why-item"><div class="why-icon">1</div><div><h3>Pendidikan Islami</h3><p>Kurikulum terintegrasi nilai-nilai Al-Qur'an dan Sunnah.</p></div></div>
-            <div class="why-item"><div class="why-icon">2</div><div><h3>Guru Profesional</h3><p>Tenaga pendidik berpengalaman dan bersertifikasi.</p></div></div>
-            <div class="why-item"><div class="why-icon">3</div><div><h3>Kurikulum Berkualitas</h3><p>Perpaduan kurikulum nasional dan pengembangan karakter.</p></div></div>
-            <div class="why-item"><div class="why-icon">4</div><div><h3>Lingkungan Nyaman</h3><p>Suasana belajar yang aman, asri, dan mendukung.</p></div></div>
-            <div class="why-item"><div class="why-icon">5</div><div><h3>Fasilitas Lengkap</h3><p>Sarana pembelajaran modern dan lengkap.</p></div></div>
-            <div class="why-item"><div class="why-icon">6</div><div><h3>Pengembangan Karakter</h3><p>Program pembinaan akhlak dan kepemimpinan berkelanjutan.</p></div></div>
+            <?php foreach ($school_advantages as $slug => $advantage): ?>
+            <a class="why-item" href="keunggulan.php?slug=<?php echo urlencode($slug); ?>" aria-label="Pelajari <?php echo esc($advantage['title']); ?>">
+                <div class="why-icon"><?php echo esc($advantage['number']); ?></div>
+                <div><h3><?php echo esc($advantage['title']); ?></h3><p><?php echo esc($advantage['summary']); ?></p><span class="why-link">Pelajari selengkapnya <span aria-hidden="true">&rarr;</span></span></div>
+            </a>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -185,11 +187,11 @@ require_once __DIR__ . '/../components/header.php';
                     $unit = $achievement['extra'] ?: 'SDIT';
                     $unitKey = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $unit));
                     $level = $achievement['badge'] ?: 'Prestasi';
-                    $image = $achievement['image'] ?: 'https://placehold.co/700x525/0f5132/ffffff?text=' . urlencode($achievement['title']);
+                    $image = $achievement['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg';
                 ?>
                 <div class="card achieve-card" data-achievement-unit="<?php echo esc($unitKey); ?>">
                     <div class="achieve-image-wrap">
-                        <img src="<?php echo esc($image); ?>" alt="<?php echo esc($achievement['title']); ?>" loading="lazy">
+                        <img src="<?php echo esc($image); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($achievement['title']); ?>" loading="lazy">
                         <span class="achieve-tag"><?php echo esc($level); ?></span>
                         <span class="achieve-unit-badge"><?php echo esc($unit); ?></span>
                         <div class="achieve-overlay">
@@ -221,7 +223,7 @@ require_once __DIR__ . '/../components/header.php';
             <?php foreach($home_activities as $index => $activity): ?>
             <div class="card activity-card">
                 <div class="activity-photo">
-                    <img src="<?php echo esc($activity['image'] ?: 'https://placehold.co/600x650/0f5132/ffffff?text='.urlencode($activity['title'])); ?>" alt="<?php echo esc($activity['title']); ?>" loading="lazy">
+                    <img src="<?php echo esc($activity['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($activity['title']); ?>" loading="lazy">
                     <?php if($activity['subtitle']): ?><span><?php echo esc($activity['subtitle']); ?></span><?php endif; ?>
                 </div>
                 <div class="card-body">

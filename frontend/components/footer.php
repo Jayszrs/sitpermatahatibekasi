@@ -110,6 +110,15 @@ if (isset($pdo) && $pdo instanceof PDO) {
 </div>
 
 <script>
+document.addEventListener('error', function (event) {
+    var image = event.target;
+    if (!(image instanceof HTMLImageElement)) return;
+    var fallback = image.getAttribute('data-fallback');
+    if (!fallback || image.getAttribute('data-fallback-used') === 'true') return;
+    image.setAttribute('data-fallback-used', 'true');
+    image.src = fallback;
+}, true);
+
 document.addEventListener('DOMContentLoaded', function () {
     var lightbox = document.getElementById('imageLightbox');
     var lightboxImage = document.getElementById('imageLightboxImage');
