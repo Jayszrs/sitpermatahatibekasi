@@ -150,18 +150,24 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
 
 .main-nav { display: flex; align-items: center; gap: 26px; }
 .main-nav ul { display: flex; gap: 22px; margin: 0; padding: 0; align-items: center; }
-.main-nav a {
+.main-nav a,
+.main-nav .dropdown-trigger {
     font-size: 0.94rem;
+    font-family: inherit;
     font-weight: 600;
     color: var(--text);
+    background: transparent;
     padding: 24px 2px;
+    border: 0;
     border-bottom: 3px solid transparent;
     transition: color 0.2s, border-color 0.2s;
     display: flex;
     align-items: center;
     gap: 6px;
+    cursor: pointer;
 }
-.main-nav a:hover, .main-nav a.active { color: var(--primary); border-color: var(--secondary); }
+.main-nav a:hover, .main-nav a.active,
+.main-nav .dropdown-trigger:hover, .main-nav .dropdown-trigger.active { color: var(--primary); border-color: var(--secondary); }
 .nav-cta { white-space: nowrap; padding: 10px 24px !important; border-bottom: none !important; border-radius: 999px; }
 
 /* Dropdown */
@@ -191,6 +197,12 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
     visibility: visible;
     transform: translateX(-50%) translateY(0);
 }
+.has-dropdown.dropdown-open .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+.has-dropdown.dropdown-open .dropdown-arrow { transform: rotate(180deg); }
 .dropdown-menu li { width: 100%; }
 .dropdown-menu a {
     padding: 10px 24px !important;
@@ -1745,7 +1757,7 @@ table.schedule th { background: var(--primary); color: #fff; }
     }
     .main-nav.open { display: flex; }
     .main-nav ul { flex-direction: column; gap: 4px; align-items: stretch; }
-    .main-nav a { display: flex; padding: 12px 20px; border-bottom: 1px solid var(--border); justify-content: space-between; }
+    .main-nav a, .main-nav .dropdown-trigger { width: 100%; display: flex; padding: 12px 20px; border-bottom: 1px solid var(--border); justify-content: space-between; }
     .nav-cta { text-align: center; margin: 10px 20px; }
 
     /* Mobile Dropdown Fixes */

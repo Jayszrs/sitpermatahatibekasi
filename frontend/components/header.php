@@ -32,17 +32,17 @@
                     <?php if (is_array($item)): ?>
                     <!-- Dropdown menu item -->
                     <li class="has-dropdown">
-                        <a href="javascript:void(0)" class="dropdown-trigger <?php
+                        <button type="button" class="dropdown-trigger <?php
                             // Mark active if current page is one of the children
                             $childActive = false;
                             foreach ($item['children'] as $cf => $cl) {
                                 if ($current_page === $cf) { $childActive = true; break; }
                             }
                             echo $childActive ? 'active' : '';
-                        ?>">
+                        ?>" aria-expanded="false">
                             <?php echo esc($item['label']); ?>
                             <svg class="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </a>
+                        </button>
                         <ul class="dropdown-menu">
                             <?php foreach ($item['children'] as $childFile => $childLabel): ?>
                             <li>
@@ -78,15 +78,29 @@ document.addEventListener('DOMContentLoaded', function () {
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
-    // Dropdown toggle for mobile
+    // Dropdown dapat dibuka dengan klik/tap maupun keyboard.
     var dropdownTriggers = document.querySelectorAll('.dropdown-trigger');
     dropdownTriggers.forEach(function(trigger) {
         trigger.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                e.preventDefault();
-                var parent = this.closest('.has-dropdown');
-                parent.classList.toggle('dropdown-open');
-            }
+            e.preventDefault();
+            var parent = this.closest('.has-dropdown');
+            var willOpen = !parent.classList.contains('dropdown-open');
+            document.querySelectorAll('.has-dropdown.dropdown-open').forEach(function(item) {
+                item.classList.remove('dropdown-open');
+                var itemTrigger = item.querySelector('.dropdown-trigger');
+                if (itemTrigger) itemTrigger.setAttribute('aria-expanded', 'false');
+            });
+            parent.classList.toggle('dropdown-open', willOpen);
+            this.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.has-dropdown')) return;
+        document.querySelectorAll('.has-dropdown.dropdown-open').forEach(function(item) {
+            item.classList.remove('dropdown-open');
+            var itemTrigger = item.querySelector('.dropdown-trigger');
+            if (itemTrigger) itemTrigger.setAttribute('aria-expanded', 'false');
         });
     });
 

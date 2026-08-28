@@ -168,6 +168,22 @@ function portal_bootstrap_database(PDO $pdo): void
             $insert->execute([$name, $username, password_hash($password, PASSWORD_DEFAULT), $role]);
         }
     }
+
+    // Migrasikan hanya password akun bawaan lama; password yang pernah diganti admin tidak disentuh.
+    $legacyPasswords = [
+        'admin' => ['AdminTBZ#2026', 'AdminPHB#2026'],
+        'humas' => ['HumasTBZ#2026', 'HumasPHB#2026'],
+        'kasir' => ['KasirTBZ#2026', 'KasirPHB#2026'],
+    ];
+    $findDefaultUser = $pdo->prepare('SELECT id,password FROM portal_users WHERE username=? LIMIT 1');
+    $updateDefaultPassword = $pdo->prepare('UPDATE portal_users SET password=? WHERE id=?');
+    foreach ($legacyPasswords as $username => [$legacyPassword, $currentPassword]) {
+        $findDefaultUser->execute([$username]);
+        $defaultUser = $findDefaultUser->fetch();
+        if ($defaultUser && password_verify($legacyPassword, $defaultUser['password'])) {
+            $updateDefaultPassword->execute([password_hash($currentPassword, PASSWORD_DEFAULT), $defaultUser['id']]);
+        }
+    }
 }
 
 function portal_seed_gallery_albums(PDO $pdo): void

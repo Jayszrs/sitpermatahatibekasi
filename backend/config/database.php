@@ -38,3 +38,7 @@ try {
 } catch (PDOException $e) {
     die('Koneksi database gagal. Silakan periksa konfigurasi .env Anda.');
 }
+
+// Pastikan tabel publik hasil pembaruan tersedia meskipun database lama belum di-import ulang.
+require_once __DIR__ . '/../migrations/public_schema.php';
+ensure_public_schema($pdo);

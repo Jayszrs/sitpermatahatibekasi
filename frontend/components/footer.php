@@ -1,3 +1,10 @@
+<?php
+$footerUnits = [];
+if (isset($pdo) && $pdo instanceof PDO) {
+    $footerUnitStmt = $pdo->query("SELECT id,title,subtitle FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id");
+    $footerUnits = $footerUnitStmt->fetchAll();
+}
+?>
 <footer class="site-footer">
     <div class="container footer-grid">
         <div class="footer-col footer-brand">
@@ -48,10 +55,10 @@
         <div class="footer-col">
             <h4>Unit Sekolah</h4>
             <ul>
-                <li><a href="<?php echo SITE_URL; ?>/unit.php#daycare">Daycare Permata Hati Bekasi</a></li>
-                <li><a href="<?php echo SITE_URL; ?>/unit.php#tkit">TKIT Permata Hati Bekasi</a></li>
-                <li><a href="<?php echo SITE_URL; ?>/unit.php#sdit">SDIT Permata Hati Bekasi</a></li>
-                <li><a href="<?php echo SITE_URL; ?>/unit.php#smpit">SMPIT Permata Hati Bekasi</a></li>
+                <?php foreach ($footerUnits as $footerUnit): ?>
+                <?php $footerUnitAnchor = strtolower($footerUnit['subtitle'] ?: 'unit-' . $footerUnit['id']); ?>
+                <li><a href="<?php echo SITE_URL; ?>/unit.php#<?php echo esc($footerUnitAnchor); ?>"><?php echo esc($footerUnit['title']); ?></a></li>
+                <?php endforeach; ?>
                 <li><a href="<?php echo SITE_URL; ?>/spmb.php">Penerimaan Siswa Baru</a></li>
             </ul>
         </div>
