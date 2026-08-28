@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'add_payment') {
             $amount=(float)($_POST['amount']??0); $method=trim($_POST['payment_method']??''); $date=$_POST['payment_date']??''; $type=trim($_POST['payment_type']??'');
             if ($amount<=0||$method===''||$date===''||$type==='') throw new RuntimeException('Jenis, nominal, metode, dan tanggal pembayaran wajib diisi.');
-            $receipt=trim($_POST['receipt_number']??'') ?: 'TBZ-'.date('Ymd').'-'.str_pad((string)$id,4,'0',STR_PAD_LEFT).'-'.date('His');
+            $receipt=trim($_POST['receipt_number']??'') ?: 'PHB-'.date('Ymd').'-'.str_pad((string)$id,4,'0',STR_PAD_LEFT).'-'.date('His');
             $stmt=$pdo->prepare('INSERT INTO spmb_payments (registration_id,receipt_number,payment_type,amount,payment_method,payment_date,reference_number,payer_name,notes,recorded_by) VALUES (?,?,?,?,?,?,?,?,?,?)');
             $stmt->execute([$id,$receipt,$type,$amount,$method,$date,trim($_POST['reference_number']??'')?:null,trim($_POST['payer_name']??'')?:null,trim($_POST['notes']??'')?:null,portal_user()['id']]);
             $totalStmt=$pdo->prepare("SELECT COALESCE(SUM(amount),0) FROM spmb_payments WHERE registration_id=? AND status='verified'"); $totalStmt->execute([$id]); $total=$totalStmt->fetchColumn();

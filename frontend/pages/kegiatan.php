@@ -19,12 +19,14 @@ require_once __DIR__ . '/../components/header.php';
             <span class="section-eyebrow">Kegiatan</span>
             <h2>Kegiatan Rutin &amp; Tahunan</h2>
         </div>
-        <div class="grid-3">
+        <div class="activity-grid activity-page-grid">
             <?php foreach ($activities as $a): ?>
-            <div class="card">
-                <img src="<?php echo esc($a['image'] ?: 'https://placehold.co/500x375/0f5132/ffffff?text='.urlencode($a['title'])); ?>" alt="<?php echo esc($a['title']); ?>" loading="lazy">
+            <div class="card activity-card">
+                <div class="activity-photo">
+                    <img src="<?php echo esc($a['image'] ?: 'https://placehold.co/600x650/0f5132/ffffff?text='.urlencode($a['title'])); ?>" alt="<?php echo esc($a['title']); ?>" loading="lazy">
+                    <?php if($a['subtitle']): ?><span><?php echo esc($a['subtitle']); ?></span><?php endif; ?>
+                </div>
                 <div class="card-body">
-                    <?php if($a['subtitle']): ?><div class="news-date"><?php echo esc($a['subtitle']); ?></div><?php endif; ?>
                     <h3><?php echo esc($a['title']); ?></h3>
                     <p><?php echo nl2br(esc($a['description'])); ?></p>
                 </div>

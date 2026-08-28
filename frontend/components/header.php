@@ -15,7 +15,11 @@
 <header class="site-header" id="siteHeader">
     <div class="header-inner">
         <a href="<?php echo SITE_URL; ?>/index.php" class="brand">
-            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo.png" alt="Logo <?php echo esc(SITE_NAME); ?>" class="brand-logo" onerror="this.style.display='none'">
+            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo-sit-permata-hati.jpeg" alt="Logo <?php echo esc(SITE_NAME); ?>" class="brand-logo" onerror="this.style.display='none'">
+            <span class="brand-copy">
+                <strong><?php echo esc(SITE_NAME); ?></strong>
+                <small>Sekolah Islam Terpadu</small>
+            </span>
         </a>
 
         <button class="nav-toggle" id="navToggle" aria-label="Buka menu" aria-expanded="false">

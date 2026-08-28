@@ -7,14 +7,64 @@ $page_title = 'Beranda';
 $stmt = $pdo->query("SELECT * FROM news ORDER BY published_at DESC LIMIT 3");
 $latest_news = $stmt->fetchAll();
 
-// Ambil 6 foto galeri
-$stmt = $pdo->query("SELECT * FROM gallery ORDER BY created_at DESC LIMIT 6");
-$gallery_photos = $stmt->fetchAll();
-$home_units = $pdo->query("SELECT * FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id LIMIT 3")->fetchAll();
-$home_programs = $pdo->query("SELECT * FROM site_content_items WHERE type='program' AND is_active=1 ORDER BY sort_order,id LIMIT 5")->fetchAll();
-$home_achievements = $pdo->query("SELECT * FROM site_content_items WHERE type='achievement' AND is_active=1 ORDER BY sort_order,id LIMIT 3")->fetchAll();
+// Ambil album galeri terbaru
+$stmt = $pdo->query("
+    SELECT a.*,
+        (SELECT COUNT(*) FROM gallery_photos p WHERE p.album_id = a.id) AS photo_count
+    FROM gallery_albums a
+    WHERE a.is_active = 1
+    ORDER BY a.sort_order ASC, a.created_at DESC, a.id DESC
+    LIMIT 3
+");
+$gallery_albums = $stmt->fetchAll();
+$galleryAlbumPhotoStmt = $pdo->prepare("
+    SELECT title, image
+    FROM gallery_photos
+    WHERE album_id = ?
+    ORDER BY sort_order ASC, created_at DESC, id DESC
+    LIMIT 5
+");
+$gallery_album_slides = [];
+foreach ($gallery_albums as $album) {
+    $galleryAlbumPhotoStmt->execute([(int)$album['id']]);
+    $gallery_album_slides[(int)$album['id']] = $galleryAlbumPhotoStmt->fetchAll();
+}
+$home_units = $pdo->query("SELECT * FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id LIMIT 4")->fetchAll();
+$home_programs = $pdo->query("SELECT * FROM site_content_items WHERE type='program' AND is_active=1 ORDER BY sort_order,id LIMIT 8")->fetchAll();
+$home_achievements = $pdo->query("SELECT * FROM site_content_items WHERE type='achievement' AND is_active=1 ORDER BY sort_order,id LIMIT 6")->fetchAll();
 $home_profile = $pdo->query('SELECT * FROM site_profile WHERE id=1')->fetch();
 $home_activities = $pdo->query("SELECT * FROM site_content_items WHERE type='activity' AND is_active=1 ORDER BY sort_order,id LIMIT 4")->fetchAll();
+$unit_image_map = [
+    'daycare' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+    'tkit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+    'sdit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
+    'smpit' => SITE_URL . '/frontend/assets/images/school/gedung-smpit.jpeg',
+];
+$unit_icons = [
+    '<svg viewBox="0 0 24 24"><path d="M12 21s-7-3.9-7-10V5l7-3 7 3v6c0 6.1-7 10-7 10Z"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M4 19V6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 0 4 21"/><path d="M8 8h8"/><path d="M8 12h6"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M5 10v5c2 2 12 2 14 0v-5"/><path d="M21 7v6"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V8l6-4 6 4v12"/><path d="M9 20v-6h6v6"/><path d="M9 10h.01"/><path d="M15 10h.01"/></svg>',
+];
+$program_icons = [
+    '<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/><path d="M8 7h8"/><path d="M8 11h6"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8c4-4 10-4 14 0"/><path d="M7 14c3-2 7-2 10 0"/><path d="M9 19c2-1 4-1 6 0"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.3 7.2 17.9l.9-5.4-3.9-3.8 5.4-.8Z"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8"/><path d="M8 13h5"/><path d="M10 19v3"/><path d="M14 19v3"/></svg>',
+    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M7 11V7a5 5 0 0 1 10 0v4"/><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M12 15v2"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>',
+];
+$activity_icons = [
+    '<svg viewBox="0 0 24 24"><path d="M12 3c2 4 6 5 6 10a6 6 0 0 1-12 0c0-5 4-6 6-10Z"/><path d="M12 13c1.2 1.4 2 2.4 2 4a2 2 0 0 1-4 0c0-1.6.8-2.6 2-4Z"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M4 19l5-12 4 7 3-4 4 9H4Z"/><path d="M14 5h.01"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M6 9l6-4 6 4-6 4-6-4Z"/><path d="M6 13l6 4 6-4"/><path d="M6 17l6 4 6-4"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M3 8h18"/><path d="M5 8v12h14V8"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/><path d="M9 13h6"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M12 2l4 7 7 1-5 5 1 7-7-3-7 3 1-7-5-5 7-1 4-7Z"/></svg>',
+    '<svg viewBox="0 0 24 24"><path d="M4 17l4-8 4 8"/><path d="M6 13h4"/><path d="M14 17V7h3a3 3 0 0 1 0 6h-3"/></svg>',
+];
+$achievement_units = ['Semua', 'Daycare', 'TKIT', 'SDIT', 'SMPIT'];
 
 require_once __DIR__ . '/../components/header.php';
 ?>
@@ -23,8 +73,8 @@ require_once __DIR__ . '/../components/header.php';
 <section class="hero">
     <div class="container hero-inner">
         <span class="hero-eyebrow">Penerimaan Siswa Baru Tahun Ajaran 2026/2027</span>
-        <h1>Lembaga Pendidikan <span>Islam Terpadu</span> <strong class="school-name">Thariq Bin Ziyad</strong></h1>
-        <p>Membentuk generasi Qur'ani, cerdas, dan berkarakter dengan paduan kurikulum akademik modern dan nilai-nilai keislaman untuk menghadapi masa depan.</p>
+        <h1>Sekolah <span>Islam Terpadu</span> <strong class="school-name">Permata Hati Bekasi</strong></h1>
+        <p>Membentuk generasi sholeh, cerdas, mandiri, dan berwawasan global melalui pembelajaran akademik, Al-Quran, serta pembinaan akhlak.</p>
         <div class="hero-actions">
             <a href="tentang.php" class="btn btn-outline-light">Tentang Kami</a>
             <a href="spmb.php" class="btn btn-primary">Daftar SPMB</a>
@@ -36,7 +86,7 @@ require_once __DIR__ . '/../components/header.php';
 <div style="background: var(--primary-dark); color: #fff; padding: 10px 0; overflow: hidden; white-space: nowrap;">
     <div class="container">
         <marquee behavior="scroll" direction="left" scrollamount="6" style="font-size: 0.9rem; font-weight: 600;">
-            ΓÇó Selamat datang di website resmi LPIT Thariq Bin Ziyad ΓÇó Pendaftaran Murid Baru Tahun Ajaran 2026/2027 Telah Dibuka! ΓÇó Membentuk Generasi Qur'ani, Akademik, Bahasa, Menuju Trendsetter Sekolah Islam Unggulan ΓÇó
+            Selamat datang di website resmi SIT Permata Hati Bekasi | Pendaftaran Murid Baru Tahun Ajaran 2026/2027 telah dibuka | Sekolah Islam Terpadu yang membina generasi sholeh, cerdas, mandiri, dan berwawasan global | Alamat: Jl. Raya Buwek Jaya Gg. Buser No. 23-24, Tambun Selatan, Bekasi
         </marquee>
     </div>
 </div>
@@ -44,7 +94,13 @@ require_once __DIR__ . '/../components/header.php';
 <!-- TENTANG SEKOLAH -->
 <section class="section">
     <div class="container about-grid">
-        <img src="<?php echo esc($home_profile['image'] ?: 'https://placehold.co/700x525/0f5132/ffffff?text=Tentang+Sekolah'); ?>" alt="Tentang Sekolah">
+        <button type="button" class="about-photo-card image-preview-trigger" data-lightbox-src="<?php echo esc($home_profile['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-lightbox-title="Gedung SIT Permata Hati Bekasi">
+            <img src="<?php echo esc($home_profile['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" alt="Gedung <?php echo esc(SITE_NAME); ?>">
+            <div class="about-photo-badge">
+                <strong>SIT Permata Hati</strong>
+                <span>Bekasi</span>
+            </div>
+        </button>
         <div class="about-text">
             <span class="section-eyebrow">Tentang Kami</span>
             <h2><?php echo esc($home_profile['history_title']); ?></h2>
@@ -62,8 +118,8 @@ require_once __DIR__ . '/../components/header.php';
             <h2>Jenjang Pendidikan Kami</h2>
             <p>Menyediakan jenjang pendidikan berkelanjutan dari usia dini hingga menengah atas.</p>
         </div>
-        <div class="grid-3">
-            <?php foreach($home_units as $unit): ?><div class="card"><img src="<?php echo esc($unit['image'] ?: 'https://placehold.co/500x375/0f5132/ffffff?text='.urlencode($unit['subtitle'] ?: $unit['title'])); ?>" alt="<?php echo esc($unit['title']); ?>"><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><a href="unit.php#<?php echo esc(strtolower($unit['subtitle'] ?: 'unit-'.$unit['id'])); ?>" class="btn btn-outline btn-sm">Lihat Detail</a></div></div><?php endforeach; ?>
+        <div class="grid-4 unit-home-grid">
+            <?php foreach($home_units as $index => $unit): ?><?php $unit_key = strtolower($unit['subtitle'] ?: 'unit-'.$unit['id']); ?><div class="card unit-card"><div class="unit-card-photo"><img src="<?php echo esc($unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg')); ?>" alt="<?php echo esc($unit['title']); ?>"><span><?php echo $unit_icons[$index % count($unit_icons)]; ?><?php echo esc($unit['subtitle'] ?: $unit['title']); ?></span></div><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><a href="unit.php#<?php echo esc($unit_key); ?>" class="btn btn-outline btn-sm">Lihat Detail</a></div></div><?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -77,7 +133,7 @@ require_once __DIR__ . '/../components/header.php';
             <p>Rangkaian program yang dirancang untuk mengembangkan potensi siswa secara menyeluruh.</p>
         </div>
         <div class="grid-4">
-            <?php foreach($home_programs as $program): ?><div class="program-card"><div class="program-icon"><?php echo esc($program['subtitle'] ?: mb_substr($program['title'],0,1)); ?></div><h3><?php echo esc($program['title']); ?></h3><p><?php echo esc(mb_strimwidth($program['description'],0,125,'...')); ?></p></div><?php endforeach; ?>
+            <?php foreach($home_programs as $index => $program): ?><div class="program-card"><div class="program-icon" aria-hidden="true"><?php echo $program_icons[$index % count($program_icons)]; ?></div><h3><?php echo esc($program['title']); ?></h3><p><?php echo esc(mb_strimwidth($program['description'],0,125,'...')); ?></p></div><?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -118,8 +174,35 @@ require_once __DIR__ . '/../components/header.php';
             <h2>Prestasi Membanggakan</h2>
             <p>Sebagian pencapaian siswa-siswi kami di berbagai ajang kompetisi.</p>
         </div>
-        <div class="grid-3">
-            <?php foreach($home_achievements as $achievement): ?><div class="card achieve-card"><span class="achieve-tag"><?php echo esc($achievement['badge'] ?: 'Prestasi'); ?></span><img src="<?php echo esc($achievement['image'] ?: 'https://placehold.co/500x375/d4af37/1f2937?text='.urlencode($achievement['title'])); ?>" alt="<?php echo esc($achievement['title']); ?>"><div class="card-body"><h3><?php echo esc($achievement['title']); ?></h3><div class="achieve-meta"><span><?php echo esc($achievement['subtitle']); ?></span><span><?php echo esc($achievement['year']); ?></span></div></div></div><?php endforeach; ?>
+        <div class="achievement-tabs" role="tablist" aria-label="Filter prestasi berdasarkan unit">
+            <?php foreach ($achievement_units as $unit): ?>
+                <button type="button" class="achievement-tab<?php echo $unit === 'Semua' ? ' active' : ''; ?>" data-achievement-filter="<?php echo esc(strtolower($unit)); ?>"><?php echo esc($unit); ?></button>
+            <?php endforeach; ?>
+        </div>
+        <div class="achievement-grid">
+            <?php foreach($home_achievements as $achievement): ?>
+                <?php
+                    $unit = $achievement['extra'] ?: 'SDIT';
+                    $unitKey = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $unit));
+                    $level = $achievement['badge'] ?: 'Prestasi';
+                    $image = $achievement['image'] ?: 'https://placehold.co/700x525/0f5132/ffffff?text=' . urlencode($achievement['title']);
+                ?>
+                <div class="card achieve-card" data-achievement-unit="<?php echo esc($unitKey); ?>">
+                    <div class="achieve-image-wrap">
+                        <img src="<?php echo esc($image); ?>" alt="<?php echo esc($achievement['title']); ?>" loading="lazy">
+                        <span class="achieve-tag"><?php echo esc($level); ?></span>
+                        <span class="achieve-unit-badge"><?php echo esc($unit); ?></span>
+                        <div class="achieve-overlay">
+                            <h3><?php echo esc($achievement['title']); ?></h3>
+                        </div>
+                    </div>
+                    <div class="achieve-info">
+                        <span><strong>Unit</strong><?php echo esc($unit); ?></span>
+                        <span><strong>Tingkat</strong><?php echo esc($level); ?></span>
+                        <span><strong>Tahun</strong><?php echo esc($achievement['year'] ?: date('Y')); ?></span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
         <div style="text-align:center; margin-top:36px;">
             <a href="prestasi.php" class="btn btn-outline">Lihat Semua Prestasi</a>
@@ -134,8 +217,19 @@ require_once __DIR__ . '/../components/header.php';
             <span class="section-eyebrow">Kegiatan</span>
             <h2>Kegiatan Sekolah Terbaru</h2>
         </div>
-        <div class="grid-4">
-            <?php foreach($home_activities as $activity): ?><div class="card"><img src="<?php echo esc($activity['image'] ?: 'https://placehold.co/400x300/0f5132/ffffff?text='.urlencode($activity['title'])); ?>" alt="<?php echo esc($activity['title']); ?>"><div class="card-body"><h3><?php echo esc($activity['title']); ?></h3><p><?php echo esc(mb_strimwidth($activity['description'],0,100,'...')); ?></p></div></div><?php endforeach; ?>
+        <div class="activity-grid">
+            <?php foreach($home_activities as $index => $activity): ?>
+            <div class="card activity-card">
+                <div class="activity-photo">
+                    <img src="<?php echo esc($activity['image'] ?: 'https://placehold.co/600x650/0f5132/ffffff?text='.urlencode($activity['title'])); ?>" alt="<?php echo esc($activity['title']); ?>" loading="lazy">
+                    <?php if($activity['subtitle']): ?><span><?php echo esc($activity['subtitle']); ?></span><?php endif; ?>
+                </div>
+                <div class="card-body">
+                    <h3><?php echo esc($activity['title']); ?></h3>
+                    <p><?php echo esc(mb_strimwidth($activity['description'],0,115,'...')); ?></p>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
         <div style="text-align:center; margin-top:36px;">
             <a href="kegiatan.php" class="btn btn-outline">Lihat Semua Kegiatan</a>
@@ -173,11 +267,26 @@ require_once __DIR__ . '/../components/header.php';
             <span class="section-eyebrow">Galeri</span>
             <h2>Momen di Sekolah Kami</h2>
         </div>
-        <div class="gallery-grid">
-            <?php foreach ($gallery_photos as $photo): ?>
-            <a href="galeri-detail.php?id=<?php echo (int)$photo['id']; ?>" class="gallery-item">
-                <img src="<?php echo esc($photo['image']); ?>" alt="<?php echo esc($photo['title']); ?>" loading="lazy">
-                <span class="gallery-caption"><?php echo esc($photo['title']); ?></span>
+        <div class="album-grid">
+            <?php foreach ($gallery_albums as $album): ?>
+            <?php $slides = $gallery_album_slides[(int)$album['id']] ?? []; ?>
+            <a href="galeri-detail.php?id=<?php echo (int)$album['id']; ?>" class="gallery-album-card">
+                <div class="album-carousel" data-album-carousel>
+                    <?php if ($slides): ?>
+                        <?php foreach ($slides as $index => $slide): ?>
+                        <img class="album-slide<?php echo $index === 0 ? ' active' : ''; ?>" src="<?php echo esc($slide['image']); ?>" alt="<?php echo esc($slide['title']); ?>" loading="lazy">
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="album-empty-cover">Belum ada foto</div>
+                    <?php endif; ?>
+                </div>
+                <div class="album-card-content">
+                    <span class="album-count"><?php echo (int)$album['photo_count']; ?> Foto</span>
+                    <h3><?php echo esc($album['title']); ?></h3>
+                    <?php if (!empty($album['description'])): ?>
+                    <p><?php echo esc(mb_strimwidth($album['description'], 0, 110, '...')); ?></p>
+                    <?php endif; ?>
+                </div>
             </a>
             <?php endforeach; ?>
         </div>
@@ -246,6 +355,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     counters.forEach(counter => {
         counterObserver.observe(counter);
+    });
+});
+
+// Achievement filter
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.achievement-tabs').forEach((tabs) => {
+        const cards = tabs.parentElement.querySelectorAll('.achieve-card[data-achievement-unit]');
+        tabs.querySelectorAll('[data-achievement-filter]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const filter = button.dataset.achievementFilter;
+                tabs.querySelectorAll('[data-achievement-filter]').forEach((tab) => tab.classList.remove('active'));
+                button.classList.add('active');
+
+                cards.forEach((card) => {
+                    const isVisible = filter === 'semua' || card.dataset.achievementUnit === filter;
+                    window.clearTimeout(card._achievementFilterTimer);
+                    if (isVisible) {
+                        card.classList.remove('is-hidden');
+                        requestAnimationFrame(() => card.classList.remove('is-faded'));
+                    } else {
+                        card.classList.add('is-faded');
+                        card._achievementFilterTimer = window.setTimeout(() => card.classList.add('is-hidden'), 240);
+                    }
+                });
+            });
+        });
+    });
+});
+
+// Gallery album carousel
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-album-carousel]').forEach((carousel) => {
+        const slides = carousel.querySelectorAll('.album-slide');
+        if (slides.length <= 1) return;
+        let activeIndex = 0;
+        window.setInterval(() => {
+            slides[activeIndex].classList.remove('active');
+            activeIndex = (activeIndex + 1) % slides.length;
+            slides[activeIndex].classList.add('active');
+        }, 3200);
     });
 });
 </script>
