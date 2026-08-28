@@ -6,6 +6,7 @@ $page_title = 'Beranda';
 // Ambil 3 berita terbaru
 $stmt = $pdo->query("SELECT * FROM news ORDER BY published_at DESC LIMIT 3");
 $latest_news = $stmt->fetchAll();
+$hero_media = $pdo->query("SELECT * FROM hero_media WHERE is_active=1 ORDER BY sort_order,id")->fetchAll();
 
 // Ambil album galeri terbaru
 $stmt = $pdo->query("
@@ -71,16 +72,14 @@ require_once __DIR__ . '/../components/header.php';
 ?>
 
 <!-- HERO -->
-<section class="hero">
-    <div class="container hero-inner">
-        <span class="hero-eyebrow">Penerimaan Siswa Baru Tahun Ajaran 2026/2027</span>
-        <h1>Sekolah <span>Islam Terpadu</span> <strong class="school-name">Permata Hati Bekasi</strong></h1>
-        <p>Membentuk generasi sholeh, cerdas, mandiri, dan berwawasan global melalui pembelajaran akademik, Al-Quran, serta pembinaan akhlak.</p>
-        <div class="hero-actions">
-            <a href="tentang.php" class="btn btn-outline-light">Tentang Kami</a>
-            <a href="spmb.php" class="btn btn-primary">Daftar SPMB</a>
-        </div>
+<section class="hero hero-slider" data-hero-slider>
+    <div class="hero-slides" aria-hidden="true">
+        <?php foreach($hero_media as $index=>$slide): ?><div class="hero-slide<?php echo $index===0?' active':''; ?>" data-media-type="<?php echo esc($slide['media_type']); ?>"><?php if($slide['media_type']==='video'): ?><video muted playsinline preload="metadata" <?php if($slide['poster_url']): ?>poster="<?php echo esc($slide['poster_url']); ?>"<?php endif; ?>><source src="<?php echo esc($slide['media_url']); ?>"></video><?php else: ?><img src="<?php echo esc($slide['media_url']); ?>" alt="" <?php echo $index===0?'fetchpriority="high"':'loading="lazy"'; ?>><?php endif; ?></div><?php endforeach; ?>
     </div>
+    <div class="container hero-inner">
+        <?php foreach($hero_media as $index=>$slide): ?><div class="hero-copy<?php echo $index===0?' active':''; ?>" data-hero-copy="<?php echo $index; ?>"><span class="hero-eyebrow"><?php echo esc($slide['eyebrow'] ?: 'SIT Permata Hati Bekasi'); ?></span><h1><?php echo esc($slide['title']); ?></h1><p><?php echo esc($slide['description']); ?></p><div class="hero-actions"><?php if($slide['cta_label'] && $slide['cta_url']): ?><a href="<?php echo esc($slide['cta_url']); ?>" class="btn btn-primary"><?php echo esc($slide['cta_label']); ?></a><?php endif; ?><a href="tentang.php" class="btn btn-outline-light">Tentang Kami</a></div></div><?php endforeach; ?>
+    </div>
+    <div class="hero-pagination" aria-label="Navigasi slide"><?php foreach($hero_media as $index=>$slide): ?><button type="button" class="<?php echo $index===0?'active':''; ?>" data-hero-go="<?php echo $index; ?>" aria-label="Slide <?php echo $index+1; ?>"></button><?php endforeach; ?></div>
 </section>
 
 <!-- PENGUMUMAN -->
@@ -92,6 +91,14 @@ require_once __DIR__ . '/../components/header.php';
         <span>Jl. Raya Buwek Jaya Gg. Buser No. 23-24, Tambun Selatan, Bekasi</span>
     </div>
 </div>
+
+<!-- INFORMASI TERBARU LANGSUNG SETELAH ONBOARDING -->
+<section class="section home-pulse-section">
+    <div class="container home-pulse-grid">
+        <div><div class="pulse-heading"><div><span class="section-eyebrow">Berita Terbaru</span><h2>Kabar dari Sekolah</h2></div><a href="berita.php">Semua berita &rarr;</a></div><div class="pulse-news-list"><?php foreach($latest_news as $news): ?><a href="detail-berita.php?slug=<?php echo urlencode($news['slug']); ?>" class="pulse-news-card"><img src="<?php echo esc($news['image']); ?>" alt="<?php echo esc($news['title']); ?>"><div><span><?php echo esc(tanggal_indo($news['published_at'])); ?></span><h3><?php echo esc($news['title']); ?></h3><p><?php echo esc(mb_strimwidth($news['excerpt'],0,88,'...')); ?></p></div></a><?php endforeach; ?></div></div>
+        <div><div class="pulse-heading"><div><span class="section-eyebrow">Prestasi</span><h2>Siswa Membanggakan</h2></div><a href="prestasi.php">Semua prestasi &rarr;</a></div><div class="pulse-achievement-list"><?php foreach(array_slice($home_achievements,0,3) as $achievement): ?><?php $publication=$achievement['link_url'] ?: 'prestasi.php#prestasi-'.$achievement['id']; ?><a href="<?php echo esc($publication); ?>" class="pulse-achievement-card" <?php echo preg_match('~^https?://~',$publication)?'target="_blank" rel="noopener"':''; ?>><img src="<?php echo esc($achievement['image'] ?: SITE_URL.'/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" alt="<?php echo esc($achievement['title']); ?>"><div><span><?php echo esc(($achievement['extra']?:'Sekolah').' · '.($achievement['year']?:date('Y'))); ?></span><h3><?php echo esc($achievement['title']); ?></h3><strong><?php echo esc($achievement['link_label'] ?: 'Lihat publikasi'); ?> &rarr;</strong></div></a><?php endforeach; ?></div></div>
+    </div>
+</section>
 
 <!-- TENTANG SEKOLAH -->
 <section class="section">
@@ -135,7 +142,7 @@ require_once __DIR__ . '/../components/header.php';
             <p>Rangkaian program yang dirancang untuk mengembangkan potensi siswa secara menyeluruh.</p>
         </div>
         <div class="grid-4">
-            <?php foreach($home_programs as $index => $program): ?><div class="program-card"><div class="program-icon" aria-hidden="true"><?php echo $program_icons[$index % count($program_icons)]; ?></div><h3><?php echo esc($program['title']); ?></h3><p><?php echo esc(mb_strimwidth($program['description'],0,125,'...')); ?></p></div><?php endforeach; ?>
+            <?php foreach($home_programs as $index => $program): ?><?php $programUrl=$program['link_url'] ?: 'detail-program.php?id='.$program['id']; ?><article class="program-card"><div class="program-icon" aria-hidden="true"><?php echo $program_icons[$index % count($program_icons)]; ?></div><h3><?php echo esc($program['title']); ?></h3><p><?php echo esc(mb_strimwidth($program['description'],0,125,'...')); ?></p><a class="program-link" href="<?php echo esc($programUrl); ?>" <?php echo preg_match('~^https?://~',$programUrl)?'target="_blank" rel="noopener"':''; ?>><?php echo esc($program['link_label'] ?: 'Pelajari program'); ?> &rarr;</a></article><?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -168,50 +175,6 @@ require_once __DIR__ . '/../components/header.php';
     </div>
 </section>
 
-<!-- PRESTASI -->
-<section class="section">
-    <div class="container">
-        <div class="section-head">
-            <span class="section-eyebrow">Prestasi</span>
-            <h2>Prestasi Membanggakan</h2>
-            <p>Sebagian pencapaian siswa-siswi kami di berbagai ajang kompetisi.</p>
-        </div>
-        <div class="achievement-tabs" role="tablist" aria-label="Filter prestasi berdasarkan unit">
-            <?php foreach ($achievement_units as $unit): ?>
-                <button type="button" class="achievement-tab<?php echo $unit === 'Semua' ? ' active' : ''; ?>" data-achievement-filter="<?php echo esc(strtolower($unit)); ?>"><?php echo esc($unit); ?></button>
-            <?php endforeach; ?>
-        </div>
-        <div class="achievement-grid">
-            <?php foreach($home_achievements as $achievement): ?>
-                <?php
-                    $unit = $achievement['extra'] ?: 'SDIT';
-                    $unitKey = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $unit));
-                    $level = $achievement['badge'] ?: 'Prestasi';
-                    $image = $achievement['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg';
-                ?>
-                <div class="card achieve-card" data-achievement-unit="<?php echo esc($unitKey); ?>">
-                    <div class="achieve-image-wrap">
-                        <img src="<?php echo esc($image); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($achievement['title']); ?>" loading="lazy">
-                        <span class="achieve-tag"><?php echo esc($level); ?></span>
-                        <span class="achieve-unit-badge"><?php echo esc($unit); ?></span>
-                        <div class="achieve-overlay">
-                            <h3><?php echo esc($achievement['title']); ?></h3>
-                        </div>
-                    </div>
-                    <div class="achieve-info">
-                        <span><strong>Unit</strong><?php echo esc($unit); ?></span>
-                        <span><strong>Tingkat</strong><?php echo esc($level); ?></span>
-                        <span><strong>Tahun</strong><?php echo esc($achievement['year'] ?: date('Y')); ?></span>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <div style="text-align:center; margin-top:36px;">
-            <a href="prestasi.php" class="btn btn-outline">Lihat Semua Prestasi</a>
-        </div>
-    </div>
-</section>
-
 <!-- KEGIATAN SEKOLAH -->
 <section class="section section-alt">
     <div class="container">
@@ -229,35 +192,13 @@ require_once __DIR__ . '/../components/header.php';
                 <div class="card-body">
                     <h3><?php echo esc($activity['title']); ?></h3>
                     <p><?php echo esc(mb_strimwidth($activity['description'],0,115,'...')); ?></p>
+                    <?php if($activity['link_url']): ?><a class="program-link" href="<?php echo esc($activity['link_url']); ?>" target="_blank" rel="noopener"><?php echo esc($activity['link_label'] ?: 'Lihat di media sosial'); ?> &rarr;</a><?php endif; ?>
                 </div>
             </div>
             <?php endforeach; ?>
         </div>
         <div style="text-align:center; margin-top:36px;">
             <a href="kegiatan.php" class="btn btn-outline">Lihat Semua Kegiatan</a>
-        </div>
-    </div>
-</section>
-
-<!-- BERITA TERBARU -->
-<section class="section">
-    <div class="container">
-        <div class="section-head">
-            <span class="section-eyebrow">Berita</span>
-            <h2>Berita &amp; Informasi Terbaru</h2>
-        </div>
-        <div class="grid-3">
-            <?php foreach ($latest_news as $news): ?>
-            <div class="card">
-                <img src="<?php echo esc($news['image']); ?>" alt="<?php echo esc($news['title']); ?>" loading="lazy">
-                <div class="card-body">
-                    <div class="news-date"><?php echo tanggal_indo($news['published_at']); ?></div>
-                    <h3><?php echo esc($news['title']); ?></h3>
-                    <p><?php echo esc(mb_strimwidth($news['excerpt'], 0, 100, '...')); ?></p>
-                    <a href="detail-berita.php?slug=<?php echo esc($news['slug']); ?>" class="news-link">Baca Selengkapnya &rarr;</a>
-                </div>
-            </div>
-            <?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -314,14 +255,40 @@ require_once __DIR__ . '/../components/header.php';
 
 <?php require_once __DIR__ . '/../components/footer.php'; ?>
 
-<!-- Script Parallax Hero -->
 <script>
-document.addEventListener("scroll", function() {
-    const hero = document.querySelector('.hero');
-    if (hero) {
-        let scrollPos = window.pageYOffset;
-        hero.style.backgroundPositionY = (scrollPos * 0.4) + "px";
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    const root = document.querySelector('[data-hero-slider]');
+    if (!root) return;
+    const slides = [...root.querySelectorAll('.hero-slide')];
+    const copies = [...root.querySelectorAll('.hero-copy')];
+    const dots = [...root.querySelectorAll('[data-hero-go]')];
+    let current = 0;
+    let timer = null;
+
+    const schedule = () => {
+        window.clearTimeout(timer);
+        const slide = slides[current];
+        if (!slide) return;
+        const video = slide.querySelector('video');
+        if (video) {
+            video.currentTime = 0;
+            const playPromise = video.play();
+            if (playPromise) playPromise.catch(() => { timer = window.setTimeout(next, 3000); });
+        } else {
+            timer = window.setTimeout(next, 3000);
+        }
+    };
+    const show = (index) => {
+        current = (index + slides.length) % slides.length;
+        slides.forEach((slide, i) => { slide.classList.toggle('active', i === current); const video=slide.querySelector('video'); if(video && i!==current) video.pause(); });
+        copies.forEach((copy, i) => copy.classList.toggle('active', i === current));
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+        schedule();
+    };
+    const next = () => show(current + 1);
+    slides.forEach((slide) => { const video=slide.querySelector('video'); if(video) video.addEventListener('ended', next); });
+    dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.heroGo))));
+    if (slides.length > 1) schedule();
 });
 
 // Counter Animation

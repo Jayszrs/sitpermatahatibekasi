@@ -8,6 +8,7 @@ $contentTypes = [
     'unit' => ['label' => 'Unit Sekolah', 'title' => 'Nama unit', 'subtitle' => 'Singkatan/jenjang', 'extra' => 'Program unggulan (satu per baris)', 'help' => 'Kelola gambar dan deskripsi Daycare, TKIT, SDIT, SMPIT, atau unit lainnya.'],
     'achievement' => ['label' => 'Prestasi', 'title' => 'Nama prestasi', 'subtitle' => 'Tingkat perlombaan', 'extra' => null, 'help' => 'Publikasikan prestasi siswa lengkap dengan tingkat, tahun, dan dokumentasi.'],
     'leadership' => ['label' => 'Struktur Pimpinan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan', 'extra' => null, 'help' => 'Tampilkan foto, nama, jabatan, dan profil pimpinan sekolah.'],
+    'foundation' => ['label' => 'Struktur Yayasan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan yayasan', 'extra' => null, 'help' => 'Kelola susunan pengurus yayasan lengkap dengan foto, jabatan, dan penjelasan tanggung jawab.'],
     'program' => ['label' => 'Program Unggulan', 'title' => 'Nama program', 'subtitle' => 'Ikon/singkatan', 'extra' => null, 'help' => 'Kelola program pendidikan beserta gambar dan penjelasannya.'],
     'activity' => ['label' => 'Kegiatan', 'title' => 'Nama kegiatan', 'subtitle' => 'Periode/kategori', 'extra' => null, 'help' => 'Kelola agenda dan dokumentasi kegiatan sekolah.'],
 ];
@@ -28,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $badge = trim($_POST['badge'] ?? '');
             $year = trim($_POST['year'] ?? '');
             $extra = trim($_POST['extra'] ?? '');
+            $linkUrl = trim($_POST['link_url'] ?? '');
+            $linkLabel = trim($_POST['link_label'] ?? '');
             $sortOrder = max(0, (int)($_POST['sort_order'] ?? 0));
             $isActive = isset($_POST['is_active']) ? 1 : 0;
             if ($title === '' || $description === '') throw new RuntimeException('Judul/nama dan deskripsi wajib diisi.');
@@ -38,13 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if (!empty($_FILES['image']['name'])) $image = portal_upload_image($_FILES['image'], $itemType);
             if ($id) {
-                $stmt = $pdo->prepare('UPDATE site_content_items SET title=?,subtitle=?,description=?,image=?,badge=?,year=?,extra=?,sort_order=?,is_active=? WHERE id=? AND type=?');
-                $stmt->execute([$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$sortOrder,$isActive,$id,$itemType]);
+                $stmt = $pdo->prepare('UPDATE site_content_items SET title=?,subtitle=?,description=?,image=?,badge=?,year=?,extra=?,link_url=?,link_label=?,sort_order=?,is_active=? WHERE id=? AND type=?');
+                $stmt->execute([$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$linkUrl?:null,$linkLabel?:null,$sortOrder,$isActive,$id,$itemType]);
                 if ($previousImage && $previousImage !== $image) portal_delete_uploaded_image($previousImage);
                 portal_log($pdo, 'update_content', 'Memperbarui ' . $contentTypes[$itemType]['label'] . ': ' . $title);
             } else {
-                $stmt = $pdo->prepare('INSERT INTO site_content_items (type,title,subtitle,description,image,badge,year,extra,sort_order,is_active) VALUES (?,?,?,?,?,?,?,?,?,?)');
-                $stmt->execute([$itemType,$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$sortOrder,$isActive]);
+                $stmt = $pdo->prepare('INSERT INTO site_content_items (type,title,subtitle,description,image,badge,year,extra,link_url,link_label,sort_order,is_active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
+                $stmt->execute([$itemType,$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$linkUrl?:null,$linkLabel?:null,$sortOrder,$isActive]);
                 portal_log($pdo, 'create_content', 'Menambahkan ' . $contentTypes[$itemType]['label'] . ': ' . $title);
             }
             portal_flash('success', 'Konten berhasil disimpan dan diperbarui di website.');
@@ -102,6 +105,7 @@ require __DIR__ . '/../../components/portal-header.php';
 <?php if($type==='achievement'): ?><div class="field"><label>Label prestasi</label><input name="badge" value="<?php echo esc($editItem['badge']??''); ?>" placeholder="Nasional / Provinsi / Kota"></div><div class="field"><label>Tahun</label><input name="year" maxlength="10" value="<?php echo esc($editItem['year']??date('Y')); ?>"></div><div class="field"><label>Unit sekolah</label><select name="extra"><option value="">Pilih unit</option><?php foreach(['Daycare','TKIT','SDIT','SMPIT'] as $unitOption): ?><option value="<?php echo esc($unitOption); ?>" <?php echo (($editItem['extra']??'')===$unitOption)?'selected':''; ?>><?php echo esc($unitOption); ?></option><?php endforeach; ?></select></div><?php endif; ?>
 <div class="field"><label>Gambar/foto <?php echo $editItem?'(kosongkan jika tetap)':''; ?></label><input type="file" name="image" accept="image/jpeg,image/png,image/webp"><small style="color:var(--portal-muted)">JPG, PNG, atau WebP. Maksimal 5 MB.</small></div><div class="field"><label>Urutan tampil</label><input type="number" min="0" name="sort_order" value="<?php echo (int)($editItem['sort_order']??count($items)+1); ?>"></div>
 <div class="field full"><label>Deskripsi lengkap</label><textarea name="description" required><?php echo esc($editItem['description']??''); ?></textarea></div>
+<?php if(in_array($type,['program','achievement','activity'],true)): ?><div class="field"><label>Tautan publikasi / tujuan</label><input type="url" name="link_url" value="<?php echo esc($editItem['link_url']??''); ?>" placeholder="https://instagram.com/... atau halaman berita"></div><div class="field"><label>Teks tombol</label><input name="link_label" value="<?php echo esc($editItem['link_label']??''); ?>" placeholder="Lihat Publikasi"></div><?php endif; ?>
 <?php if($config['extra']): ?><div class="field full"><label><?php echo esc($config['extra']); ?></label><textarea name="extra" style="min-height:90px"><?php echo esc($editItem['extra']??''); ?></textarea></div><?php endif; ?>
 <div class="field full"><label style="display:flex;align-items:center;gap:8px;text-transform:none"><input style="width:auto" type="checkbox" name="is_active" <?php echo !isset($editItem['is_active'])||$editItem['is_active']?'checked':''; ?>> Tampilkan di website</label></div><div class="form-actions field full"><a class="portal-action secondary" href="<?php echo SITE_URL; ?>/portal/site-content?type=<?php echo $type; ?>">Batal</a><button class="portal-action">Simpan Konten</button></div></form></section>
 <?php endif; ?>

@@ -29,6 +29,7 @@ require_once __DIR__ . '/../components/header.php';
                 <div class="card-body">
                     <h3><?php echo esc($a['title']); ?></h3>
                     <p><?php echo nl2br(esc($a['description'])); ?></p>
+                    <?php if($a['link_url']): ?><a class="program-link" href="<?php echo esc($a['link_url']); ?>" target="_blank" rel="noopener"><?php echo esc($a['link_label'] ?: 'Lihat di Media Sosial'); ?> &rarr;</a><?php endif; ?>
                 </div>
             </div>
             <?php endforeach; ?>

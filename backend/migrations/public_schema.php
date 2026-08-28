@@ -6,6 +6,28 @@
 
 function ensure_public_schema(PDO $pdo): void
 {
+    $siteBase = defined('SITE_URL') ? SITE_URL : 'http://localhost/school-website';
+    $pdo->exec("CREATE TABLE IF NOT EXISTS schema_migrations (
+        version VARCHAR(80) PRIMARY KEY,
+        description VARCHAR(255) NOT NULL,
+        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $tableExists = static function (string $table) use ($pdo): bool {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME=?');
+        $stmt->execute([DB_NAME, $table]);
+        return (int) $stmt->fetchColumn() > 0;
+    };
+    $columnExists = static function (string $table, string $column) use ($pdo): bool {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME=? AND COLUMN_NAME=?');
+        $stmt->execute([DB_NAME, $table, $column]);
+        return (int) $stmt->fetchColumn() > 0;
+    };
+    $recordMigration = static function (string $version, string $description) use ($pdo): void {
+        $stmt = $pdo->prepare('INSERT IGNORE INTO schema_migrations (version,description) VALUES (?,?)');
+        $stmt->execute([$version, $description]);
+    };
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS gallery_albums (
         id INT AUTO_INCREMENT PRIMARY KEY,
         title VARCHAR(180) NOT NULL,
@@ -74,6 +96,81 @@ function ensure_public_schema(PDO $pdo): void
         INDEX idx_application_vacancy (vacancy_id, status, created_at),
         CONSTRAINT fk_application_vacancy FOREIGN KEY (vacancy_id) REFERENCES job_vacancies(id) ON DELETE RESTRICT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS hero_media (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(180) NOT NULL,
+        eyebrow VARCHAR(180) NULL,
+        description VARCHAR(500) NULL,
+        media_type ENUM('image','video') NOT NULL DEFAULT 'image',
+        media_url VARCHAR(255) NOT NULL,
+        poster_url VARCHAR(255) NULL,
+        cta_label VARCHAR(80) NULL,
+        cta_url VARCHAR(255) NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_hero_public (is_active, sort_order, id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS brochures (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        unit_slug VARCHAR(30) NOT NULL UNIQUE,
+        unit_name VARCHAR(100) NOT NULL,
+        headline VARCHAR(180) NOT NULL,
+        description TEXT NOT NULL,
+        cover_image VARCHAR(255) NULL,
+        file_url VARCHAR(255) NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_brochure_public (is_active, sort_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    if ($tableExists('site_content_items')) {
+        if (!$columnExists('site_content_items', 'link_url')) {
+            $pdo->exec("ALTER TABLE site_content_items ADD COLUMN link_url VARCHAR(255) NULL AFTER extra");
+        }
+        if (!$columnExists('site_content_items', 'link_label')) {
+            $pdo->exec("ALTER TABLE site_content_items ADD COLUMN link_label VARCHAR(80) NULL AFTER link_url");
+        }
+        $recordMigration('20260828-content-links', 'Tautan publikasi untuk program, prestasi, dan kegiatan');
+    }
+
+    if ($tableExists('spmb_registrations')) {
+        if (!$columnExists('spmb_registrations', 'academic_year')) {
+            $pdo->exec("ALTER TABLE spmb_registrations ADD COLUMN academic_year VARCHAR(9) NULL AFTER level");
+        }
+        if (!$columnExists('spmb_registrations', 'admission_track')) {
+            $pdo->exec("ALTER TABLE spmb_registrations ADD COLUMN admission_track ENUM('reguler','waiting_list') NOT NULL DEFAULT 'reguler' AFTER academic_year");
+        }
+        $currentStart = (int) date('Y');
+        $currentYear = $currentStart . '/' . ($currentStart + 1);
+        $stmt = $pdo->prepare("UPDATE spmb_registrations SET academic_year=? WHERE academic_year IS NULL OR academic_year=''");
+        $stmt->execute([$currentYear]);
+        $recordMigration('20260828-spmb-academic-year', 'Tahun ajaran dan waiting list SPMB');
+    }
+
+    if ((int) $pdo->query('SELECT COUNT(*) FROM hero_media')->fetchColumn() === 0) {
+        $seedHero = $pdo->prepare('INSERT INTO hero_media (title,eyebrow,description,media_type,media_url,cta_label,cta_url,sort_order,is_active) VALUES (?,?,?,?,?,?,?,?,1)');
+        $seedHero->execute(['Sekolah Islam Terpadu Permata Hati Bekasi','SPMB '.date('Y').'/'.(date('Y') + 1),'Membentuk generasi sholeh, cerdas, mandiri, dan berwawasan global.','image',$siteBase.'/frontend/assets/images/school/gedung-sekolah.jpeg','Daftar SPMB',$siteBase.'/spmb.php',1]);
+        $seedHero->execute(['Belajar, Bertumbuh, dan Berakhlak','Lingkungan Pendidikan Islami','Pembelajaran akademik, Al-Quran, dan pembinaan karakter dalam lingkungan yang hangat.','image',$siteBase.'/frontend/assets/images/school/hero-school.png','Kenali Sekolah Kami',$siteBase.'/tentang.php',2]);
+        $seedHero->execute(['Empat Unit, Satu Visi Pendidikan','Daycare · TKIT · SDIT · SMPIT','Pendampingan pendidikan berkelanjutan sesuai tahap tumbuh kembang anak.','image',$siteBase.'/frontend/assets/images/school/gedung-smpit.jpeg','Lihat Unit Sekolah',$siteBase.'/unit.php',3]);
+    }
+
+    if ((int) $pdo->query('SELECT COUNT(*) FROM brochures')->fetchColumn() === 0) {
+        $seedBrochure = $pdo->prepare('INSERT INTO brochures (unit_slug,unit_name,headline,description,cover_image,sort_order,is_active) VALUES (?,?,?,?,?,?,1)');
+        $brochures = [
+            ['daycare','Daycare','Tumbuh Nyaman Sejak Langkah Pertama','Program pendampingan, stimulasi sensorik, motorik, bahasa, dan sosial dalam lingkungan Islami yang aman.',$siteBase.'/frontend/assets/images/activities/daycare-kegiatan.jpeg',1],
+            ['tkit','TKIT','Bermain, Belajar, dan Beradab','Pembelajaran sentra yang menumbuhkan kemandirian, kreativitas, kebiasaan ibadah, dan kesiapan sekolah.',$siteBase.'/frontend/assets/images/activities/tkit-kegiatan.jpeg',2],
+            ['sdit','SDIT','Fondasi Akademik dan Karakter yang Kuat','Literasi, numerasi, Al-Quran, proyek, dan pembinaan karakter untuk masa sekolah dasar yang bermakna.',$siteBase.'/frontend/assets/images/activities/sdit-kegiatan.jpeg',3],
+            ['smpit','SMPIT','Siap Memimpin dan Berkarya','Program remaja muslim yang menguatkan akademik, kepemimpinan, kemandirian, dan kecakapan digital.',$siteBase.'/frontend/assets/images/activities/smpit-kegiatan.jpeg',4],
+        ];
+        foreach ($brochures as $brochure) $seedBrochure->execute($brochure);
+    }
+    $recordMigration('20260828-hero-brochures', 'Hero multimedia dan brosur per unit');
 
     if ((int)$pdo->query('SELECT COUNT(*) FROM job_vacancies')->fetchColumn() === 0) {
         $seed = $pdo->prepare('INSERT INTO job_vacancies (title,slug,unit,department,employment_type,work_location,education,experience,summary,description,responsibilities,requirements,benefits,salary_note,deadline,is_featured,is_active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,DATE_ADD(CURDATE(), INTERVAL ? DAY),?,1)');

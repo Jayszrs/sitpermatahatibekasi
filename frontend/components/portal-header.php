@@ -5,9 +5,12 @@ $portalActive = $portalActive ?? 'dashboard';
 $portalNav = [
     ['key' => 'dashboard', 'label' => 'Dashboard', 'url' => '/portal/dashboard', 'roles' => ['admin', 'humas', 'kasir']],
     ['key' => 'content', 'label' => 'Berita & Galeri', 'url' => '/portal/content', 'roles' => ['admin', 'humas']],
+    ['key' => 'hero-media', 'label' => 'Hero Image & Video', 'url' => '/portal/hero-media', 'roles' => ['admin', 'humas']],
+    ['key' => 'brochures', 'label' => 'Brosur Unit', 'url' => '/portal/brochures', 'roles' => ['admin', 'humas']],
     ['key' => 'site-unit', 'label' => 'Unit Sekolah', 'url' => '/portal/site-content?type=unit', 'roles' => ['admin', 'humas']],
     ['key' => 'site-achievement', 'label' => 'Prestasi', 'url' => '/portal/site-content?type=achievement', 'roles' => ['admin', 'humas']],
     ['key' => 'site-leadership', 'label' => 'Struktur Pimpinan', 'url' => '/portal/site-content?type=leadership', 'roles' => ['admin', 'humas']],
+    ['key' => 'site-foundation', 'label' => 'Struktur Yayasan', 'url' => '/portal/site-content?type=foundation', 'roles' => ['admin', 'humas']],
     ['key' => 'site-program', 'label' => 'Program Unggulan', 'url' => '/portal/site-content?type=program', 'roles' => ['admin', 'humas']],
     ['key' => 'site-activity', 'label' => 'Kegiatan Sekolah', 'url' => '/portal/site-content?type=activity', 'roles' => ['admin', 'humas']],
     ['key' => 'site-profile', 'label' => 'Profil, Visi & Misi', 'url' => '/portal/site-content?type=profile', 'roles' => ['admin', 'humas']],
@@ -22,7 +25,7 @@ $portalNav = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="icon" type="image/jpeg" href="<?php echo esc(asset_url('frontend/assets/images/logo-sit-permata-hati.jpeg')); ?>">
+    <link rel="icon" type="image/png" href="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>">
     <title><?php echo esc($portalTitle); ?> | Portal PHB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +36,7 @@ $portalNav = [
 <div class="portal-layout">
     <aside class="portal-sidebar" id="portalSidebar">
         <a class="sidebar-brand" href="<?php echo SITE_URL; ?>/portal/dashboard">
-            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo-sit-permata-hati.jpeg" alt="Logo SIT Permata Hati Bekasi">
+            <img src="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>" alt="Logo SIT Permata Hati Bekasi">
             <span>PortalPHB</span>
         </a>
         <div class="sidebar-role">

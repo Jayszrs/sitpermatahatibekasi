@@ -1,0 +1,10 @@
+<?php
+require_once __DIR__ . '/../../backend/config/database.php';
+require_once __DIR__ . '/../../backend/helpers/functions.php';
+$id=(int)($_GET['id']??0); $stmt=$pdo->prepare("SELECT * FROM site_content_items WHERE id=? AND type='program' AND is_active=1"); $stmt->execute([$id]); $program=$stmt->fetch();
+if(!$program){ http_response_code(404); $page_title='Program Tidak Ditemukan'; require __DIR__.'/../components/header.php'; ?><section class="page-header"><div class="container"><h1>Program Tidak Ditemukan</h1></div></section><section class="section"><div class="container empty-public-state"><a class="btn btn-primary" href="program.php">Lihat Semua Program</a></div></section><?php require __DIR__.'/../components/footer.php'; return; }
+$page_title=$program['title']; require __DIR__.'/../components/header.php';
+?>
+<section class="program-detail-hero"><div class="container program-detail-grid"><div><span class="page-kicker"><?php echo esc($program['subtitle'] ?: 'Program Unggulan'); ?></span><h1><?php echo esc($program['title']); ?></h1><p><?php echo nl2br(esc($program['description'])); ?></p><div class="hero-actions"><a class="btn btn-gold" href="form-spmb.php">Daftar SPMB</a><a class="btn btn-outline-light" href="program.php">Program Lainnya</a></div></div><div class="program-detail-visual"><img src="<?php echo esc($program['image'] ?: SITE_URL.'/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-02.jpeg'); ?>" alt="<?php echo esc($program['title']); ?>"></div></div></section>
+<section class="section"><div class="container program-detail-body"><div><span class="section-eyebrow">Tentang Program</span><h2>Pembelajaran yang Terarah dan Bermakna</h2><p><?php echo nl2br(esc($program['description'])); ?></p></div><aside><strong>Tertarik dengan program ini?</strong><p>Hubungi tim sekolah untuk menyesuaikan program dengan unit dan usia calon siswa.</p><a class="btn btn-primary btn-block" href="https://wa.me/<?php echo esc(SITE_WHATSAPP); ?>" target="_blank" rel="noopener">Konsultasi WhatsApp</a></aside></div></section>
+<?php require __DIR__.'/../components/footer.php'; ?>

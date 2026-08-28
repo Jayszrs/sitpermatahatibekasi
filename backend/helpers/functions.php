@@ -145,14 +145,17 @@ $nav_menu = [
             'prestasi.php' => 'Prestasi',
         ]
     ],
-    'kontak.php'   => 'Lokasi Sekolah',
-    'alquran.php'  => 'Al Quran',
-    'berita.php'   => 'News',
+    'kontak.php'   => 'Lokasi',
+    'berita.php'   => 'Berita',
+    'galeri.php'   => 'Galeri',
     'brosur'       => [
         'label' => 'Brosur',
         'children' => [
-            'galeri.php'    => 'Galeri',
-            'kegiatan.php'  => 'Kegiatan',
+            'brosur.php'                 => 'Semua Brosur',
+            'brosur-unit.php?unit=daycare' => 'Brosur Daycare',
+            'brosur-unit.php?unit=tkit'    => 'Brosur TKIT',
+            'brosur-unit.php?unit=sdit'    => 'Brosur SDIT',
+            'brosur-unit.php?unit=smpit'   => 'Brosur SMPIT',
         ]
     ],
     'spmb.php'     => 'SPMB',

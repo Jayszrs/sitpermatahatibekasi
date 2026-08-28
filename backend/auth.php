@@ -75,6 +75,8 @@ function portal_bootstrap_database(PDO $pdo): void
         'family_card_number' => "ALTER TABLE spmb_registrations ADD COLUMN family_card_number VARCHAR(30) NULL AFTER parent_nik",
         'registration_status' => "ALTER TABLE spmb_registrations ADD COLUMN registration_status ENUM('baru','verifikasi','lulus','cadangan','ditolak','daftar_ulang') NOT NULL DEFAULT 'baru' AFTER address",
         'document_status' => "ALTER TABLE spmb_registrations ADD COLUMN document_status ENUM('belum_lengkap','lengkap','terverifikasi') NOT NULL DEFAULT 'belum_lengkap' AFTER registration_status",
+        'academic_year' => "ALTER TABLE spmb_registrations ADD COLUMN academic_year VARCHAR(9) NULL AFTER level",
+        'admission_track' => "ALTER TABLE spmb_registrations ADD COLUMN admission_track ENUM('reguler','waiting_list') NOT NULL DEFAULT 'reguler' AFTER academic_year",
     ];
 
     $check = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'spmb_registrations' AND COLUMN_NAME = ?");
@@ -392,6 +394,11 @@ function portal_seed_site_content(PDO $pdo): void
             ['Nama Wakil Kepala Sekolah', 'Wakil Kepala Bidang Kurikulum', 'Mengelola dan mengembangkan kurikulum akademik sekolah.', ''],
             ['Nama Wakil Kepala Sekolah', 'Wakil Kepala Bidang Kesiswaan', 'Membina kegiatan dan pengembangan karakter siswa.', ''],
         ],
+        'foundation' => [
+            ['Nama Ketua Yayasan', 'Ketua Yayasan', 'Menetapkan arah strategis yayasan dan memastikan penyelenggaraan pendidikan berjalan sesuai visi lembaga.', ''],
+            ['Nama Sekretaris Yayasan', 'Sekretaris Yayasan', 'Mengelola tata kelola, dokumentasi, dan koordinasi kelembagaan yayasan.', ''],
+            ['Nama Bendahara Yayasan', 'Bendahara Yayasan', 'Mengelola perencanaan dan pertanggungjawaban keuangan yayasan secara amanah.', ''],
+        ],
         'program' => [
             ["Tahfidz & Tahsin Al-Qur'an", 'Quran', "Program bacaan dan hafalan Al-Qur'an bertahap dari TKIT, SDIT, hingga SMPIT.", ''],
             ['Stimulasi Anak Usia Dini', 'Daycare', 'Aktivitas sensorik, motorik, bahasa, dan sosial untuk anak daycare secara aman dan menyenangkan.', ''],
@@ -425,6 +432,16 @@ function portal_seed_site_content(PDO $pdo): void
             $insert->execute([$type, $title, $subtitle ?: null, $description, $image, $badge, $year, $extra ?: null, $index + 1]);
         }
     }
+    $pdo->exec("UPDATE site_content_items SET link_label='Pelajari Program' WHERE type='program' AND (link_label IS NULL OR link_label='')");
+    $pdo->exec("UPDATE site_content_items SET link_label='Lihat Publikasi' WHERE type='achievement' AND (link_label IS NULL OR link_label='')");
+    $activityLinks = [
+        'Daycare' => SITE_DAYCARE_INSTAGRAM,
+        'TKIT' => SITE_TKIT_INSTAGRAM,
+        'SDIT' => SITE_SDIT_INSTAGRAM,
+        'SMPIT' => SITE_SMPIT_INSTAGRAM,
+    ];
+    $linkActivity = $pdo->prepare("UPDATE site_content_items SET link_url=?,link_label='Lihat di Instagram' WHERE type='activity' AND subtitle=? AND (link_url IS NULL OR link_url='')");
+    foreach ($activityLinks as $unit => $url) $linkActivity->execute([$url, $unit]);
     $profile = $pdo->prepare('INSERT IGNORE INTO site_profile (id,history_title,history_content,vision,mission) VALUES (1,?,?,?,?)');
     $profile->execute([
         'Perjalanan ' . SITE_NAME,
@@ -566,6 +583,38 @@ function portal_upload_image(array $file, string $prefix = 'content'): string
     if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) {
         throw new RuntimeException('Gagal menyimpan gambar.');
     }
+    return SITE_URL . '/frontend/assets/uploads/' . $filename;
+}
+
+function portal_upload_hero_media(array $file, string $mediaType): string
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) throw new RuntimeException('Pilih file media yang akan diunggah.');
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) throw new RuntimeException('Media gagal diunggah. Periksa batas upload PHP/XAMPP.');
+    $maxSize = $mediaType === 'video' ? 80 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (($file['size'] ?? 0) > $maxSize) throw new RuntimeException($mediaType === 'video' ? 'Ukuran video maksimal 80 MB.' : 'Ukuran gambar maksimal 10 MB.');
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    $allowed = $mediaType === 'video'
+        ? ['video/mp4' => 'mp4', 'video/webm' => 'webm']
+        : ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+    if (!isset($allowed[$mime])) throw new RuntimeException($mediaType === 'video' ? 'Video harus MP4 atau WebM.' : 'Gambar harus JPG, PNG, WebP, atau GIF.');
+    $directory = __DIR__ . '/../frontend/assets/uploads';
+    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) throw new RuntimeException('Folder upload tidak dapat dibuat.');
+    $filename = 'hero-' . date('Ymd-His') . '-' . bin2hex(random_bytes(5)) . '.' . $allowed[$mime];
+    if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) throw new RuntimeException('Gagal menyimpan media hero.');
+    return SITE_URL . '/frontend/assets/uploads/' . $filename;
+}
+
+function portal_upload_brochure(array $file): string
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) throw new RuntimeException('Pilih file brosur PDF.');
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) throw new RuntimeException('Brosur gagal diunggah.');
+    if (($file['size'] ?? 0) > 15 * 1024 * 1024) throw new RuntimeException('Ukuran brosur maksimal 15 MB.');
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    if ($mime !== 'application/pdf') throw new RuntimeException('Brosur harus berupa file PDF.');
+    $directory = __DIR__ . '/../frontend/assets/uploads';
+    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) throw new RuntimeException('Folder upload tidak dapat dibuat.');
+    $filename = 'brosur-' . date('Ymd-His') . '-' . bin2hex(random_bytes(5)) . '.pdf';
+    if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) throw new RuntimeException('Gagal menyimpan brosur.');
     return SITE_URL . '/frontend/assets/uploads/' . $filename;
 }
 

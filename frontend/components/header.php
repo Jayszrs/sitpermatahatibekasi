@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo isset($page_title) ? esc($page_title) . ' - ' . SITE_NAME : SITE_NAME; ?></title>
 <meta name="description" content="<?php echo esc(SITE_TAGLINE); ?>">
-<link rel="icon" type="image/jpeg" href="<?php echo esc(asset_url('frontend/assets/images/logo-sit-permata-hati.jpeg')); ?>">
+<link rel="icon" type="image/png" href="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?php echo esc(asset_url('frontend/assets/css/style.css')); ?>">
 </head>
-<body>
+<?php $pageClass = 'page-' . preg_replace('/[^a-z0-9]+/i', '-', strtolower(pathinfo((string)($current_page ?? 'index.php'), PATHINFO_FILENAME))); ?>
+<body class="<?php echo esc(trim($pageClass, '-')); ?>">
 
 <header class="site-header" id="siteHeader">
     <div class="header-inner">
         <a href="<?php echo SITE_URL; ?>/index.php" class="brand">
-            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo-sit-permata-hati.jpeg" alt="Logo <?php echo esc(SITE_NAME); ?>" class="brand-logo" onerror="this.style.display='none'">
+            <img src="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>" alt="Logo <?php echo esc(SITE_NAME); ?>" class="brand-logo" onerror="this.style.display='none'">
             <span class="brand-copy">
                 <strong><?php echo esc(SITE_NAME); ?></strong>
                 <small>Sekolah Islam Terpadu</small>
@@ -37,7 +38,8 @@
                             // Mark active if current page is one of the children
                             $childActive = false;
                             foreach ($item['children'] as $cf => $cl) {
-                                if ($current_page === $cf) { $childActive = true; break; }
+                                $childPath = strtok($cf, '?');
+                                if ($current_page === $childPath) { $childActive = true; break; }
                             }
                             echo $childActive ? 'active' : '';
                         ?>" aria-expanded="false">
@@ -47,7 +49,7 @@
                         <ul class="dropdown-menu">
                             <?php foreach ($item['children'] as $childFile => $childLabel): ?>
                             <li>
-                                <a href="<?php echo SITE_URL . '/' . $childFile; ?>" class="<?php echo ($current_page === $childFile) ? 'active' : ''; ?>">
+                                <a href="<?php echo SITE_URL . '/' . $childFile; ?>" class="<?php echo ($current_page === strtok($childFile, '?')) ? 'active' : ''; ?>">
                                     <?php echo esc($childLabel); ?>
                                 </a>
                             </li>
