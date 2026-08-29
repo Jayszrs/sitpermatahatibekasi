@@ -19,6 +19,12 @@ $stmt2->execute([$news['id']]);
 $other_news = $stmt2->fetchAll();
 
 $page_title = $news['title'];
+$meta_description = $news['excerpt'] ?: mb_strimwidth(strip_tags($news['content']), 0, 180, '...');
+$meta_image = $news['image'];
+$meta_type = 'article';
+$canonical_url = SITE_URL . '/detail-berita.php?slug=' . rawurlencode($news['slug']);
+$shareUrl = urlencode($canonical_url);
+$shareText = urlencode($news['title']);
 require_once __DIR__ . '/../components/header.php';
 ?>
 
@@ -29,20 +35,7 @@ require_once __DIR__ . '/../components/header.php';
     </div>
 </section>
 
-<section class="section">
-    <div class="container">
-        <div style="max-width: 800px; margin: 0 auto;">
-            <div class="news-date" style="margin-bottom:16px;"><?php echo tanggal_indo($news['published_at']); ?></div>
-            <img src="<?php echo esc($news['image']); ?>" alt="<?php echo esc($news['title']); ?>" style="border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 28px; width:100%; aspect-ratio: 16/9; object-fit: cover;">
-            <div style="color: var(--text); font-size: 1.02rem; line-height: 1.8;">
-                <?php echo nl2br(esc($news['content'])); ?>
-            </div>
-            <div style="margin-top:36px;">
-                <a href="berita.php" class="btn btn-outline">&larr; Kembali ke Berita</a>
-            </div>
-        </div>
-    </div>
-</section>
+<section class="section news-article-section"><div class="container news-article-layout"><article class="news-article"><div class="news-article-meta"><span class="news-date"><?php echo tanggal_indo($news['published_at']); ?></span><span>Publikasi Sekolah</span></div><img class="news-article-cover" src="<?php echo esc($news['image']); ?>" alt="<?php echo esc($news['title']); ?>"><div class="news-article-content"><?php echo nl2br(esc($news['content'])); ?></div><div class="social-share"><span>Bagikan informasi</span><a target="_blank" rel="noopener" href="https://wa.me/?text=<?php echo $shareText.'%20'.$shareUrl; ?>">WhatsApp</a><a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $shareUrl; ?>">Facebook</a><a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=<?php echo $shareText; ?>&url=<?php echo $shareUrl; ?>">X</a><a target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo $shareUrl; ?>">LinkedIn</a><button type="button" data-native-share data-share-title="<?php echo esc($news['title']); ?>" data-share-url="<?php echo esc($canonical_url); ?>">Lainnya</button></div><div class="news-article-footer"><a href="berita.php" class="btn btn-outline">&larr; Kembali ke Berita</a></div></article><aside class="news-article-aside"><span class="section-eyebrow">Tentang Publikasi</span><h3>Kabar Resmi Sekolah</h3><p>Ikuti kegiatan dan informasi terbaru dari seluruh unit SIT Permata Hati Bekasi.</p><a class="btn btn-primary btn-block" href="berita.php">Lihat Semua Berita</a></aside></div></section>
 
 <?php if (count($other_news) > 0): ?>
 <section class="section section-alt">

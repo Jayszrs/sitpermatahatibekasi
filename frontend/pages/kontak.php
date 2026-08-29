@@ -3,33 +3,6 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Kontak';
 
-$success = false;
-$errors = [];
-$old = ['name' => '', 'email' => '', 'whatsapp' => '', 'message' => ''];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $old['name']     = trim($_POST['name'] ?? '');
-    $old['email']    = trim($_POST['email'] ?? '');
-    $old['whatsapp'] = trim($_POST['whatsapp'] ?? '');
-    $old['message']  = trim($_POST['message'] ?? '');
-
-    if ($old['name'] === '') $errors[] = 'Nama wajib diisi.';
-    if ($old['email'] === '') {
-        $errors[] = 'Email wajib diisi.';
-    } elseif (!filter_var($old['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Format email tidak valid.';
-    }
-    if ($old['whatsapp'] === '') $errors[] = 'Nomor WhatsApp wajib diisi.';
-    if ($old['message'] === '') $errors[] = 'Pesan wajib diisi.';
-
-    if (empty($errors)) {
-        $stmt = $pdo->prepare("INSERT INTO contacts (name, email, whatsapp, message) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$old['name'], $old['email'], $old['whatsapp'], $old['message']]);
-        $success = true;
-        $old = ['name' => '', 'email' => '', 'whatsapp' => '', 'message' => ''];
-    }
-}
-
 $campuses = [
     [
         'label' => SITE_DAYCARE_TKIT_CAMPUS_LABEL,
@@ -68,17 +41,19 @@ require_once __DIR__ . '/../components/header.php';
     <div class="container contact-page-layout">
         <div class="contact-section-head">
             <span class="section-eyebrow">Informasi Lokasi</span>
-            <h2>Alamat Unit Pendidikan</h2>
+            <h2>Tiga Lokasi, Satu Standar Pendidikan</h2>
+            <p>Pilih kampus sesuai jenjang, lihat peta, lalu buka petunjuk arah langsung di Google Maps.</p>
         </div>
 
         <div class="location-card-grid">
-            <?php foreach ($campuses as $campus): ?>
+            <?php foreach ($campuses as $campusIndex => $campus): ?>
                 <?php
                     $coordinates = $campus['latitude'] . ',' . $campus['longitude'];
                     $mapEmbed = 'https://maps.google.com/maps?q=' . rawurlencode($coordinates) . '&t=&z=17&ie=UTF8&iwloc=&output=embed';
                     $mapOpen = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($coordinates);
                 ?>
                 <article class="campus-card">
+                    <span class="campus-number">0<?php echo $campusIndex+1; ?></span>
                     <div class="campus-card-head">
                         <span><?php echo esc($campus['label']); ?></span>
                         <h3><?php echo esc($campus['title']); ?></h3>
@@ -90,44 +65,6 @@ require_once __DIR__ . '/../components/header.php';
                     <a href="<?php echo esc($mapOpen); ?>" class="btn btn-outline btn-sm" target="_blank" rel="noopener">Petunjuk Arah</a>
                 </article>
             <?php endforeach; ?>
-        </div>
-
-        <div class="form-card contact-form-card contact-form-landscape">
-            <h3 style="margin-bottom:20px;">Kirim Pesan</h3>
-
-            <?php if ($success): ?>
-                <div class="alert alert-success">Pesan berhasil dikirim.</div>
-            <?php endif; ?>
-
-            <?php if (!empty($errors)): ?>
-                <div class="alert alert-error">
-                    <?php foreach ($errors as $err) echo esc($err) . '<br>'; ?>
-                </div>
-            <?php endif; ?>
-
-            <form method="POST" action="kontak.php">
-                <div class="contact-form-fields">
-                    <div class="form-group">
-                        <label for="name">Nama *</label>
-                        <input type="text" id="name" name="name" class="form-control" value="<?php echo esc($old['name']); ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email *</label>
-                        <input type="email" id="email" name="email" class="form-control" value="<?php echo esc($old['email']); ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="whatsapp">Nomor WhatsApp *</label>
-                        <input type="text" id="whatsapp" name="whatsapp" class="form-control" value="<?php echo esc($old['whatsapp']); ?>" required>
-                    </div>
-                </div>
-                <div class="contact-message-row">
-                    <div class="form-group">
-                        <label for="message">Pesan *</label>
-                        <textarea id="message" name="message" class="form-control" required><?php echo esc($old['message']); ?></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Kirim Pesan</button>
-                </div>
-            </form>
         </div>
 
         <div class="contact-admin-card">

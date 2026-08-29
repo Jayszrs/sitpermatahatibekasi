@@ -9,7 +9,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
     <div class="container footer-grid">
         <div class="footer-col footer-brand">
             <div class="brand">
-                <img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo-sit-permata-hati.jpeg" alt="Logo <?php echo esc(SITE_NAME); ?>" class="brand-logo brand-logo-footer" onerror="this.style.display='none'">
+                <img src="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>" alt="Logo <?php echo esc(SITE_NAME); ?>" class="brand-logo brand-logo-footer" onerror="this.style.display='none'">
                 <span class="brand-copy">
                     <strong><?php echo esc(SITE_NAME); ?></strong>
                     <small>Sekolah Islam Terpadu</small>
@@ -120,6 +120,13 @@ document.addEventListener('error', function (event) {
 }, true);
 
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-native-share]').forEach(function (button) {
+        if (!navigator.share) { button.hidden = true; return; }
+        button.addEventListener('click', function () {
+            navigator.share({ title: button.dataset.shareTitle || document.title, url: button.dataset.shareUrl || window.location.href }).catch(function () {});
+        });
+    });
+
     var lightbox = document.getElementById('imageLightbox');
     var lightboxImage = document.getElementById('imageLightboxImage');
     var lightboxTitle = document.getElementById('imageLightboxTitle');

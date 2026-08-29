@@ -3,6 +3,7 @@
  * Konfigurasi Database XAMPP
  * Membaca dari file .env di root directory
  */
+date_default_timezone_set('Asia/Jakarta');
 
 $envPath = __DIR__ . '/../../.env';
 if (file_exists($envPath)) {

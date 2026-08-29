@@ -21,14 +21,17 @@ $jobs = $stmt->fetchAll();
 $units = $pdo->query("SELECT DISTINCT unit FROM job_vacancies WHERE is_active=1 ORDER BY unit")->fetchAll(PDO::FETCH_COLUMN);
 $types = $pdo->query("SELECT DISTINCT employment_type FROM job_vacancies WHERE is_active=1 ORDER BY employment_type")->fetchAll(PDO::FETCH_COLUMN);
 $jobStats = $pdo->query("SELECT COUNT(*) total, COUNT(DISTINCT unit) units, SUM(is_featured=1) featured FROM job_vacancies WHERE is_active=1 AND (deadline IS NULL OR deadline>=CURDATE())")->fetch();
+$careerHeroImage = $jobs[0]['image'] ?? SITE_URL.'/frontend/assets/images/brochures/smpit-promo.png';
+$meta_description = 'Temukan lowongan pendidik dan tenaga profesional di SIT Permata Hati Bekasi.';
+$meta_image = $careerHeroImage;
 
 require_once __DIR__ . '/../components/header.php';
 ?>
 
 <section class="career-board-hero">
     <div class="container career-board-hero-grid">
-        <div><span class="career-kicker">Karir di SIT Permata Hati Bekasi</span><h1>Tumbuh Bersama,<br><span>Mendidik dengan Makna.</span></h1><p>Temukan peran yang sesuai dengan keahlian Anda dan ikut membangun generasi sholeh, cerdas, mandiri, dan berwawasan global.</p></div>
-        <div class="career-hero-card"><span>Kesempatan Terbuka</span><strong><?php echo (int)$jobStats['total']; ?> Posisi</strong><p>Untuk pendidik dan tenaga profesional yang ingin berkarya di lingkungan Islami dan kolaboratif.</p></div>
+        <div><span class="career-kicker">Karir di SIT Permata Hati Bekasi</span><h1>Tumbuh Bersama,<br><span>Mendidik dengan Makna.</span></h1><p>Temukan peran yang sesuai dengan keahlian Anda dan ikut membangun generasi sholeh, cerdas, mandiri, dan berwawasan global.</p><div class="career-hero-points"><span>Budaya Islami</span><span>Ruang Bertumbuh</span><span>Dampak Nyata</span></div></div>
+        <div class="career-hero-visual"><img src="<?php echo esc($careerHeroImage); ?>" alt="Tim pendidikan SIT Permata Hati Bekasi"><div class="career-hero-card"><span>Kesempatan Terbuka</span><strong><?php echo (int)$jobStats['total']; ?> Posisi</strong><p>Di <?php echo (int)$jobStats['units']; ?> unit dan bidang kerja.</p></div></div>
     </div>
     <div class="container">
         <form class="job-search-bar" method="get" action="karir.php">
@@ -49,7 +52,7 @@ require_once __DIR__ . '/../components/header.php';
                 <?php if (!$jobs): ?><div class="job-empty"><h3>Belum ada posisi yang cocok</h3><p>Coba kata kunci atau filter lain. Anda juga dapat kembali memeriksa halaman ini secara berkala.</p><a class="btn btn-primary" href="karir.php">Tampilkan Semua</a></div><?php endif; ?>
                 <?php foreach ($jobs as $job): ?>
                 <article class="job-card<?php echo $job['is_featured'] ? ' featured' : ''; ?>">
-                    <div class="job-logo"><img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo-sit-permata-hati.jpeg" alt=""></div>
+                    <div class="job-logo"><img src="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>" alt=""></div>
                     <div class="job-card-main"><div class="job-card-top"><?php if($job['is_featured']): ?><span class="job-featured">Prioritas</span><?php endif; ?><span><?php echo esc($job['department']); ?></span></div><h3><a href="detail-karir.php?slug=<?php echo urlencode($job['slug']); ?>"><?php echo esc($job['title']); ?></a></h3><p><?php echo esc($job['summary']); ?></p><div class="job-meta"><span><?php echo esc($job['unit']); ?></span><span><?php echo esc($job['employment_type']); ?></span><span><?php echo esc($job['work_location']); ?></span></div></div>
                     <div class="job-card-side"><?php if($job['deadline']): ?><small>Batas lamaran</small><strong><?php echo esc(tanggal_indo($job['deadline'])); ?></strong><?php else: ?><small>Dibuka sampai</small><strong>Posisi terpenuhi</strong><?php endif; ?><a href="detail-karir.php?slug=<?php echo urlencode($job['slug']); ?>">Lihat Detail <span>&rarr;</span></a></div>
                 </article>

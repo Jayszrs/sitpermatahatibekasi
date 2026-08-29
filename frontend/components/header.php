@@ -1,10 +1,30 @@
+<?php
+$metaTitle = isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME;
+$metaDescription = $meta_description ?? SITE_TAGLINE;
+$metaImage = $meta_image ?? SITE_URL . '/frontend/assets/images/school/hero-school.png';
+$metaUrl = $canonical_url ?? SITE_URL . '/' . ltrim((string)($current_page ?? 'index.php'), '/');
+$metaType = $meta_type ?? 'website';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?php echo isset($page_title) ? esc($page_title) . ' - ' . SITE_NAME : SITE_NAME; ?></title>
-<meta name="description" content="<?php echo esc(SITE_TAGLINE); ?>">
+<title><?php echo esc($metaTitle); ?></title>
+<meta name="description" content="<?php echo esc($metaDescription); ?>">
+<link rel="canonical" href="<?php echo esc($metaUrl); ?>">
+<meta property="og:locale" content="id_ID">
+<meta property="og:type" content="<?php echo esc($metaType); ?>">
+<meta property="og:site_name" content="<?php echo esc(SITE_NAME); ?>">
+<meta property="og:title" content="<?php echo esc($metaTitle); ?>">
+<meta property="og:description" content="<?php echo esc($metaDescription); ?>">
+<meta property="og:url" content="<?php echo esc($metaUrl); ?>">
+<meta property="og:image" content="<?php echo esc($metaImage); ?>">
+<meta property="og:image:alt" content="<?php echo esc($metaTitle); ?>">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?php echo esc($metaTitle); ?>">
+<meta name="twitter:description" content="<?php echo esc($metaDescription); ?>">
+<meta name="twitter:image" content="<?php echo esc($metaImage); ?>">
 <link rel="icon" type="image/png" href="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +34,17 @@
 <?php $pageClass = 'page-' . preg_replace('/[^a-z0-9]+/i', '-', strtolower(pathinfo((string)($current_page ?? 'index.php'), PATHINFO_FILENAME))); ?>
 <body class="<?php echo esc(trim($pageClass, '-')); ?>">
 
+<?php
+$isNavActive = static function (string $target) use ($current_page): bool {
+    $targetPath = parse_url($target, PHP_URL_PATH) ?: $target;
+    if ($current_page !== $targetPath) return false;
+    $targetQuery = parse_url($target, PHP_URL_QUERY);
+    if (!$targetQuery) return true;
+    parse_str($targetQuery, $expected);
+    foreach ($expected as $key => $value) if ((string)($_GET[$key] ?? '') !== (string)$value) return false;
+    return true;
+};
+?>
 <header class="site-header" id="siteHeader">
     <div class="header-inner">
         <a href="<?php echo SITE_URL; ?>/index.php" class="brand">
@@ -38,8 +69,7 @@
                             // Mark active if current page is one of the children
                             $childActive = false;
                             foreach ($item['children'] as $cf => $cl) {
-                                $childPath = strtok($cf, '?');
-                                if ($current_page === $childPath) { $childActive = true; break; }
+                                if ($isNavActive($cf)) { $childActive = true; break; }
                             }
                             echo $childActive ? 'active' : '';
                         ?>" aria-expanded="false">
@@ -49,7 +79,7 @@
                         <ul class="dropdown-menu">
                             <?php foreach ($item['children'] as $childFile => $childLabel): ?>
                             <li>
-                                <a href="<?php echo SITE_URL . '/' . $childFile; ?>" class="<?php echo ($current_page === strtok($childFile, '?')) ? 'active' : ''; ?>">
+                                <a href="<?php echo SITE_URL . '/' . $childFile; ?>" class="<?php echo $isNavActive($childFile) ? 'active' : ''; ?>">
                                     <?php echo esc($childLabel); ?>
                                 </a>
                             </li>
@@ -107,14 +137,25 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Header shrink on scroll
+    // Desktop: navigasi berubah menjadi pill ringkas di kanan ketika halaman digulir.
     var header = document.getElementById('siteHeader');
+    var scrollFrame = null;
+    function updateHeaderState() {
+        header.classList.toggle('scrolled', window.scrollY > 72);
+        scrollFrame = null;
+    }
     window.addEventListener('scroll', function() {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
+        if (scrollFrame) return;
+        scrollFrame = window.requestAnimationFrame(updateHeaderState);
+    }, { passive: true });
+    updateHeaderState();
+
+    nav.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
+            nav.classList.remove('open');
+            toggle.classList.remove('active');
+            toggle.setAttribute('aria-expanded', 'false');
+        });
     });
 });
 </script>

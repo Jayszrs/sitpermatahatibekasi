@@ -9,7 +9,7 @@ $contentTypes = [
     'achievement' => ['label' => 'Prestasi', 'title' => 'Nama prestasi', 'subtitle' => 'Tingkat perlombaan', 'extra' => null, 'help' => 'Publikasikan prestasi siswa lengkap dengan tingkat, tahun, dan dokumentasi.'],
     'leadership' => ['label' => 'Struktur Pimpinan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan', 'extra' => null, 'help' => 'Tampilkan foto, nama, jabatan, dan profil pimpinan sekolah.'],
     'foundation' => ['label' => 'Struktur Yayasan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan yayasan', 'extra' => null, 'help' => 'Kelola susunan pengurus yayasan lengkap dengan foto, jabatan, dan penjelasan tanggung jawab.'],
-    'program' => ['label' => 'Program Unggulan', 'title' => 'Nama program', 'subtitle' => 'Ikon/singkatan', 'extra' => null, 'help' => 'Kelola program pendidikan beserta gambar dan penjelasannya.'],
+    'program' => ['label' => 'Program Unggulan', 'title' => 'Nama program', 'subtitle' => 'Unit/kategori', 'extra' => null, 'help' => 'Kelola program per unit pendidikan beserta gambar, penjelasan, dan tautan publikasinya.'],
     'activity' => ['label' => 'Kegiatan', 'title' => 'Nama kegiatan', 'subtitle' => 'Periode/kategori', 'extra' => null, 'help' => 'Kelola agenda dan dokumentasi kegiatan sekolah.'],
 ];
 $type = $_GET['type'] ?? 'unit';

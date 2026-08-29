@@ -442,6 +442,8 @@ function portal_seed_site_content(PDO $pdo): void
     ];
     $linkActivity = $pdo->prepare("UPDATE site_content_items SET link_url=?,link_label='Lihat di Instagram' WHERE type='activity' AND subtitle=? AND (link_url IS NULL OR link_url='')");
     foreach ($activityLinks as $unit => $url) $linkActivity->execute([$url, $unit]);
+    $linkAchievement = $pdo->prepare("UPDATE site_content_items SET link_url=?,link_label='Lihat Publikasi' WHERE type='achievement' AND extra=? AND (link_url IS NULL OR link_url='')");
+    foreach ($activityLinks as $unit => $url) $linkAchievement->execute([$url, $unit]);
     $profile = $pdo->prepare('INSERT IGNORE INTO site_profile (id,history_title,history_content,vision,mission) VALUES (1,?,?,?,?)');
     $profile->execute([
         'Perjalanan ' . SITE_NAME,

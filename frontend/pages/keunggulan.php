@@ -16,7 +16,19 @@ if (!isset($advantages[$slug])) {
 }
 
 $advantage = $advantages[$slug];
+$advantageImages = [
+    'pendidikan-islami' => SITE_URL.'/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg',
+    'guru-profesional' => SITE_URL.'/frontend/assets/images/brochures/tkit-promo.png',
+    'kurikulum-berkualitas' => SITE_URL.'/frontend/assets/images/brochures/sdit-promo.png',
+    'lingkungan-nyaman' => SITE_URL.'/frontend/assets/images/school/hero-school.png',
+    'fasilitas-lengkap' => SITE_URL.'/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-03.jpeg',
+    'pengembangan-karakter' => SITE_URL.'/frontend/assets/images/brochures/smpit-promo.png',
+];
+$advantageImage=$advantageImages[$slug];
 $page_title = $advantage['title'];
+$meta_description = $advantage['intro'];
+$meta_image = $advantageImage;
+$canonical_url = SITE_URL.'/keunggulan.php?slug='.rawurlencode($slug);
 require_once __DIR__ . '/../components/header.php';
 ?>
 
@@ -29,9 +41,13 @@ require_once __DIR__ . '/../components/header.php';
             <p><?php echo esc($advantage['intro']); ?></p>
             <div class="hero-actions advantage-actions"><a class="btn btn-primary" href="spmb.php">Lihat Informasi SPMB</a><a class="btn btn-outline" href="kontak.php">Kunjungi Sekolah</a></div>
         </div>
-        <div class="advantage-highlight" aria-hidden="true"><span><?php echo esc($advantage['number']); ?></span><strong><?php echo esc($advantage['title']); ?></strong></div>
+        <button type="button" class="advantage-highlight image-preview-trigger" data-lightbox-src="<?php echo esc($advantageImage); ?>" data-lightbox-title="<?php echo esc($advantage['title']); ?>" style="--advantage-image:url('<?php echo esc($advantageImage); ?>')"><span><?php echo esc($advantage['number']); ?></span><strong><?php echo esc($advantage['title']); ?></strong><small>Lihat suasana pembelajaran</small></button>
     </div>
 </section>
+
+<section class="section advantage-process-section"><div class="container"><div class="section-head"><span class="section-eyebrow">Dari Prinsip Menjadi Pengalaman</span><h2>Bagaimana keunggulan ini hadir setiap hari</h2><p>Kualitas sekolah dibangun melalui perencanaan, pelaksanaan, komunikasi, dan evaluasi yang konsisten.</p></div><div class="advantage-process-grid"><article><span>01</span><h3>Dirancang</h3><p>Target perkembangan diterjemahkan menjadi aktivitas yang sesuai usia dan kebutuhan siswa.</p></article><article><span>02</span><h3>Dijalankan</h3><p>Guru mendampingi proses dengan metode aktif, hangat, dan tetap terarah.</p></article><article><span>03</span><h3>Diamati</h3><p>Perkembangan dicatat agar dukungan berikutnya berbasis kebutuhan nyata.</p></article><article><span>04</span><h3>Dikomunikasikan</h3><p>Orang tua memperoleh gambaran proses dan dapat melanjutkan pembiasaan di rumah.</p></article></div></div></section>
+
+<section class="section section-alt"><div class="container advantage-result-card"><div><span class="section-eyebrow">Hasil yang Dituju</span><h2>Pengalaman sekolah yang terasa bagi anak dan orang tua</h2></div><p><?php echo esc($advantage['intro']); ?> Pendekatan ini membantu siswa belajar dengan rasa aman, memahami tujuan, serta tumbuh menjadi pribadi yang bertanggung jawab.</p><a class="btn btn-primary" href="form-spmb.php">Pilih Jenjang &amp; Daftar</a></div></section>
 
 <section class="section section-alt">
     <div class="container advantage-detail-grid">

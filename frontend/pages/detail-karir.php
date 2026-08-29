@@ -43,15 +43,20 @@ $relatedStmt = $pdo->prepare("SELECT title,slug,unit,employment_type FROM job_va
 $relatedStmt->execute([$job['id']]);
 $relatedJobs = $relatedStmt->fetchAll();
 $page_title = $job['title'] . ' - Karir';
+$meta_description = $job['summary'];
+$meta_image = $job['image'] ?: SITE_URL.'/frontend/assets/images/school/hero-school.png';
+$meta_type = 'article';
+$canonical_url = SITE_URL.'/detail-karir.php?slug='.rawurlencode($job['slug']);
+$shareUrl = urlencode($canonical_url); $shareText = urlencode('Lowongan '.$job['title'].' di '.SITE_NAME);
 $csrf = public_form_csrf_token();
 require_once __DIR__ . '/../components/header.php';
 ?>
 
-<section class="job-detail-hero"><div class="container"><a class="back-link" href="karir.php">&larr; Kembali ke daftar lowongan</a><div class="job-detail-heading"><div class="job-logo large"><img src="<?php echo SITE_URL; ?>/frontend/assets/images/logo-sit-permata-hati.jpeg" alt="Logo SIT Permata Hati Bekasi"></div><div><span><?php echo esc($job['department']); ?></span><h1><?php echo esc($job['title']); ?></h1><div class="job-meta"><span><?php echo esc($job['unit']); ?></span><span><?php echo esc($job['employment_type']); ?></span><span><?php echo esc($job['work_location']); ?></span></div></div><a class="btn btn-gold" href="#lamar">Lamar Posisi Ini</a></div></div></section>
+<section class="job-detail-hero"><div class="container"><a class="back-link" href="karir.php">&larr; Kembali ke daftar lowongan</a><div class="job-detail-heading"><div class="job-logo large"><img src="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>" alt="Logo SIT Permata Hati Bekasi"></div><div><span><?php echo esc($job['department']); ?></span><h1><?php echo esc($job['title']); ?></h1><div class="job-meta"><span><?php echo esc($job['unit']); ?></span><span><?php echo esc($job['employment_type']); ?></span><span><?php echo esc($job['work_location']); ?></span></div></div><a class="btn btn-gold" href="#lamar">Lamar Posisi Ini</a></div></div></section>
 
 <section class="job-detail-section"><div class="container job-detail-layout">
     <main class="job-detail-content">
-        <section><h2>Tentang Posisi</h2><p><?php echo nl2br(esc($job['description'])); ?></p></section>
+        <section><h2>Tentang Posisi</h2><p><?php echo nl2br(esc($job['description'])); ?></p><div class="social-share"><span>Bagikan lowongan</span><a target="_blank" rel="noopener" href="https://wa.me/?text=<?php echo $shareText.'%20'.$shareUrl; ?>">WhatsApp</a><a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $shareUrl; ?>">Facebook</a><a target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=<?php echo $shareUrl; ?>">LinkedIn</a><button type="button" data-native-share data-share-title="<?php echo esc($job['title']); ?>" data-share-url="<?php echo esc($canonical_url); ?>">Lainnya</button></div></section>
         <section><h2>Tanggung Jawab</h2><ul class="job-detail-list"><?php foreach(array_filter(array_map('trim',preg_split('/\r\n|\r|\n/', $job['responsibilities']))) as $item): ?><li><?php echo esc($item); ?></li><?php endforeach; ?></ul></section>
         <section><h2>Kualifikasi</h2><ul class="job-detail-list"><?php foreach(array_filter(array_map('trim',preg_split('/\r\n|\r|\n/', $job['requirements']))) as $item): ?><li><?php echo esc($item); ?></li><?php endforeach; ?></ul></section>
         <?php if($job['benefits']): ?><section><h2>Benefit</h2><ul class="job-detail-list benefit"><?php foreach(array_filter(array_map('trim',preg_split('/\r\n|\r|\n/', $job['benefits']))) as $item): ?><li><?php echo esc($item); ?></li><?php endforeach; ?></ul></section><?php endif; ?>

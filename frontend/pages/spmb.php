@@ -5,10 +5,10 @@ $page_title = 'SPMB - Penerimaan Murid Baru';
 $spmbUnits = $pdo->query("SELECT * FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
 $spmbUnitNames = array_map(static fn(array $unit): string => (string) ($unit['subtitle'] ?: $unit['title']), $spmbUnits);
 $spmbUnitImageMap = [
-    'daycare' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
-    'tkit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
-    'sdit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
-    'smpit' => SITE_URL . '/frontend/assets/images/school/gedung-smpit.jpeg',
+    'daycare' => SITE_URL . '/frontend/assets/images/brochures/daycare-promo.png',
+    'tkit' => SITE_URL . '/frontend/assets/images/brochures/tkit-promo.png',
+    'sdit' => SITE_URL . '/frontend/assets/images/brochures/sdit-promo.png',
+    'smpit' => SITE_URL . '/frontend/assets/images/brochures/smpit-promo.png',
 ];
 require_once __DIR__ . '/../components/header.php';
 ?>
@@ -45,7 +45,7 @@ require_once __DIR__ . '/../components/header.php';
             <span class="section-eyebrow">Unit Tersedia</span>
             <h2>Jenjang Pendaftaran</h2>
         </div>
-        <div class="grid-3">
+        <div class="spmb-unit-grid">
             <?php foreach($spmbUnits as $unit): ?><?php $unitKey = strtolower((string) $unit['subtitle']); $unitImage = $unit['image'] ?: ($spmbUnitImageMap[$unitKey] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?><div class="card"><img src="<?php echo esc($unitImage); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>"><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,150,'...')); ?></p><a class="btn btn-outline btn-sm" href="form-spmb.php?level=<?php echo urlencode($unit['subtitle']); ?>">Pilih Jenjang</a></div></div><?php endforeach; ?>
         </div>
     </div>

@@ -83,6 +83,8 @@ CREATE TABLE IF NOT EXISTS `spmb_registrations` (
     `whatsapp` VARCHAR(30) NOT NULL,
     `email` VARCHAR(150) DEFAULT NULL,
     `level` VARCHAR(20) NOT NULL,
+    `academic_year` VARCHAR(9) DEFAULT NULL,
+    `admission_track` ENUM('reguler','waiting_list') NOT NULL DEFAULT 'reguler',
     `previous_school` VARCHAR(150) DEFAULT NULL,
     `address` TEXT DEFAULT NULL,
     `registration_status` ENUM('baru','verifikasi','lulus','cadangan','ditolak','daftar_ulang') NOT NULL DEFAULT 'baru',
@@ -132,6 +134,8 @@ CREATE TABLE IF NOT EXISTS `site_content_items` (
     `badge` VARCHAR(80) DEFAULT NULL,
     `year` VARCHAR(10) DEFAULT NULL,
     `extra` TEXT DEFAULT NULL,
+    `link_url` VARCHAR(255) DEFAULT NULL,
+    `link_label` VARCHAR(80) DEFAULT NULL,
     `sort_order` INT NOT NULL DEFAULT 0,
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -166,6 +170,44 @@ CREATE TABLE IF NOT EXISTS `spmb_payments` (
     INDEX `idx_payment_registration` (`registration_id`),
     CONSTRAINT `fk_payment_registration` FOREIGN KEY (`registration_id`) REFERENCES `spmb_registrations` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_payment_recorder` FOREIGN KEY (`recorded_by`) REFERENCES `portal_users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `schema_migrations` (
+    `version` VARCHAR(80) PRIMARY KEY,
+    `description` VARCHAR(255) NOT NULL,
+    `applied_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `hero_media` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(180) NOT NULL,
+    `eyebrow` VARCHAR(180) DEFAULT NULL,
+    `description` VARCHAR(500) DEFAULT NULL,
+    `media_type` ENUM('image','video') NOT NULL DEFAULT 'image',
+    `media_url` VARCHAR(255) NOT NULL,
+    `poster_url` VARCHAR(255) DEFAULT NULL,
+    `cta_label` VARCHAR(80) DEFAULT NULL,
+    `cta_url` VARCHAR(255) DEFAULT NULL,
+    `sort_order` INT NOT NULL DEFAULT 0,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_hero_public` (`is_active`,`sort_order`,`id`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `brochures` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `unit_slug` VARCHAR(30) NOT NULL UNIQUE,
+    `unit_name` VARCHAR(100) NOT NULL,
+    `headline` VARCHAR(180) NOT NULL,
+    `description` TEXT NOT NULL,
+    `cover_image` VARCHAR(255) DEFAULT NULL,
+    `file_url` VARCHAR(255) DEFAULT NULL,
+    `sort_order` INT NOT NULL DEFAULT 0,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_brochure_public` (`is_active`,`sort_order`)
 ) ENGINE=InnoDB;
 
 -- ============================================================

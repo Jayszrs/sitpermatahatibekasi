@@ -34,6 +34,7 @@ require_once __DIR__ . '/../components/header.php';
                     $image = $a['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg';
                 ?>
             <div class="card achieve-card" id="prestasi-<?php echo (int)$a['id']; ?>" data-achievement-unit="<?php echo esc($unitKey); ?>">
+                <a class="card-stretched-link" href="detail-prestasi.php?id=<?php echo (int)$a['id']; ?>" aria-label="Baca cerita <?php echo esc($a['title']); ?>"></a>
                 <div class="achieve-image-wrap">
                     <img src="<?php echo esc($image); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($a['title']); ?>" loading="lazy">
                     <span class="achieve-tag"><?php echo esc($level); ?></span>
@@ -49,7 +50,7 @@ require_once __DIR__ . '/../components/header.php';
                 </div>
                 <div class="card-body achievement-detail-body">
                     <p><?php echo esc($a['description']); ?></p>
-                    <?php if($a['link_url']): ?><a class="program-link" href="<?php echo esc($a['link_url']); ?>" target="_blank" rel="noopener"><?php echo esc($a['link_label'] ?: 'Lihat Publikasi'); ?> &rarr;</a><?php endif; ?>
+                    <strong class="program-link">Baca cerita prestasi &rarr;</strong>
                 </div>
             </div>
             <?php endforeach; ?>

@@ -1,4 +1,7 @@
 <?php
+// Halaman Al Quran disatukan ke Program Unggulan agar navigasi publik lebih ringkas.
+header('Location: program.php', true, 301);
+exit;
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Al Quran';

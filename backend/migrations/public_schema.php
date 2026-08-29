@@ -129,6 +129,30 @@ function ensure_public_schema(PDO $pdo): void
         INDEX idx_brochure_public (is_active, sort_order)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS unit_gallery_photos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        unit_slug VARCHAR(30) NOT NULL,
+        title VARCHAR(180) NOT NULL,
+        description VARCHAR(255) NULL,
+        image VARCHAR(255) NOT NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_unit_gallery_public (unit_slug, is_active, sort_order, id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    foreach ([
+        'audience' => "ALTER TABLE brochures ADD COLUMN audience VARCHAR(180) NULL AFTER description",
+        'highlights' => "ALTER TABLE brochures ADD COLUMN highlights TEXT NULL AFTER audience",
+        'facilities' => "ALTER TABLE brochures ADD COLUMN facilities TEXT NULL AFTER highlights",
+        'schedule_info' => "ALTER TABLE brochures ADD COLUMN schedule_info VARCHAR(255) NULL AFTER facilities",
+    ] as $column => $sql) {
+        if (!$columnExists('brochures', $column)) $pdo->exec($sql);
+    }
+    if (!$columnExists('job_vacancies', 'image')) {
+        $pdo->exec("ALTER TABLE job_vacancies ADD COLUMN image VARCHAR(255) NULL AFTER salary_note");
+    }
+
     if ($tableExists('site_content_items')) {
         if (!$columnExists('site_content_items', 'link_url')) {
             $pdo->exec("ALTER TABLE site_content_items ADD COLUMN link_url VARCHAR(255) NULL AFTER extra");
@@ -137,6 +161,22 @@ function ensure_public_schema(PDO $pdo): void
             $pdo->exec("ALTER TABLE site_content_items ADD COLUMN link_label VARCHAR(80) NULL AFTER link_url");
         }
         $recordMigration('20260828-content-links', 'Tautan publikasi untuk program, prestasi, dan kegiatan');
+        $foundationCount = $pdo->prepare("SELECT COUNT(*) FROM site_content_items WHERE type='foundation'");
+        $foundationCount->execute();
+        if ((int)$foundationCount->fetchColumn() === 0) {
+            $insertFoundation = $pdo->prepare("INSERT INTO site_content_items (type,title,subtitle,description,sort_order,is_active) VALUES ('foundation',?,?,?,?,1)");
+            $insertFoundation->execute(['Nama Ketua Yayasan','Ketua Yayasan','Menetapkan arah strategis yayasan dan memastikan penyelenggaraan pendidikan berjalan sesuai visi lembaga.',1]);
+            $insertFoundation->execute(['Nama Sekretaris Yayasan','Sekretaris Yayasan','Mengelola tata kelola, dokumentasi, dan koordinasi kelembagaan yayasan.',2]);
+            $insertFoundation->execute(['Nama Bendahara Yayasan','Bendahara Yayasan','Mengelola perencanaan dan pertanggungjawaban keuangan yayasan secara amanah.',3]);
+        }
+        $achievementLinks = [
+            'Daycare' => 'https://www.instagram.com/daycarepermatahati.bekasi/',
+            'TKIT' => 'https://www.instagram.com/tkitpermatahatibekasi/',
+            'SDIT' => 'https://www.instagram.com/sditphbekasi/',
+            'SMPIT' => 'https://www.instagram.com/smpit_permatahati/?hl=id',
+        ];
+        $linkAchievement = $pdo->prepare("UPDATE site_content_items SET link_url=?,link_label='Lihat Publikasi' WHERE type='achievement' AND extra=? AND (link_url IS NULL OR link_url='')");
+        foreach ($achievementLinks as $unit => $url) $linkAchievement->execute([$url, $unit]);
     }
 
     if ($tableExists('spmb_registrations')) {
@@ -170,6 +210,60 @@ function ensure_public_schema(PDO $pdo): void
         ];
         foreach ($brochures as $brochure) $seedBrochure->execute($brochure);
     }
+    $brochurePromotions = [
+        'daycare' => [
+            'Orang tua dengan anak usia 1-4 tahun',
+            "Stimulasi sensorik dan motorik\nPembiasaan doa dan adab harian\nPendampingan tumbuh kembang\nLaporan aktivitas kepada orang tua",
+            "Ruang aktivitas aman dan higienis\nArea bermain edukatif\nMedia sensorik sesuai usia\nPengasuh dan pendidik yang hangat",
+            'Program harian yang fleksibel dan ramah ritme tumbuh kembang anak.',
+            $siteBase.'/frontend/assets/images/brochures/daycare-promo.png',
+        ],
+        'tkit' => [
+            'Anak usia 4-6 tahun yang siap bertumbuh melalui bermain',
+            "Pembelajaran berbasis sentra\nTahsin dan hafalan surat pendek\nPenguatan kemandirian\nProyek seni, bahasa, dan eksplorasi",
+            "Kelas ramah anak\nArea bermain aktif\nSudut baca dan kreativitas\nMedia belajar tematik",
+            'Pembelajaran aktif lima hari yang menyeimbangkan bermain, adab, dan kesiapan sekolah.',
+            $siteBase.'/frontend/assets/images/brochures/tkit-promo.png',
+        ],
+        'sdit' => [
+            'Siswa sekolah dasar yang membutuhkan fondasi akademik dan karakter',
+            "Literasi dan numerasi terarah\nTahfidz, tahsin, dan pembiasaan ibadah\nProject based learning\nPengembangan minat dan bakat",
+            "Ruang kelas nyaman\nMasjid dan sarana ibadah\nPerpustakaan dan media digital\nLapangan serta kegiatan ekstrakurikuler",
+            'Program full day terintegrasi dengan pendampingan akademik, Al-Quran, dan karakter.',
+            $siteBase.'/frontend/assets/images/brochures/sdit-promo.png',
+        ],
+        'smpit' => [
+            'Remaja usia sekolah menengah yang siap mandiri dan memimpin',
+            "Tahfidz lanjutan dan mentoring remaja\nKelas sains dan teknologi\nLeadership project\nPersiapan akademik berkelanjutan",
+            "Laboratorium pembelajaran\nPerpustakaan dan perangkat digital\nLapangan olahraga\nRuang organisasi dan kolaborasi",
+            'Program terpadu untuk membangun kompetensi, akhlak, kepemimpinan, dan kesiapan masa depan.',
+            $siteBase.'/frontend/assets/images/brochures/smpit-promo.png',
+        ],
+    ];
+    $updateBrochure = $pdo->prepare("UPDATE brochures SET audience=?,highlights=?,facilities=?,schedule_info=?,cover_image=? WHERE unit_slug=? AND (audience IS NULL OR audience='')");
+    foreach ($brochurePromotions as $unitSlug => $promotion) {
+        $updateBrochure->execute([$promotion[0],$promotion[1],$promotion[2],$promotion[3],$promotion[4],$unitSlug]);
+    }
+    $setDefaultBrochurePdf=$pdo->prepare("UPDATE brochures SET file_url=? WHERE unit_slug=? AND (file_url IS NULL OR file_url='')");
+    foreach(array_keys($brochurePromotions) as $unitSlug) $setDefaultBrochurePdf->execute([$siteBase.'/frontend/assets/brochures/brosur-'.$unitSlug.'.pdf',$unitSlug]);
+
+    if ((int)$pdo->query('SELECT COUNT(*) FROM unit_gallery_photos')->fetchColumn() === 0) {
+        $seedUnitPhoto = $pdo->prepare('INSERT INTO unit_gallery_photos (unit_slug,title,description,image,sort_order,is_active) VALUES (?,?,?,?,?,1)');
+        $unitPhotos = [
+            ['daycare','Ruang Bermain Sensorik','Lingkungan bermain yang aman untuk eksplorasi anak.',$siteBase.'/frontend/assets/images/brochures/daycare-promo.png',1],
+            ['daycare','Aktivitas Daycare','Kegiatan motorik dan interaksi sosial yang didampingi pendidik.',$siteBase.'/frontend/assets/images/activities/daycare-kegiatan.jpeg',2],
+            ['tkit','Kelas Kreatif TKIT','Belajar melalui karya, cerita, dan permainan terarah.',$siteBase.'/frontend/assets/images/brochures/tkit-promo.png',1],
+            ['tkit','Eksplorasi Ceria','Aktivitas yang mengembangkan rasa ingin tahu dan kemandirian.',$siteBase.'/frontend/assets/images/activities/tkit-kegiatan.jpeg',2],
+            ['sdit','Kolaborasi Sains SDIT','Pembelajaran akademik yang aktif dan kontekstual.',$siteBase.'/frontend/assets/images/brochures/sdit-promo.png',1],
+            ['sdit','Kegiatan Siswa SDIT','Pengembangan potensi melalui kegiatan kelas dan ekstrakurikuler.',$siteBase.'/frontend/assets/images/activities/sdit-kegiatan.jpeg',2],
+            ['sdit','Gedung Utama','Lingkungan belajar SIT Permata Hati Bekasi.',$siteBase.'/frontend/assets/images/school/gedung-sekolah.jpeg',3],
+            ['smpit','Innovation Project SMPIT','Kolaborasi teknologi dan kepemimpinan siswa.',$siteBase.'/frontend/assets/images/brochures/smpit-promo.png',1],
+            ['smpit','Riset dan Diskusi','Pembelajaran remaja yang aktif, ilmiah, dan berkarakter.',$siteBase.'/frontend/assets/images/activities/smpit-kegiatan.jpeg',2],
+            ['smpit','Gedung SMPIT','Fasilitas pendidikan jenjang sekolah menengah.',$siteBase.'/frontend/assets/images/school/gedung-smpit.jpeg',3],
+        ];
+        foreach ($unitPhotos as $photo) $seedUnitPhoto->execute($photo);
+    }
+    $recordMigration('20260829-public-experience', 'Konten brosur lengkap, gambar lowongan, dan galeri unit tanpa batas');
     $recordMigration('20260828-hero-brochures', 'Hero multimedia dan brosur per unit');
 
     if ((int)$pdo->query('SELECT COUNT(*) FROM job_vacancies')->fetchColumn() === 0) {
@@ -183,6 +277,16 @@ function ensure_public_schema(PDO $pdo): void
         foreach ($jobs as $job) $seed->execute($job);
     }
     $pdo->exec("UPDATE job_vacancies SET responsibilities=REPLACE(responsibilities, '\\\\n', CHAR(10)), requirements=REPLACE(requirements, '\\\\n', CHAR(10)), benefits=REPLACE(benefits, '\\\\n', CHAR(10)) WHERE responsibilities LIKE '%\\\\n%' OR requirements LIKE '%\\\\n%' OR benefits LIKE '%\\\\n%'");
+    $jobImages = [
+        'Daycare' => $siteBase.'/frontend/assets/images/brochures/daycare-promo.png',
+        'TKIT' => $siteBase.'/frontend/assets/images/brochures/tkit-promo.png',
+        'SDIT' => $siteBase.'/frontend/assets/images/brochures/sdit-promo.png',
+        'SMPIT' => $siteBase.'/frontend/assets/images/brochures/smpit-promo.png',
+        'Semua Unit' => $siteBase.'/frontend/assets/images/school/hero-school.png',
+        'Yayasan' => $siteBase.'/frontend/assets/images/school/hero-school.png',
+    ];
+    $updateJobImage=$pdo->prepare("UPDATE job_vacancies SET image=? WHERE unit=? AND (image IS NULL OR image='')");
+    foreach($jobImages as $unitName=>$imageUrl) $updateJobImage->execute([$imageUrl,$unitName]);
 
     // Pertahankan isi tabel galeri versi lama jika project diperbarui tanpa import ulang SQL.
     $legacyCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME='gallery'");

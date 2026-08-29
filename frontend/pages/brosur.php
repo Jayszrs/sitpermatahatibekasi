@@ -1,12 +1,13 @@
 <?php
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
-$page_title = 'Brosur Sekolah';
-$brochures = $pdo->query('SELECT * FROM brochures WHERE is_active=1 ORDER BY sort_order,id')->fetchAll();
-require_once __DIR__ . '/../components/header.php';
+$page_title='Brosur Sekolah';
+$meta_description='Temukan program, fasilitas, dan brosur resmi Daycare, TKIT, SDIT, dan SMPIT Permata Hati Bekasi.';
+$brochures=$pdo->query('SELECT * FROM brochures WHERE is_active=1 ORDER BY sort_order,id')->fetchAll();
+require_once __DIR__.'/../components/header.php';
 ?>
-<section class="page-header page-header-photo"><div class="container"><span class="page-kicker">Informasi Unit</span><h1>Brosur Sekolah</h1><p class="breadcrumb"><a href="index.php">Beranda</a> / Brosur</p></div></section>
-<section class="section brochure-section"><div class="container"><div class="section-head"><span class="section-eyebrow">Pilih Unit</span><h2>Kenali Program Setiap Jenjang</h2><p>Lihat ringkasan program dan unduh brosur resmi sesuai unit yang Anda butuhkan.</p></div><div class="brochure-grid">
-<?php foreach($brochures as $item): ?><article class="brochure-card"><a class="brochure-cover" href="brosur-unit.php?unit=<?php echo urlencode($item['unit_slug']); ?>"><img src="<?php echo esc($item['cover_image']); ?>" alt="Brosur <?php echo esc($item['unit_name']); ?>" loading="lazy"><span><?php echo esc($item['unit_name']); ?></span></a><div><h3><?php echo esc($item['headline']); ?></h3><p><?php echo esc(mb_strimwidth($item['description'],0,155,'...')); ?></p><a class="btn btn-outline btn-sm" href="brosur-unit.php?unit=<?php echo urlencode($item['unit_slug']); ?>">Lihat Brosur</a></div></article><?php endforeach; ?>
-</div></div></section>
-<?php require_once __DIR__ . '/../components/footer.php'; ?>
+<section class="page-header page-header-photo"><div class="container"><span class="page-kicker">Panduan Memilih Jenjang</span><h1>Brosur &amp; Informasi Unit</h1><p>Kenali pengalaman belajar, program unggulan, fasilitas, dan layanan setiap jenjang sebelum menentukan pilihan.</p><p class="breadcrumb"><a href="index.php">Beranda</a> / Brosur</p></div></section>
+<section class="section brochure-section"><div class="container"><div class="brochure-intro"><div><span class="section-eyebrow">Empat Tahap Pendidikan</span><h2>Satu perjalanan tumbuh yang berkelanjutan</h2></div><p>Mulai dari lingkungan pengasuhan yang hangat hingga pembentukan remaja yang mandiri, setiap unit dirancang sesuai tahap perkembangan anak.</p></div>
+<div class="brochure-grid brochure-grid-premium"><?php foreach($brochures as $index=>$item): ?><?php $features=array_slice(array_filter(array_map('trim',preg_split('/\r\n|\r|\n/',(string)($item['highlights']??'')))),0,3); ?><a class="brochure-card brochure-card-premium" href="brosur-unit.php?unit=<?php echo urlencode($item['unit_slug']); ?>"><div class="brochure-cover"><img src="<?php echo esc($item['cover_image']); ?>" alt="Promosi <?php echo esc($item['unit_name']); ?>" loading="lazy"><span><?php echo esc($item['unit_name']); ?></span><em>0<?php echo $index+1; ?></em></div><div><span class="brochure-audience"><?php echo esc($item['audience']??'Program pendidikan terpadu'); ?></span><h3><?php echo esc($item['headline']); ?></h3><p><?php echo esc($item['description']); ?></p><?php if($features): ?><ul><?php foreach($features as $feature): ?><li><?php echo esc($feature); ?></li><?php endforeach; ?></ul><?php endif; ?><strong class="brochure-card-action">Lihat program &amp; unduh PDF <span>&rarr;</span></strong></div></a><?php endforeach; ?></div></div></section>
+<section class="section brochure-help-section"><div class="container brochure-help-card"><div><span class="section-eyebrow">Masih mempertimbangkan?</span><h2>Konsultasikan kebutuhan pendidikan anak</h2><p>Tim kami membantu menjelaskan usia masuk, program harian, proses observasi, dan tahun ajaran yang tersedia.</p></div><div class="hero-actions"><a class="btn btn-gold" href="https://wa.me/<?php echo esc(SITE_WHATSAPP); ?>" target="_blank" rel="noopener">Konsultasi WhatsApp</a><a class="btn btn-outline-light" href="kontak.php">Kunjungi Sekolah</a></div></div></section>
+<?php require_once __DIR__.'/../components/footer.php'; ?>

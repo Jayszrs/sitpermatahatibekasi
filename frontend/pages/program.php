@@ -23,15 +23,15 @@ require_once __DIR__ . '/../components/header.php';
         <div class="grid-3">
             <?php foreach ($programs as $p): ?>
             <?php $programUrl=$p['link_url'] ?: 'detail-program.php?id='.$p['id']; ?>
-            <article class="card program-page-card" id="program-<?php echo (int)$p['id']; ?>">
+            <a class="card program-page-card" id="program-<?php echo (int)$p['id']; ?>" href="<?php echo esc($programUrl); ?>" <?php echo preg_match('~^https?://~',$programUrl)?'target="_blank" rel="noopener"':''; ?>>
                 <?php if($p['image']): ?><img src="<?php echo esc($p['image']); ?>" alt="<?php echo esc($p['title']); ?>" loading="lazy"><?php endif; ?>
                 <div class="card-body">
                     <div class="program-icon" style="margin-bottom:16px;"><?php echo esc($p['subtitle'] ?: mb_substr($p['title'],0,1)); ?></div>
                     <h3><?php echo esc($p['title']); ?></h3>
                     <p><?php echo nl2br(esc($p['description'])); ?></p>
-                    <a class="btn btn-outline btn-sm" href="<?php echo esc($programUrl); ?>" <?php echo preg_match('~^https?://~',$programUrl)?'target="_blank" rel="noopener"':''; ?>><?php echo esc($p['link_label'] ?: 'Pelajari Program'); ?></a>
+                    <strong class="btn btn-outline btn-sm"><?php echo esc($p['link_label'] ?: 'Pelajari Program'); ?></strong>
                 </div>
-            </article>
+            </a>
             <?php endforeach; ?>
         </div>
     </div>
