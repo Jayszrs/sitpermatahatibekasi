@@ -201,6 +201,10 @@ CREATE TABLE IF NOT EXISTS `brochures` (
     `unit_name` VARCHAR(100) NOT NULL,
     `headline` VARCHAR(180) NOT NULL,
     `description` TEXT NOT NULL,
+    `audience` VARCHAR(180) DEFAULT NULL,
+    `highlights` TEXT DEFAULT NULL,
+    `facilities` TEXT DEFAULT NULL,
+    `schedule_info` VARCHAR(255) DEFAULT NULL,
     `cover_image` VARCHAR(255) DEFAULT NULL,
     `file_url` VARCHAR(255) DEFAULT NULL,
     `sort_order` INT NOT NULL DEFAULT 0,
@@ -208,6 +212,19 @@ CREATE TABLE IF NOT EXISTS `brochures` (
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX `idx_brochure_public` (`is_active`,`sort_order`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `unit_gallery_photos` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `unit_slug` VARCHAR(30) NOT NULL,
+    `title` VARCHAR(160) NOT NULL,
+    `description` VARCHAR(500) DEFAULT NULL,
+    `image` VARCHAR(255) NOT NULL,
+    `sort_order` INT NOT NULL DEFAULT 0,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_unit_gallery_public` (`unit_slug`,`is_active`,`sort_order`,`id`)
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -229,6 +246,7 @@ CREATE TABLE IF NOT EXISTS `job_vacancies` (
     `requirements` TEXT NOT NULL,
     `benefits` TEXT DEFAULT NULL,
     `salary_note` VARCHAR(150) DEFAULT NULL,
+    `image` VARCHAR(255) DEFAULT NULL,
     `deadline` DATE DEFAULT NULL,
     `is_featured` TINYINT(1) NOT NULL DEFAULT 0,
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
@@ -264,6 +282,36 @@ INSERT IGNORE INTO `job_vacancies` (`title`,`slug`,`unit`,`department`,`employme
 ('Guru Tahfidz dan Tahsin','guru-tahfidz-tahsin','Semua Unit','Al Quran','Penuh Waktu','Tambun Selatan, Bekasi','S1 atau pesantren/mahad relevan','Minimal 1 tahun','Membina bacaan, hafalan, adab, serta kecintaan siswa terhadap Al Quran.','Posisi ini berperan menjaga kualitas program Al Quran lintas unit melalui pendampingan yang terukur dan menyenangkan.','Membimbing tahsin dan tahfidz\nMenyusun target hafalan\nMencatat perkembangan siswa\nMendukung kegiatan ruhiyah sekolah','Bacaan Al Quran baik dan bersanad menjadi nilai tambah\nBerpengalaman mengajar anak\nSabar, komunikatif, dan disiplin','Program pengembangan kompetensi\nLingkungan kerja suportif\nTunjangan sesuai kebijakan','Kompetitif',DATE_ADD(CURDATE(),INTERVAL 75 DAY),1,1),
 ('Guru Pendamping TKIT','guru-pendamping-tkit','TKIT','Pendidikan Anak Usia Dini','Penuh Waktu','Tambun Selatan, Bekasi','S1 PAUD/Psikologi/Pendidikan','Terbuka untuk fresh graduate','Mendampingi aktivitas bermain-belajar, pembiasaan adab, dan perkembangan anak usia dini.','Kami membuka kesempatan bagi pendidik kreatif yang menyukai dunia anak dan pembelajaran berbasis eksplorasi.','Menyiapkan area dan media bermain\nMendampingi rutinitas kelas\nMencatat perkembangan anak\nMenjaga komunikasi dengan wali murid','Menyukai dunia anak\nKreatif dan komunikatif\nMampu bekerja dalam tim\nSehat jasmani dan rohani','Mentoring guru senior\nPelatihan PAUD\nLingkungan kerja Islami','Kompetitif',DATE_ADD(CURDATE(),INTERVAL 45 DAY),0,1),
 ('Staf Humas dan Konten Digital','staf-humas-konten-digital','Yayasan','Humas','Penuh Waktu','Tambun Selatan, Bekasi','D3/S1 Komunikasi/Desain/Multimedia','Minimal 1 tahun','Mengelola publikasi, dokumentasi, media sosial, dan komunikasi digital sekolah.','Posisi ini membantu menyampaikan cerita dan informasi sekolah secara akurat, menarik, serta konsisten dengan identitas lembaga.','Menyusun kalender konten\nMendokumentasikan kegiatan\nMengelola media sosial dan website\nBerkoordinasi dengan seluruh unit','Mampu menulis copy dengan baik\nMenguasai desain atau video dasar\nMemiliki portofolio\nResponsif dan terorganisir','Perangkat kerja pendukung\nKesempatan mengembangkan portofolio\nTunjangan sesuai kebijakan','Kompetitif',DATE_ADD(CURDATE(),INTERVAL 60 DAY),0,1);
+
+UPDATE `job_vacancies` SET `image` = CASE
+    WHEN `unit` = 'TKIT' THEN 'http://localhost/school-website/frontend/assets/images/brochures/tkit-promo.png'
+    WHEN `unit` = 'SDIT' THEN 'http://localhost/school-website/frontend/assets/images/brochures/sdit-promo.png'
+    WHEN `unit` = 'SMPIT' THEN 'http://localhost/school-website/frontend/assets/images/brochures/smpit-promo.png'
+    ELSE 'http://localhost/school-website/frontend/assets/images/brochures/daycare-promo.png'
+END
+WHERE `image` IS NULL OR `image` = '';
+
+INSERT IGNORE INTO `brochures` (`unit_slug`,`unit_name`,`headline`,`description`,`audience`,`highlights`,`facilities`,`schedule_info`,`cover_image`,`file_url`,`sort_order`,`is_active`) VALUES
+('daycare','Daycare Permata Hati','Tumbuh Aman, Hangat, dan Penuh Makna','Pendampingan anak usia dini dalam lingkungan Islami yang hangat dengan aktivitas bermain terarah.','Usia 1-4 tahun','Stimulasi motorik dan sensorik\nPembiasaan doa dan adab\nLaporan perkembangan harian','Ruang bermain ramah anak\nArea eksplorasi\nPendamping berpengalaman','Senin-Jumat, pilihan layanan setengah atau satu hari','http://localhost/school-website/frontend/assets/images/brochures/daycare-promo.png','http://localhost/school-website/frontend/assets/brochures/brosur-daycare.pdf',1,1),
+('tkit','TKIT Permata Hati','Belajar Ceria, Mandiri, dan Cinta Al-Quran','Pengalaman belajar aktif yang menumbuhkan kreativitas, kemandirian, dan karakter Islami.','Usia 4-6 tahun','Sentra kreativitas\nTahsin dan hafalan bertahap\nProyek tematik','Kelas nyaman\nArea bermain\nMedia belajar interaktif','Senin-Jumat mengikuti kalender pendidikan','http://localhost/school-website/frontend/assets/images/brochures/tkit-promo.png','http://localhost/school-website/frontend/assets/brochures/brosur-tkit.pdf',2,1),
+('sdit','SDIT Permata Hati','Kuat dalam Akademik, Adab, dan Al-Quran','Pendidikan dasar terpadu yang menguatkan literasi, numerasi, tahfidz, dan karakter mandiri.','Usia sekolah dasar kelas 1-6','Literasi dan numerasi\nTahfidz dan tahsin\nPembelajaran berbasis proyek','Ruang kelas nyaman\nLaboratorium pembelajaran\nPerpustakaan','Senin-Jumat mengikuti kalender pendidikan','http://localhost/school-website/frontend/assets/images/brochures/sdit-promo.png','http://localhost/school-website/frontend/assets/brochures/brosur-sdit.pdf',3,1),
+('smpit','SMPIT Permata Hati','Siap Memimpin, Berkarya, dan Berakhlak','Pembelajaran remaja yang membangun kepemimpinan, kemampuan digital, akademik, dan karakter Islami.','Lulusan SD/MI sederajat','Leadership project\nDigital learning\nTahfidz dan penguatan karakter','Ruang belajar kolaboratif\nPerangkat pembelajaran digital\nFasilitas kegiatan siswa','Senin-Jumat mengikuti kalender pendidikan','http://localhost/school-website/frontend/assets/images/brochures/smpit-promo.png','http://localhost/school-website/frontend/assets/brochures/brosur-smpit.pdf',4,1);
+
+INSERT INTO `unit_gallery_photos` (`unit_slug`,`title`,`description`,`image`,`sort_order`,`is_active`)
+SELECT seed.unit_slug, seed.title, seed.description, seed.image, seed.sort_order, 1
+FROM (
+    SELECT 'daycare' unit_slug,'Aktivitas sensorik' title,'Eksplorasi aman untuk tumbuh kembang anak.' description,'http://localhost/school-website/frontend/assets/images/brochures/daycare-promo.png' image,1 sort_order
+    UNION ALL SELECT 'daycare','Ruang bermain','Lingkungan hangat dan ramah anak.','http://localhost/school-website/frontend/assets/images/activities/daycare-kegiatan.jpeg',2
+    UNION ALL SELECT 'tkit','Sentra kreativitas','Belajar melalui karya dan permainan terarah.','http://localhost/school-website/frontend/assets/images/brochures/tkit-promo.png',1
+    UNION ALL SELECT 'tkit','Pembiasaan Islami','Adab dan doa hadir dalam keseharian.','http://localhost/school-website/frontend/assets/images/activities/tkit-kegiatan.jpeg',2
+    UNION ALL SELECT 'sdit','Pembelajaran kolaboratif','Siswa belajar aktif bersama guru dan teman.','http://localhost/school-website/frontend/assets/images/brochures/sdit-promo.png',1
+    UNION ALL SELECT 'sdit','Kegiatan siswa','Potensi siswa berkembang melalui kegiatan kelas dan ekstrakurikuler.','http://localhost/school-website/frontend/assets/images/activities/sdit-kegiatan.jpeg',2
+    UNION ALL SELECT 'sdit','Lingkungan sekolah','Ruang tumbuh yang aman dan mendukung.','http://localhost/school-website/frontend/assets/images/school/gedung-sekolah.jpeg',3
+    UNION ALL SELECT 'smpit','Leadership project','Proyek kolaboratif melatih kepemimpinan siswa.','http://localhost/school-website/frontend/assets/images/brochures/smpit-promo.png',1
+    UNION ALL SELECT 'smpit','Digital learning','Teknologi digunakan secara terarah dalam pembelajaran.','http://localhost/school-website/frontend/assets/images/activities/smpit-kegiatan.jpeg',2
+    UNION ALL SELECT 'smpit','Lingkungan SMPIT','Fasilitas pendidikan jenjang sekolah menengah.','http://localhost/school-website/frontend/assets/images/school/gedung-smpit.jpeg',3
+) seed
+WHERE NOT EXISTS (SELECT 1 FROM `unit_gallery_photos` LIMIT 1);
 
 -- Konten awal CMS agar halaman publik langsung terisi setelah import.
 INSERT INTO `site_profile` (`id`,`history_title`,`history_content`,`vision`,`mission`) VALUES

@@ -303,6 +303,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if(previousButton) previousButton.addEventListener('click',()=>show(current-1));
     if(nextButton) nextButton.addEventListener('click',()=>show(current+1));
     if (slides.length > 1) schedule();
+
+    // Parallax ringan hanya pada media hero; navbar tetap utuh saat sticky.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let parallaxFrame = null;
+    const updateParallax = () => {
+        parallaxFrame = null;
+        if (reduceMotion.matches) {
+            root.style.removeProperty('--hero-parallax');
+            return;
+        }
+        const bounds = root.getBoundingClientRect();
+        if (bounds.bottom <= 0 || bounds.top >= window.innerHeight) return;
+        const distance = Math.max(0, -bounds.top);
+        const limit = window.innerWidth <= 768 ? 24 : 48;
+        root.style.setProperty('--hero-parallax', Math.min(limit, distance * 0.07).toFixed(2) + 'px');
+    };
+    const requestParallax = () => {
+        if (parallaxFrame !== null) return;
+        parallaxFrame = window.requestAnimationFrame(updateParallax);
+    };
+    window.addEventListener('scroll', requestParallax, { passive: true });
+    window.addEventListener('resize', requestParallax, { passive: true });
+    reduceMotion.addEventListener?.('change', requestParallax);
+    updateParallax();
 });
 
 // Counter Animation

@@ -137,19 +137,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Desktop: navigasi berubah menjadi pill ringkas di kanan ketika halaman digulir.
-    var header = document.getElementById('siteHeader');
-    var scrollFrame = null;
-    function updateHeaderState() {
-        header.classList.toggle('scrolled', window.scrollY > 72);
-        scrollFrame = null;
-    }
-    window.addEventListener('scroll', function() {
-        if (scrollFrame) return;
-        scrollFrame = window.requestAnimationFrame(updateHeaderState);
-    }, { passive: true });
-    updateHeaderState();
-
     nav.querySelectorAll('a').forEach(function(link) {
         link.addEventListener('click', function() {
             nav.classList.remove('open');

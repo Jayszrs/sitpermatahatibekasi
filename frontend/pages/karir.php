@@ -34,7 +34,7 @@ require_once __DIR__ . '/../components/header.php';
         <div class="career-hero-visual"><img src="<?php echo esc($careerHeroImage); ?>" alt="Tim pendidikan SIT Permata Hati Bekasi"><div class="career-hero-card"><span>Kesempatan Terbuka</span><strong><?php echo (int)$jobStats['total']; ?> Posisi</strong><p>Di <?php echo (int)$jobStats['units']; ?> unit dan bidang kerja.</p></div></div>
     </div>
     <div class="container">
-        <form class="job-search-bar" method="get" action="karir.php">
+        <form class="job-search-bar" id="careerSearch" method="get" action="karir.php">
             <label><span>Cari posisi</span><input type="search" name="q" value="<?php echo esc($q); ?>" placeholder="Contoh: Guru, Humas, Al Quran"></label>
             <label><span>Unit</span><select name="unit"><option value="">Semua unit</option><?php foreach ($units as $option): ?><option value="<?php echo esc($option); ?>" <?php echo $unit===$option?'selected':''; ?>><?php echo esc($option); ?></option><?php endforeach; ?></select></label>
             <label><span>Tipe pekerjaan</span><select name="type"><option value="">Semua tipe</option><?php foreach ($types as $option): ?><option value="<?php echo esc($option); ?>" <?php echo $employmentType===$option?'selected':''; ?>><?php echo esc($option); ?></option><?php endforeach; ?></select></label>

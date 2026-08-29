@@ -55,7 +55,7 @@ foreach($units as $slug=>$copy){
     $greenColor=imagecolorallocate($canvas,...$green); $goldColor=imagecolorallocate($canvas,...$gold); $creamColor=imagecolorallocate($canvas,...$cream); $white=imagecolorallocate($canvas,255,255,255);
     imagefilledrectangle($canvas,0,1040,1240,1754,$greenColor);
     for($y=750;$y<1120;$y++){ $alpha=(int)(127*(1-($y-750)/370)); $overlay=imagecolorallocatealpha($canvas,$green[0],$green[1],$green[2],max(0,min(127,$alpha))); imageline($canvas,0,$y,1240,$y,$overlay); }
-    imagefilledrectangle($canvas,72,1010,430,1062,$goldColor);
+    imagefilledrectangle($canvas,72,1010,545,1062,$goldColor);
     imagettftext($canvas,24,0,94,1047,$greenColor,$bold,'PENERIMAAN SISWA BARU');
     $titleSize=fitText($canvas,$copy[0],$bold,52,36,1040); imagettftext($canvas,$titleSize,0,88,1165,$goldColor,$bold,$copy[0]);
     $headlineLines=wrapText($canvas,$copy[1],$bold,66,1050); $y=1270; foreach($headlineLines as $line){imagettftext($canvas,66,0,88,$y,$white,$bold,$line);$y+=78;}
