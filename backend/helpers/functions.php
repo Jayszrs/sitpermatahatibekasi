@@ -39,6 +39,8 @@ define('SITE_SDIT_INSTAGRAM', 'https://www.instagram.com/sditphbekasi/');
 define('SITE_SMPIT_INSTAGRAM', 'https://www.instagram.com/smpit_permatahati/?hl=id');
 define('SITE_SDIT_YOUTUBE', 'http://www.youtube.com/@sditpermatahatibekasi99');
 define('SITE_SMPIT_YOUTUBE', 'http://www.youtube.com/@smpit_permatahati');
+define('SITE_DAYCARE_YOUTUBE', SITE_YOUTUBE);
+define('SITE_TKIT_YOUTUBE', SITE_YOUTUBE);
 
 // Helper untuk output aman (mencegah XSS)
 function esc($string) {
@@ -105,7 +107,7 @@ function school_unit_catalog(): array {
             'latitude' => SITE_DAYCARE_TKIT_LATITUDE,
             'longitude' => SITE_DAYCARE_TKIT_LONGITUDE,
             'instagram' => SITE_DAYCARE_INSTAGRAM,
-            'youtube' => null,
+            'youtube' => SITE_DAYCARE_YOUTUBE,
             'whatsapp' => SITE_DAYCARE_WHATSAPP,
         ],
         'tkit' => [
@@ -118,7 +120,7 @@ function school_unit_catalog(): array {
             'latitude' => SITE_DAYCARE_TKIT_LATITUDE,
             'longitude' => SITE_DAYCARE_TKIT_LONGITUDE,
             'instagram' => SITE_TKIT_INSTAGRAM,
-            'youtube' => null,
+            'youtube' => SITE_TKIT_YOUTUBE,
             'whatsapp' => SITE_TKIT_WHATSAPP,
         ],
         'sdit' => [

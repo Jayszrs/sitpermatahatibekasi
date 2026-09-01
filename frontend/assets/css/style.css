@@ -1648,6 +1648,8 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .campus-social-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .campus-social-links a { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 7px 9px; border: 1px solid rgba(15,81,50,.13); border-radius: 9px; color: var(--primary); background: #fff; font-size: .7rem; font-weight: 800; transition: color .2s,background .2s,transform .2s; }
 .campus-social-links a:hover { color: #fff; background: var(--primary); transform: translateY(-2px); }
+.campus-social-links .campus-social-whatsapp { color: #087a42; border-color: rgba(8,122,66,.2); background: #effaf4; }
+.campus-social-links .campus-social-whatsapp:hover { color: #fff; background: #087a42; }
 .campus-social-links svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .campus-building {
     width: 100%;
