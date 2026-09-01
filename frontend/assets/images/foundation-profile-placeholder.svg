@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title description">
+  <title id="title">Foto profil pengurus yayasan</title>
+  <description id="description">Ilustrasi profil netral dengan warna identitas SIT Permata Hati Bekasi.</description>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef6f1"/>
+      <stop offset="1" stop-color="#d9e9df"/>
+    </linearGradient>
+    <linearGradient id="portrait" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12633f"/>
+      <stop offset="1" stop-color="#063d28"/>
+    </linearGradient>
+    <pattern id="pattern" width="120" height="120" patternUnits="userSpaceOnUse">
+      <path d="M60 8 77 43l35 17-35 17-17 35-17-35L8 60l35-17Z" fill="none" stroke="#0f5132" stroke-opacity=".08" stroke-width="5"/>
+      <circle cx="60" cy="60" r="23" fill="none" stroke="#d4af37" stroke-opacity=".08" stroke-width="4"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="1000" fill="url(#background)"/>
+  <rect width="800" height="1000" fill="url(#pattern)"/>
+  <circle cx="400" cy="335" r="145" fill="#fff" opacity=".72"/>
+  <circle cx="400" cy="322" r="112" fill="url(#portrait)"/>
+  <path d="M158 842c15-205 111-329 242-329s227 124 242 329Z" fill="url(#portrait)"/>
+  <path d="M213 842c18-142 81-235 187-235s169 93 187 235Z" fill="#0b4b31"/>
+  <circle cx="400" cy="500" r="17" fill="#d4af37"/>
+  <rect x="160" y="866" width="480" height="5" rx="3" fill="#d4af37" opacity=".8"/>
+  <text x="400" y="920" fill="#0f5132" font-family="Arial, sans-serif" font-size="26" font-weight="700" text-anchor="middle" letter-spacing="4">PENGURUS YAYASAN</text>
+</svg>

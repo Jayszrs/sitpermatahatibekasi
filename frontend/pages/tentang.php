@@ -9,7 +9,12 @@ $foundation = $pdo->query("SELECT * FROM site_content_items WHERE type='foundati
 if ($profile) $profile['image'] = public_media_url($profile['image'] ?? null, SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg');
 foreach ($leaders as &$leaderItem) $leaderItem['image'] = public_media_url($leaderItem['image'] ?? null, SITE_URL . '/frontend/assets/images/logo-sit-round.png');
 unset($leaderItem);
-foreach ($foundation as &$foundationItem) if (!empty($foundationItem['image'])) $foundationItem['image'] = public_media_url($foundationItem['image'], '');
+foreach ($foundation as &$foundationItem) {
+    $foundationItem['image'] = public_media_url(
+        $foundationItem['image'] ?? null,
+        SITE_URL . '/frontend/assets/images/foundation-profile-placeholder.svg'
+    );
+}
 unset($foundationItem);
 require_once __DIR__ . '/../components/header.php';
 ?>
@@ -63,10 +68,25 @@ require_once __DIR__ . '/../components/header.php';
     </div>
 </section>
 
-<section class="section foundation-section">
+<section class="section foundation-section" id="struktur-yayasan">
     <div class="container">
         <div class="section-head"><span class="section-eyebrow">Struktur Yayasan</span><h2>Pengurus Yayasan</h2><p>Tata kelola lembaga yang amanah, profesional, dan berorientasi pada mutu pendidikan.</p></div>
-        <div class="grid-3 foundation-grid"><?php foreach($foundation as $person): ?><article class="card foundation-card"><?php if($person['image']): ?><img src="<?php echo esc($person['image']); ?>" alt="<?php echo esc($person['title']); ?>"><?php else: ?><div class="foundation-avatar"><?php echo esc(mb_substr($person['title'],0,1)); ?></div><?php endif; ?><div class="card-body"><span class="section-eyebrow"><?php echo esc($person['subtitle']); ?></span><h3><?php echo esc($person['title']); ?></h3><p><?php echo esc($person['description']); ?></p></div></article><?php endforeach; ?></div>
+        <div class="grid-3 foundation-grid">
+            <?php foreach($foundation as $person): ?>
+            <a class="leadership-card foundation-profile-card" href="detail-pengurus.php?id=<?php echo (int)$person['id']; ?>">
+                <div class="leadership-photo">
+                    <img src="<?php echo esc($person['image']); ?>" alt="<?php echo esc($person['title']); ?>" loading="lazy">
+                    <span>Yayasan</span>
+                </div>
+                <div class="leadership-copy">
+                    <small><?php echo esc($person['subtitle']); ?></small>
+                    <h3><?php echo esc($person['title']); ?></h3>
+                    <p><?php echo esc(mb_strimwidth($person['description'], 0, 120, '...')); ?></p>
+                    <strong>Lihat profil lengkap &rarr;</strong>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
     </div>
 </section>
 

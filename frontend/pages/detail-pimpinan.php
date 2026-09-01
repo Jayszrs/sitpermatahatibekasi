@@ -15,6 +15,7 @@ if (!$leader) {
 }
 
 $page_title = $leader['title'];
+$leader['image'] = public_media_url($leader['image'] ?? null, SITE_URL . '/frontend/assets/images/logo-sit-round.png');
 $unitLabel = strtoupper((string)$leader['unit_slug']);
 require __DIR__ . '/../components/header.php';
 ?>
