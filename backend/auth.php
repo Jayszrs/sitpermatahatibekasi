@@ -406,9 +406,9 @@ function portal_seed_site_content(PDO $pdo): void
             ['Nama Wakil Kepala Sekolah', 'Wakil Kepala Bidang Kesiswaan', 'Membina kegiatan dan pengembangan karakter siswa.', ''],
         ],
         'foundation' => [
-            ['Nama Ketua Yayasan', 'Ketua Yayasan', 'Menetapkan arah strategis yayasan dan memastikan penyelenggaraan pendidikan berjalan sesuai visi lembaga.', ''],
-            ['Nama Sekretaris Yayasan', 'Sekretaris Yayasan', 'Mengelola tata kelola, dokumentasi, dan koordinasi kelembagaan yayasan.', ''],
-            ['Nama Bendahara Yayasan', 'Bendahara Yayasan', 'Mengelola perencanaan dan pertanggungjawaban keuangan yayasan secara amanah.', ''],
+            ['Nama Ketua Yayasan', 'Ketua Yayasan', 'Menetapkan arah strategis yayasan dan memastikan penyelenggaraan pendidikan berjalan sesuai visi lembaga.', '', SITE_URL . '/frontend/assets/images/foundation/ketua-yayasan.webp'],
+            ['Nama Sekretaris Yayasan', 'Sekretaris Yayasan', 'Mengelola tata kelola, dokumentasi, dan koordinasi kelembagaan yayasan.', '', SITE_URL . '/frontend/assets/images/foundation/sekretaris-yayasan.webp'],
+            ['Nama Bendahara Yayasan', 'Bendahara Yayasan', 'Mengelola perencanaan dan pertanggungjawaban keuangan yayasan secara amanah.', '', SITE_URL . '/frontend/assets/images/foundation/bendahara-yayasan.webp'],
         ],
         'program' => [
             ["Tahfidz & Tahsin Al-Qur'an", 'Quran', "Program bacaan dan hafalan Al-Qur'an bertahap dari TKIT, SDIT, hingga SMPIT.", ''],

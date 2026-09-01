@@ -259,6 +259,14 @@ function ensure_public_schema(PDO $pdo): void
             $insertFoundation->execute(['Nama Sekretaris Yayasan','Sekretaris Yayasan','Mengelola tata kelola, dokumentasi, dan koordinasi kelembagaan yayasan.',2]);
             $insertFoundation->execute(['Nama Bendahara Yayasan','Bendahara Yayasan','Mengelola perencanaan dan pertanggungjawaban keuangan yayasan secara amanah.',3]);
         }
+        $foundationImages = [
+            'Ketua Yayasan' => $siteBase . '/frontend/assets/images/foundation/ketua-yayasan.webp',
+            'Sekretaris Yayasan' => $siteBase . '/frontend/assets/images/foundation/sekretaris-yayasan.webp',
+            'Bendahara Yayasan' => $siteBase . '/frontend/assets/images/foundation/bendahara-yayasan.webp',
+        ];
+        $setFoundationImage = $pdo->prepare("UPDATE site_content_items SET image=? WHERE type='foundation' AND subtitle=? AND (image IS NULL OR image='')");
+        foreach ($foundationImages as $position => $image) $setFoundationImage->execute([$image, $position]);
+        $recordMigration('20260902-foundation-portraits', 'Tiga portrait placeholder untuk pengurus yayasan');
         $achievementLinks = [
             'Daycare' => 'https://www.instagram.com/daycarepermatahati.bekasi/',
             'TKIT' => 'https://www.instagram.com/tkitpermatahatibekasi/',
