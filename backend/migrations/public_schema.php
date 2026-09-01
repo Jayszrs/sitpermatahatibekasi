@@ -33,6 +33,8 @@ function ensure_public_schema(PDO $pdo): void
     $legacyLocalBases = [
         'http://localhost/school-website',
         'http://127.0.0.1/school-website',
+        'http://localhost/sitpermatahatibekasi',
+        'http://127.0.0.1/sitpermatahatibekasi',
     ];
     $mediaColumns = [
         'news' => ['image'],
