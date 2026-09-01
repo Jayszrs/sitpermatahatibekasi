@@ -93,10 +93,19 @@ require_once __DIR__ . '/../components/header.php';
 <!-- PENGUMUMAN -->
 <div class="announcement-bar" aria-label="Pengumuman sekolah">
     <div class="announcement-track">
-        <span>Selamat datang di website resmi SIT Permata Hati Bekasi</span>
-        <span>Pendaftaran Murid Baru Tahun Ajaran 2026/2027 telah dibuka</span>
-        <span>Sekolah Islam Terpadu: sholeh, cerdas, mandiri, dan berwawasan global</span>
-        <span>Jl. Raya Buwek Jaya Gg. Buser No. 23-24, Tambun Selatan, Bekasi</span>
+        <?php
+        $announcementItems = [
+            'Selamat datang di website resmi SIT Permata Hati Bekasi',
+            'Pendaftaran Murid Baru Tahun Ajaran 2026/2027 telah dibuka',
+            'Sekolah Islam Terpadu: sholeh, cerdas, mandiri, dan berwawasan global',
+            'Jl. Raya Buwek Jaya Gg. Buser No. 23-24, Tambun Selatan, Bekasi',
+        ];
+        ?>
+        <?php for ($loop = 0; $loop < 2; $loop++): ?>
+            <?php foreach ($announcementItems as $item): ?>
+            <span<?php echo $loop === 1 ? ' aria-hidden="true"' : ''; ?>><?php echo esc($item); ?></span>
+            <?php endforeach; ?>
+        <?php endfor; ?>
     </div>
 </div>
 

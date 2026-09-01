@@ -427,29 +427,26 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
     min-width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: flex-start;
     gap: 42px;
     padding: 11px max(24px, calc((100vw - 1200px) / 2));
     font-size: 0.84rem;
     font-weight: 700;
+    animation: announcement-scroll 34s linear infinite;
+    will-change: transform;
 }
 .announcement-track span { display: inline-flex; align-items: center; gap: 12px; }
-.announcement-track span:not(:first-child)::before {
+.announcement-track span::before {
     content: '';
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: var(--secondary);
+    flex: none;
 }
-
-@media (max-width: 900px) {
-    .announcement-track {
-        justify-content: flex-start;
-        animation: announcement-scroll 24s linear infinite;
-    }
-    @keyframes announcement-scroll {
-        to { transform: translateX(-55%); }
-    }
+.announcement-track:hover { animation-play-state: paused; }
+@keyframes announcement-scroll {
+    to { transform: translateX(-50%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -663,6 +660,27 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
 .advantage-hero h1 { max-width: 720px; margin: 8px 0 18px; font-family: 'El Messiri', Georgia, serif; font-size: clamp(2.5rem,5vw,4.4rem); }
 .advantage-hero p { max-width: 690px; color: var(--muted); font-size: 1.08rem; }
 .back-link { display: block; margin-bottom: 30px; color: var(--primary); font-size: .88rem; font-weight: 700; }
+.back-link.light {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    margin: 0 12px 18px 0;
+    padding: 10px 16px;
+    border: 1px solid rgba(212,175,55,.55);
+    border-radius: 999px;
+    color: var(--primary-dark);
+    background: var(--secondary);
+    box-shadow: 0 12px 28px rgba(0,0,0,.18);
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.page-kicker { vertical-align: middle; }
+.back-link.light:hover {
+    color: #fff;
+    background: rgba(255,255,255,.14);
+    border-color: rgba(255,255,255,.45);
+}
 .advantage-actions { justify-content: flex-start; margin-top: 30px; }
 .advantage-highlight { min-height: 330px; display: flex; flex-direction: column; justify-content: flex-end; padding: 36px; border-radius: 28px; color: #fff; background: radial-gradient(circle at 70% 20%,rgba(212,175,55,.35),transparent 25%),linear-gradient(145deg,var(--primary),var(--primary-dark)); box-shadow: var(--shadow-lg); }
 .advantage-highlight span { font-size: 7rem; line-height: .9; color: var(--secondary); font-weight: 900; opacity: .92; }
@@ -1698,6 +1716,11 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .page-unit .page-header { background-image: url('../images/school/gedung-smpit.jpeg'); }
 .page-kontak .page-header { background-image: url('../images/school/gedung-sekolah.jpeg'); }
 .page-spmb .page-header,.page-form-spmb .page-header { background-image: url('../images/activities/tkit-kegiatan.jpeg'); }
+.page-spmb .page-header { display: none; }
+.page-spmb .hero {
+    min-height: 620px;
+    padding: 92px 0 98px;
+}
 .page-brosur .page-header,.page-brosur-unit .page-header { background-image: url('../images/activities/daycare-kegiatan.jpeg'); }
 
 /* Brochures and program detail. */
@@ -2339,7 +2362,23 @@ img, video, iframe { max-width: 100%; }
 .brochure-card-premium { grid-template-columns: 250px minmax(0,1fr); color: inherit; text-decoration: none; transition: transform .25s,box-shadow .25s,border-color .25s; }
 .brochure-card-premium:hover { transform: translateY(-6px); border-color: rgba(212,175,55,.6); box-shadow: var(--shadow-lg); }
 .brochure-card-premium .brochure-cover { min-height: 390px; }
-.brochure-card-premium .brochure-cover em { position: absolute; z-index: 2; top: 18px; right: 18px; color: rgba(255,255,255,.86); font-style: normal; font-size: 1.8rem; font-weight: 900; }
+.brochure-card-premium .brochure-cover em {
+    position: absolute;
+    z-index: 2;
+    top: 14px;
+    left: 16px;
+    right: auto;
+    min-width: 44px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    color: var(--primary-dark);
+    background: rgba(255,255,255,.9);
+    font-style: normal;
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.1;
+    box-shadow: 0 10px 24px rgba(0,0,0,.16);
+}
 .brochure-audience { display: inline-block; margin-bottom: 12px; color: var(--secondary-dark); font-size: .72rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
 .brochure-card-premium ul { display: grid; gap: 7px; margin: 0 0 22px; padding: 0; list-style: none; }
 .brochure-card-premium li { color: var(--muted); font-size: .8rem; }
