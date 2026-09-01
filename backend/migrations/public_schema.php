@@ -28,6 +28,18 @@ function ensure_public_schema(PDO $pdo): void
         $stmt->execute([$version, $description]);
     };
 
+    if ($tableExists('news') && !$columnExists('news', 'unit')) {
+        $pdo->exec("ALTER TABLE news ADD COLUMN unit VARCHAR(20) NOT NULL DEFAULT 'SDIT' AFTER slug, ADD INDEX idx_news_unit_date (unit,published_at,id)");
+        $pdo->exec("UPDATE news SET unit=CASE
+            WHEN slug='pesantren-ramadhan-1447-h-resmi-dibuka' THEN 'SMPIT'
+            WHEN slug='wisuda-tahfidz-angkatan-xii-berlangsung-khidmat' THEN 'TKIT'
+            WHEN LOWER(title) LIKE '%daycare%' THEN 'Daycare'
+            WHEN LOWER(title) LIKE '%tkit%' OR LOWER(title) LIKE '%tk %' THEN 'TKIT'
+            WHEN LOWER(title) LIKE '%smp%' THEN 'SMPIT'
+            ELSE 'SDIT' END");
+    }
+    $recordMigration('20260901-news-units', 'Kategori berita per unit Daycare, TKIT, SDIT, dan SMPIT');
+
     // Perbarui URL aset localhost lama ketika nama folder project berubah.
     // Hanya kolom URL media yang disentuh; data akademik dan pengguna tetap utuh.
     $legacyLocalBases = [

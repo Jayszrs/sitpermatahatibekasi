@@ -13,11 +13,13 @@ CREATE TABLE IF NOT EXISTS `news` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `title` VARCHAR(255) NOT NULL,
     `slug` VARCHAR(255) NOT NULL UNIQUE,
+    `unit` VARCHAR(20) NOT NULL DEFAULT 'SDIT',
     `image` VARCHAR(255) DEFAULT NULL,
     `excerpt` TEXT,
     `content` LONGTEXT,
     `published_at` DATE NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_news_unit_date` (`unit`,`published_at`,`id`)
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -349,18 +351,21 @@ INSERT INTO `site_content_items` (`type`,`title`,`subtitle`,`description`,`image
 -- ============================================================
 -- SAMPLE DATA: news
 -- ============================================================
-INSERT INTO `news` (`title`, `slug`, `image`, `excerpt`, `content`, `published_at`) VALUES
+INSERT INTO `news` (`title`, `slug`, `unit`, `image`, `excerpt`, `content`, `published_at`) VALUES
 ('Pesantren Ramadhan 1447 H Resmi Dibuka', 'pesantren-ramadhan-1447-h-resmi-dibuka',
+ 'SMPIT',
  'http://localhost/school-website/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg',
  'Kegiatan Pesantren Ramadhan tahun ini diikuti oleh seluruh siswa SD, SMP, dan SMA dengan berbagai rangkaian acara keagamaan.',
  'Kegiatan Pesantren Ramadhan tahun ini diikuti oleh seluruh siswa SD, SMP, dan SMA dengan berbagai rangkaian acara keagamaan seperti tadarus bersama, kajian akhlak, buka puasa bersama, dan santunan anak yatim. Kegiatan ini bertujuan untuk memperkuat nilai-nilai spiritual siswa selama bulan suci Ramadhan sekaligus mempererat ukhuwah antar siswa dan guru.',
  '2026-03-10'),
 ('Siswa Raih Juara 1 Olimpiade Matematika Nasional', 'siswa-raih-juara-1-olimpiade-matematika-nasional',
+ 'SDIT',
  'http://localhost/school-website/frontend/assets/images/achievements/sdit-bastian-bachtiar.webp',
  'Prestasi membanggakan kembali diraih oleh siswa SMP kami dalam ajang Olimpiade Sains Nasional bidang Matematika.',
  'Prestasi membanggakan kembali diraih oleh siswa SMP kami dalam ajang Olimpiade Sains Nasional bidang Matematika. Setelah melalui seleksi ketat tingkat kota, provinsi, hingga nasional, siswa kami berhasil membawa pulang medali emas. Pencapaian ini merupakan hasil dari bimbingan intensif guru pembina serta kerja keras siswa selama berbulan-bulan.',
  '2026-02-20'),
 ('Wisuda Tahfidz Angkatan XII Berlangsung Khidmat', 'wisuda-tahfidz-angkatan-xii-berlangsung-khidmat',
+ 'TKIT',
  'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg',
  'Sebanyak 45 siswa mengikuti prosesi Wisuda Tahfidz Al-Quran angkatan XII yang dihadiri oleh orang tua dan wali murid.',
  'Sebanyak 45 siswa mengikuti prosesi Wisuda Tahfidz Al-Quran angkatan XII yang dihadiri oleh orang tua dan wali murid. Acara ini menjadi momen istimewa bagi para siswa yang telah menyelesaikan target hafalan juz yang ditentukan. Kepala sekolah berharap program tahfidz ini terus mencetak generasi penghafal Al-Quran yang berakhlak mulia.',

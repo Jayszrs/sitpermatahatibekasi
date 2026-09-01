@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $excerpt = trim($_POST['excerpt'] ?? '');
             $content = trim($_POST['content'] ?? '');
             $publishedAt = $_POST['published_at'] ?? date('Y-m-d');
+            $unit = trim($_POST['unit'] ?? '');
+            $allowedNewsUnits = ['Daycare', 'TKIT', 'SDIT', 'SMPIT'];
             $image = '';
             $previousImage = null;
             if ($id) {
@@ -23,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $image = $previousImage ?: '';
             }
             if ($title === '' || $excerpt === '' || $content === '') throw new RuntimeException('Judul, ringkasan, dan isi berita wajib diisi.');
+            if (!in_array($unit, $allowedNewsUnits, true)) throw new RuntimeException('Pilih unit berita yang valid.');
             if (!empty($_FILES['image']['name'])) $image = portal_upload_image($_FILES['image'], 'berita');
             if ($image === '') throw new RuntimeException('Gambar berita wajib dipilih.');
             $slug = portal_slug($title);
@@ -30,13 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $check->execute([$slug, $id]);
             if ($check->fetch()) $slug .= '-' . ($id ?: time());
             if ($id) {
-                $stmt = $pdo->prepare('UPDATE news SET title=?, slug=?, image=?, excerpt=?, content=?, published_at=? WHERE id=?');
-                $stmt->execute([$title, $slug, $image, $excerpt, $content, $publishedAt, $id]);
+                $stmt = $pdo->prepare('UPDATE news SET title=?, slug=?, unit=?, image=?, excerpt=?, content=?, published_at=? WHERE id=?');
+                $stmt->execute([$title, $slug, $unit, $image, $excerpt, $content, $publishedAt, $id]);
                 if ($previousImage && $previousImage !== $image) portal_delete_uploaded_image($previousImage);
                 portal_log($pdo, 'update_news', 'Memperbarui berita: ' . $title);
             } else {
-                $stmt = $pdo->prepare('INSERT INTO news (title, slug, image, excerpt, content, published_at) VALUES (?,?,?,?,?,?)');
-                $stmt->execute([$title, $slug, $image, $excerpt, $content, $publishedAt]);
+                $stmt = $pdo->prepare('INSERT INTO news (title, slug, unit, image, excerpt, content, published_at) VALUES (?,?,?,?,?,?,?)');
+                $stmt->execute([$title, $slug, $unit, $image, $excerpt, $content, $publishedAt]);
                 portal_log($pdo, 'create_news', 'Menerbitkan berita: ' . $title);
             }
             portal_flash('success', 'Berita berhasil disimpan dan tampil di website.');
@@ -142,6 +145,7 @@ require __DIR__ . '/../../components/portal-header.php';
     <form class="portal-form portal-form-grid" method="post" enctype="multipart/form-data">
         <input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="save_news"><input type="hidden" name="id" value="<?php echo (int)($editNews['id'] ?? 0); ?>">
         <div class="field full"><label>Judul berita</label><input name="title" value="<?php echo esc($editNews['title'] ?? ''); ?>" required></div>
+        <div class="field"><label>Unit berita</label><select name="unit" required><option value="">Pilih unit</option><?php foreach (['Daycare','TKIT','SDIT','SMPIT'] as $newsUnit): ?><option value="<?php echo esc($newsUnit); ?>" <?php echo (($editNews['unit'] ?? '') === $newsUnit) ? 'selected' : ''; ?>><?php echo esc($newsUnit); ?></option><?php endforeach; ?></select></div>
         <div class="field"><label>Tanggal publikasi</label><input type="date" name="published_at" value="<?php echo esc($editNews['published_at'] ?? date('Y-m-d')); ?>" required></div>
         <div class="field"><label>Gambar <?php echo $editNews ? '(kosongkan jika tetap)' : ''; ?></label><input type="file" name="image" accept="image/jpeg,image/png,image/webp" <?php echo $editNews ? '' : 'required'; ?>></div>
         <div class="field full"><label>Ringkasan</label><textarea name="excerpt" style="min-height:80px" required><?php echo esc($editNews['excerpt'] ?? ''); ?></textarea></div>
@@ -182,8 +186,8 @@ require __DIR__ . '/../../components/portal-header.php';
 
 <section class="portal-panel" style="margin-bottom:22px">
     <div class="panel-head"><h3>Daftar Berita (<?php echo count($news); ?>)</h3></div>
-    <div class="portal-table-wrap"><table class="portal-table"><thead><tr><th>Gambar</th><th>Judul</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody>
-    <?php foreach ($news as $item): ?><tr><td><img src="<?php echo esc($item['image']); ?>" alt=""></td><td><strong><?php echo esc($item['title']); ?></strong><br><small style="color:var(--portal-muted)"><?php echo esc(mb_strimwidth($item['excerpt'], 0, 75, '...')); ?></small></td><td><?php echo esc(date('d/m/Y', strtotime($item['published_at']))); ?></td><td><div class="table-actions"><a class="portal-action secondary small" href="<?php echo SITE_URL; ?>/portal/content?edit_news=<?php echo (int)$item['id']; ?>">Edit</a><form method="post" onsubmit="return confirm('Hapus berita ini?')"><input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="delete_news"><input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>"><button class="portal-action danger small">Hapus</button></form></div></td></tr><?php endforeach; ?>
+    <div class="portal-table-wrap"><table class="portal-table"><thead><tr><th>Gambar</th><th>Judul</th><th>Unit</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody>
+    <?php foreach ($news as $item): ?><tr><td><img src="<?php echo esc($item['image']); ?>" alt=""></td><td><strong><?php echo esc($item['title']); ?></strong><br><small style="color:var(--portal-muted)"><?php echo esc(mb_strimwidth($item['excerpt'], 0, 75, '...')); ?></small></td><td><span class="status active"><?php echo esc($item['unit'] ?? 'SDIT'); ?></span></td><td><?php echo esc(date('d/m/Y', strtotime($item['published_at']))); ?></td><td><div class="table-actions"><a class="portal-action secondary small" href="<?php echo SITE_URL; ?>/portal/content?edit_news=<?php echo (int)$item['id']; ?>">Edit</a><form method="post" onsubmit="return confirm('Hapus berita ini?')"><input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="delete_news"><input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>"><button class="portal-action danger small">Hapus</button></form></div></td></tr><?php endforeach; ?>
     </tbody></table></div>
 </section>
 
