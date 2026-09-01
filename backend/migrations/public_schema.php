@@ -6,7 +6,7 @@
 
 function ensure_public_schema(PDO $pdo): void
 {
-    $siteBase = defined('SITE_URL') ? SITE_URL : 'http://localhost/school-website';
+    $siteBase = defined('SITE_URL') ? SITE_URL : 'http://localhost/' . basename(dirname(__DIR__, 2));
     $pdo->exec("CREATE TABLE IF NOT EXISTS schema_migrations (
         version VARCHAR(80) PRIMARY KEY,
         description VARCHAR(255) NOT NULL,
@@ -27,6 +27,37 @@ function ensure_public_schema(PDO $pdo): void
         $stmt = $pdo->prepare('INSERT IGNORE INTO schema_migrations (version,description) VALUES (?,?)');
         $stmt->execute([$version, $description]);
     };
+
+    // Perbarui URL aset localhost lama ketika nama folder project berubah.
+    // Hanya kolom URL media yang disentuh; data akademik dan pengguna tetap utuh.
+    $legacyLocalBases = [
+        'http://localhost/school-website',
+        'http://127.0.0.1/school-website',
+    ];
+    $mediaColumns = [
+        'news' => ['image'],
+        'gallery' => ['image'],
+        'gallery_photos' => ['image'],
+        'hero_media' => ['media_url', 'poster_url', 'cta_url'],
+        'brochures' => ['cover_image', 'file_url'],
+        'job_vacancies' => ['image'],
+        'site_content_items' => ['image'],
+        'site_profile' => ['image'],
+        'unit_gallery_photos' => ['image'],
+    ];
+    foreach ($mediaColumns as $table => $columns) {
+        if (!$tableExists($table)) continue;
+        foreach ($columns as $column) {
+            if (!$columnExists($table, $column)) continue;
+            foreach ($legacyLocalBases as $legacyBase) {
+                if ($legacyBase === $siteBase) continue;
+                $sql = sprintf('UPDATE `%s` SET `%s`=REPLACE(`%s`, ?, ?) WHERE `%s` LIKE ?', $table, $column, $column, $column);
+                $replace = $pdo->prepare($sql);
+                $replace->execute([$legacyBase, $siteBase, $legacyBase . '/%']);
+            }
+        }
+    }
+    $recordMigration('20260901-dynamic-base-url', 'URL aset dan cookie mengikuti nama folder aplikasi');
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS gallery_albums (
         id INT AUTO_INCREMENT PRIMARY KEY,

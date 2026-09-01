@@ -13,9 +13,11 @@ if(!$brochure['file_url']) {
     header('Content-Type: application/pdf'); header('Content-Disposition: attachment; filename="brosur-'.$brochure['unit_slug'].'.pdf"'); header('Content-Length: '.strlen($pdf)); header('X-Content-Type-Options: nosniff'); echo $pdf; exit;
 }
 $urlPath=(string)parse_url($brochure['file_url'],PHP_URL_PATH);
-$relative='';
-foreach(['/school-website/frontend/assets/uploads/'=>'../assets/uploads/','/school-website/frontend/assets/brochures/'=>'../assets/brochures/'] as $prefix=>$directory){ if(strpos($urlPath,$prefix)===0){$relative=$directory.basename($urlPath);break;} }
-if($relative===''){ header('Location: '.$brochure['file_url']); exit; }
-$target=realpath(__DIR__.'/'.$relative);
+$target='';
+if (preg_match('#/frontend/assets/(uploads|brochures)/([^/]+\.pdf)$#i', $urlPath, $match)) {
+    $candidate = dirname(__DIR__) . '/assets/' . strtolower($match[1]) . '/' . basename($match[2]);
+    $target = realpath($candidate) ?: '';
+}
+if($target===''){ header('Location: '.$brochure['file_url']); exit; }
 if(!$target || !is_file($target) || strtolower(pathinfo($target,PATHINFO_EXTENSION))!=='pdf'){ http_response_code(404); exit('File brosur belum tersedia.'); }
 header('Content-Type: application/pdf'); header('Content-Length: '.filesize($target)); header('Content-Disposition: attachment; filename="brosur-'.preg_replace('/[^a-z0-9-]+/i','-',$brochure['unit_slug']).'.pdf"'); header('X-Content-Type-Options: nosniff'); readfile($target); exit;

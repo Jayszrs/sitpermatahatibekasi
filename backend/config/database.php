@@ -25,6 +25,33 @@ if (!defined('DB_USER')) define('DB_USER', 'root');
 if (!defined('DB_PASS')) define('DB_PASS', '');
 if (!defined('DB_NAME')) define('DB_NAME', 'school_website');
 
+// URL aplikasi mengikuti lokasi folder di bawah document root. Dengan begitu
+// clone/rename folder tidak lagi memerlukan perubahan manual pada source code.
+if (!defined('APP_BASE_PATH')) {
+    $projectRoot = realpath(dirname(__DIR__, 2)) ?: dirname(__DIR__, 2);
+    $documentRoot = isset($_SERVER['DOCUMENT_ROOT']) ? (realpath((string) $_SERVER['DOCUMENT_ROOT']) ?: '') : '';
+    $basePath = '/' . basename($projectRoot);
+    if ($documentRoot !== '') {
+        $normalizedProject = str_replace('\\', '/', $projectRoot);
+        $normalizedDocument = rtrim(str_replace('\\', '/', $documentRoot), '/');
+        if (stripos($normalizedProject, $normalizedDocument) === 0) {
+            $relativeProject = trim(substr($normalizedProject, strlen($normalizedDocument)), '/');
+            $basePath = $relativeProject === '' ? '' : '/' . $relativeProject;
+        }
+    }
+    define('APP_BASE_PATH', rtrim($basePath, '/'));
+}
+if (!defined('SITE_URL')) {
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+    $scheme = $isSecure ? 'https' : 'http';
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    define('SITE_URL', $scheme . '://' . $host . APP_BASE_PATH);
+}
+if (!defined('APP_COOKIE_PATH')) {
+    define('APP_COOKIE_PATH', APP_BASE_PATH === '' ? '/' : APP_BASE_PATH . '/');
+}
+
 try {
     $pdo = new PDO(
         "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",

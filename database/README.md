@@ -12,3 +12,7 @@ Alur untuk setiap fork:
 `database/school_website.sql` tetap dipakai untuk instalasi baru. Data contoh SPMB tidak dimasukkan otomatis ke data produksi; jalankan `database/seeders/spmb_examples.sql` secara manual bila membutuhkan data demo.
 
 Catatan: Git menyinkronkan skema, migrasi, dan seeder. Isi database lokal yang dibuat pengguna tidak ikut terkirim ke fork lain kecuali diekspor dan dikomit secara sengaja.
+
+Nama database tetap dapat menggunakan `school_website`. URL aplikasi dan cookie
+sesi dihitung otomatis dari lokasi folder, sedangkan nama database mengikuti nilai
+`DB_NAME` pada `.env`.

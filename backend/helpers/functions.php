@@ -6,7 +6,7 @@
 // ==== PENGATURAN UMUM WEBSITE ====
 define('SITE_NAME', 'SIT Permata Hati Bekasi');
 define('SITE_TAGLINE', 'Sekolah Islam Terpadu - Sholeh, Cerdas, Mandiri, dan Berwawasan Global');
-define('SITE_URL', 'http://localhost/school-website');
+if (!defined('SITE_URL')) define('SITE_URL', 'http://localhost/' . basename(dirname(__DIR__, 2)));
 define('SITE_PHONE', '(021) 1234-5678');
 define('SITE_WHATSAPP', '6281234567890');
 define('SITE_EMAIL', 'info@sitpermatahati-bekasi.sch.id');
@@ -92,7 +92,7 @@ function school_advantages(): array {
 function public_form_csrf_token(): string {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_name('phb_public_session');
-        session_set_cookie_params(['lifetime' => 0, 'path' => '/school-website', 'httponly' => true, 'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
+        session_set_cookie_params(['lifetime' => 0, 'path' => defined('APP_COOKIE_PATH') ? APP_COOKIE_PATH : '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
         session_start();
     }
     if (empty($_SESSION['public_csrf'])) $_SESSION['public_csrf'] = bin2hex(random_bytes(32));

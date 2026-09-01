@@ -7,7 +7,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_name('tbz_portal_session');
     session_set_cookie_params([
         'lifetime' => 0,
-        'path' => '/school-website',
+        'path' => defined('APP_COOKIE_PATH') ? APP_COOKIE_PATH : '/',
         'httponly' => true,
         'samesite' => 'Lax',
         'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
