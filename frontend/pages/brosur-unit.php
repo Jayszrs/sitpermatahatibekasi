@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $slug=strtolower(trim($_GET['unit']??'')); $stmt=$pdo->prepare('SELECT * FROM brochures WHERE unit_slug=? AND is_active=1 LIMIT 1'); $stmt->execute([$slug]); $brochure=$stmt->fetch();
 if(!$brochure){ http_response_code(404); $page_title='Brosur Tidak Ditemukan'; require __DIR__.'/../components/header.php'; ?><section class="page-header"><div class="container"><h1>Brosur Tidak Ditemukan</h1></div></section><section class="section"><div class="container empty-public-state"><a class="btn btn-primary" href="brosur.php">Kembali ke Brosur</a></div></section><?php require __DIR__.'/../components/footer.php'; return; }
+$brochure['cover_image']=public_media_url($brochure['cover_image']??null);
 $highlights=array_filter(array_map('trim',preg_split('/\r\n|\r|\n/',(string)($brochure['highlights']??''))));
 $facilities=array_filter(array_map('trim',preg_split('/\r\n|\r|\n/',(string)($brochure['facilities']??''))));
 $page_title='Brosur '.$brochure['unit_name']; $meta_description=$brochure['description']; $meta_image=$brochure['cover_image']; $canonical_url=SITE_URL.'/brosur-unit.php?unit='.rawurlencode($slug); require __DIR__.'/../components/header.php';

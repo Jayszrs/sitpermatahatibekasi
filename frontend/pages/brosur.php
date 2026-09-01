@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title='Brosur Sekolah';
 $meta_description='Temukan program, fasilitas, dan brosur resmi Daycare, TKIT, SDIT, dan SMPIT Permata Hati Bekasi.';
 $brochures=$pdo->query('SELECT * FROM brochures WHERE is_active=1 ORDER BY sort_order,id')->fetchAll();
+foreach($brochures as &$brochureItem)$brochureItem['cover_image']=public_media_url($brochureItem['cover_image']??null);unset($brochureItem);
 require_once __DIR__.'/../components/header.php';
 ?>
 <section class="page-header page-header-photo"><div class="container"><span class="page-kicker">Panduan Memilih Jenjang</span><h1>Brosur &amp; Informasi Unit</h1><p>Kenali pengalaman belajar, program unggulan, fasilitas, dan layanan setiap jenjang sebelum menentukan pilihan.</p><p class="breadcrumb"><a href="index.php">Beranda</a> / Brosur</p></div></section>

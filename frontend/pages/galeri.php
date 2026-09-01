@@ -23,12 +23,16 @@ $albumSlides = [];
 foreach ($albums as $album) {
     $photoStmt->execute([(int)$album['id']]);
     $albumSlides[(int)$album['id']] = $photoStmt->fetchAll();
+    foreach ($albumSlides[(int)$album['id']] as &$albumPhoto) $albumPhoto['image'] = public_media_url($albumPhoto['image'] ?? null);
+    unset($albumPhoto);
 }
 
 $publications = $pdo->query("SELECT * FROM gallery_photos
     WHERE unit_slug IN ('daycare','tkit','sdit','smpit')
       AND instagram_url IS NOT NULL AND instagram_url<>''
     ORDER BY COALESCE(published_at,DATE(created_at)) DESC, sort_order,id DESC")->fetchAll();
+foreach ($publications as &$publicationItem) $publicationItem['image'] = public_media_url($publicationItem['image'] ?? null);
+unset($publicationItem);
 $publicationUnits = ['semua'=>'Semua','daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'];
 
 require_once __DIR__ . '/../components/header.php';

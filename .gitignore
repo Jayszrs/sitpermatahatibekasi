@@ -2,3 +2,9 @@
 .DS_Store
 /vendor/
 /tmp/
+
+# Media CMS publik (berita, galeri, hero, brosur) sengaja TIDAK di-ignore
+# agar dapat ikut commit dan tersedia di clone/fork teman satu tim.
+# Dokumen pelamar adalah data pribadi dan tidak boleh masuk repository.
+/frontend/assets/uploads/careers/*
+!/frontend/assets/uploads/careers/.gitkeep

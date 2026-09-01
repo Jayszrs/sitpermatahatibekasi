@@ -21,6 +21,8 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([(int)$album['id']]);
 $photos = $stmt->fetchAll();
+foreach ($photos as &$photoItem) $photoItem['image'] = public_media_url($photoItem['image'] ?? null);
+unset($photoItem);
 
 $lightboxPhotos = array_map(static function (array $photo): array {
     return [

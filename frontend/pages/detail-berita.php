@@ -12,11 +12,14 @@ if (!$news) {
     header('Location: berita.php');
     exit;
 }
+$news['image'] = public_media_url($news['image'] ?? null);
 
 // Berita lain (untuk rekomendasi)
 $stmt2 = $pdo->prepare("SELECT * FROM news WHERE id != ? ORDER BY CASE WHEN unit=? THEN 0 ELSE 1 END, published_at DESC LIMIT 3");
 $stmt2->execute([$news['id'], $news['unit'] ?? 'SDIT']);
 $other_news = $stmt2->fetchAll();
+foreach ($other_news as &$otherNewsItem) $otherNewsItem['image'] = public_media_url($otherNewsItem['image'] ?? null);
+unset($otherNewsItem);
 
 $page_title = $news['title'];
 $meta_description = $news['excerpt'] ?: mb_strimwidth(strip_tags($news['content']), 0, 180, '...');

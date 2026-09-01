@@ -13,6 +13,16 @@ Alur untuk setiap fork:
 
 Catatan: Git menyinkronkan skema, migrasi, dan seeder. Isi database lokal yang dibuat pengguna tidak ikut terkirim ke fork lain kecuali diekspor dan dikomit secara sengaja.
 
+## Sinkronisasi media CMS
+
+Upload publik disimpan di `frontend/assets/uploads/` dan tidak di-ignore, jadi
+gambar berita, galeri, hero, serta brosur dapat ikut commit. Saat membagikan
+konten CMS ke fork lain, commit file medianya bersama migrasi/seeder atau dump
+SQL yang berisi data kontennya. Selalu periksa `git status` sebelum push.
+
+Jangan commit `frontend/assets/uploads/careers/`. Folder tersebut berisi CV
+pelamar dan sudah dikecualikan lewat `.gitignore`.
+
 Nama database tetap dapat menggunakan `school_website`. URL aplikasi dan cookie
 sesi dihitung otomatis dari lokasi folder, sedangkan nama database mengikuti nilai
 `DB_NAME` pada `.env`.

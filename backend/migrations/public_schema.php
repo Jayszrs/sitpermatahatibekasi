@@ -72,6 +72,23 @@ function ensure_public_schema(PDO $pdo): void
                 $replace = $pdo->prepare($sql);
                 $replace->execute([$legacyBase, $siteBase, $legacyBase . '/%']);
             }
+
+            // Menangani nama folder localhost lain yang tidak tercantum di atas.
+            // Hanya path /frontend/assets/ yang dinormalisasi sehingga URL luar
+            // seperti tautan Instagram atau CDN tidak ikut diubah.
+            $portableSql = sprintf(
+                "UPDATE `%s` SET `%s`=CONCAT(?, SUBSTRING(`%s`, LOCATE('/frontend/assets/', `%s`)))
+                 WHERE LOCATE('/frontend/assets/', `%s`) > 0
+                   AND (`%s` LIKE 'http://localhost/%%' OR `%s` LIKE 'http://127.0.0.1/%%')",
+                $table,
+                $column,
+                $column,
+                $column,
+                $column,
+                $column,
+                $column
+            );
+            $pdo->prepare($portableSql)->execute([$siteBase]);
         }
     }
     $recordMigration('20260901-dynamic-base-url', 'URL aset dan cookie mengikuti nama folder aplikasi');

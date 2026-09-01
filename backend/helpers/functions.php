@@ -48,6 +48,36 @@ function asset_url(string $relativePath): string {
     return SITE_URL . '/' . $relativePath . '?v=' . rawurlencode($version);
 }
 
+/**
+ * Membuat URL media CMS tetap portabel ketika project dipindah folder/host.
+ * URL localhost lama dan URL absolut hasil upload dinormalisasi ke SITE_URL
+ * saat ini. Jika file lokalnya tidak ada, gambar bawaan dipakai sebagai
+ * fallback agar kartu publik tidak menampilkan ikon gambar rusak.
+ */
+function public_media_url(?string $url, ?string $fallback = null): string {
+    $fallback ??= SITE_URL . '/frontend/assets/images/school/hero-school.png';
+    $value = trim((string) $url);
+    if ($value === '') return $fallback;
+
+    $normalized = str_replace('\\', '/', $value);
+    $marker = '/frontend/assets/';
+    $markerPosition = strpos($normalized, $marker);
+    if ($markerPosition !== false) {
+        $assetPath = substr($normalized, $markerPosition);
+        $pathOnly = (string) (parse_url($assetPath, PHP_URL_PATH) ?: $assetPath);
+        $absolutePath = dirname(__DIR__, 2) . str_replace('/', DIRECTORY_SEPARATOR, $pathOnly);
+        return is_file($absolutePath) ? SITE_URL . $assetPath : $fallback;
+    }
+
+    if (str_starts_with($normalized, 'frontend/assets/')) {
+        return public_media_url(SITE_URL . '/' . $normalized, $fallback);
+    }
+
+    // URL eksternal (misalnya CDN resmi) tetap diizinkan.
+    if (preg_match('~^https?://~i', $normalized)) return $normalized;
+    return $fallback;
+}
+
 function school_unit_slug(string $value): string {
     $value = strtolower(trim($value));
     if (str_contains($value, 'daycare')) return 'daycare';
@@ -119,6 +149,7 @@ function fetch_school_units(PDO $pdo): array {
         $selected[$slug] = array_merge($defaults, $row);
         $selected[$slug]['slug'] = $slug;
         if (empty($selected[$slug]['image'])) $selected[$slug]['image'] = $defaults['image'];
+        $selected[$slug]['image'] = public_media_url($selected[$slug]['image'], $defaults['image']);
     }
     return array_values($selected);
 }

@@ -6,6 +6,8 @@ $page_title = 'Beranda';
 // Ambil 3 berita terbaru
 $stmt = $pdo->query("SELECT * FROM news ORDER BY published_at DESC LIMIT 3");
 $latest_news = $stmt->fetchAll();
+foreach ($latest_news as &$newsItem) $newsItem['image'] = public_media_url($newsItem['image'] ?? null);
+unset($newsItem);
 $hero_media = $pdo->query("SELECT * FROM hero_media WHERE is_active=1 ORDER BY sort_order,id")->fetchAll();
 if (!$hero_media) $hero_media = [[
     'title' => SITE_NAME, 'eyebrow' => 'Sekolah Islam Terpadu',
@@ -13,6 +15,16 @@ if (!$hero_media) $hero_media = [[
     'media_type' => 'image', 'media_url' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
     'poster_url' => null, 'cta_label' => 'Daftar SPMB', 'cta_url' => SITE_URL . '/spmb.php',
 ]];
+foreach ($hero_media as &$heroItem) {
+    $mediaUrl = public_media_url($heroItem['media_url'] ?? null, '');
+    if ($mediaUrl === '') {
+        $heroItem['media_type'] = 'image';
+        $mediaUrl = SITE_URL . '/frontend/assets/images/school/hero-school.png';
+    }
+    $heroItem['media_url'] = $mediaUrl;
+    if (!empty($heroItem['poster_url'])) $heroItem['poster_url'] = public_media_url($heroItem['poster_url'], '');
+}
+unset($heroItem);
 
 // Ambil album galeri terbaru
 $stmt = $pdo->query("
@@ -35,12 +47,19 @@ $gallery_album_slides = [];
 foreach ($gallery_albums as $album) {
     $galleryAlbumPhotoStmt->execute([(int)$album['id']]);
     $gallery_album_slides[(int)$album['id']] = $galleryAlbumPhotoStmt->fetchAll();
+    foreach ($gallery_album_slides[(int)$album['id']] as &$albumPhoto) $albumPhoto['image'] = public_media_url($albumPhoto['image'] ?? null);
+    unset($albumPhoto);
 }
 $home_units = fetch_school_units($pdo);
 $home_programs = $pdo->query("SELECT * FROM site_content_items WHERE type='program' AND is_active=1 ORDER BY sort_order,id LIMIT 8")->fetchAll();
 $home_achievements = $pdo->query("SELECT * FROM site_content_items WHERE type='achievement' AND is_active=1 ORDER BY sort_order,id LIMIT 6")->fetchAll();
 $home_profile = $pdo->query('SELECT * FROM site_profile WHERE id=1')->fetch();
 $home_activities = $pdo->query("SELECT * FROM site_content_items WHERE type='activity' AND is_active=1 ORDER BY sort_order,id LIMIT 4")->fetchAll();
+foreach ($home_achievements as &$achievementItem) $achievementItem['image'] = public_media_url($achievementItem['image'] ?? null);
+unset($achievementItem);
+if ($home_profile) $home_profile['image'] = public_media_url($home_profile['image'] ?? null, SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg');
+foreach ($home_activities as &$activityItem) $activityItem['image'] = public_media_url($activityItem['image'] ?? null);
+unset($activityItem);
 $school_advantages = school_advantages();
 $unitCatalog = school_unit_catalog();
 $unit_image_map = array_combine(array_keys($unitCatalog), array_column($unitCatalog, 'image'));

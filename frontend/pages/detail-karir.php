@@ -44,7 +44,7 @@ $relatedStmt->execute([$job['id']]);
 $relatedJobs = $relatedStmt->fetchAll();
 $page_title = $job['title'] . ' - Karir';
 $meta_description = $job['summary'];
-$meta_image = $job['image'] ?: SITE_URL.'/frontend/assets/images/school/hero-school.png';
+$meta_image = public_media_url($job['image'] ?? null);
 $meta_type = 'article';
 $canonical_url = SITE_URL.'/detail-karir.php?slug='.rawurlencode($job['slug']);
 $shareUrl = urlencode($canonical_url); $shareText = urlencode('Lowongan '.$job['title'].' di '.SITE_NAME);

@@ -1371,7 +1371,7 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .job-results-head h2 { margin-top: 4px; font-size: 1.65rem; }
 .job-results-head > a { color: var(--primary); font-size: .82rem; font-weight: 700; }
 .job-list { display: grid; gap: 16px; }
-.job-card { display: grid; grid-template-columns: auto minmax(0,1fr) 180px; gap: 20px; align-items: start; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: #fff; box-shadow: 0 5px 18px rgba(15,81,50,.04); transition: transform .2s,box-shadow .2s,border-color .2s; }
+.job-card { display: grid; grid-template-columns: auto minmax(0,1fr) 180px; gap: 20px; align-items: start; padding: 24px; border: 1px solid var(--border); border-radius: 16px; color: inherit; background: #fff; box-shadow: 0 5px 18px rgba(15,81,50,.04); transition: transform .2s,box-shadow .2s,border-color .2s; cursor: pointer; }
 .job-card:hover { transform: translateY(-3px); border-color: rgba(15,81,50,.28); box-shadow: var(--shadow-lg); }
 .job-card.featured { border-left: 4px solid var(--secondary); }
 .job-logo { width: 58px; height: 58px; padding: 4px; border: 1px solid var(--border); border-radius: 14px; background: #fff; overflow: hidden; }
@@ -1379,14 +1379,18 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .job-card-top { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: .72rem; font-weight: 700; }
 .job-featured { padding: 3px 8px; border-radius: 999px; color: #866500 !important; background: #fff4c7; }
 .job-card h3 { margin: 6px 0 7px; font-size: 1.2rem; }
-.job-card h3 a:hover { color: var(--primary); }
+.job-card h3 { transition: color .2s; }
+.job-card:hover h3,.job-card:focus-visible h3 { color: var(--primary); }
 .job-card-main > p { color: var(--muted); font-size: .87rem; }
 .job-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .job-meta span { padding: 5px 9px; border-radius: 999px; color: #365a49; background: var(--primary-light); font-size: .7rem; font-weight: 700; }
 .job-card-side { align-self: stretch; display: flex; flex-direction: column; align-items: flex-end; text-align: right; border-left: 1px solid var(--border); padding-left: 18px; }
 .job-card-side small { color: var(--muted); font-size: .68rem; }
 .job-card-side strong { color: var(--primary-dark); font-size: .8rem; }
-.job-card-side a { margin-top: auto; color: var(--primary); font-size: .78rem; font-weight: 800; }
+.job-card-action { margin-top: auto; color: var(--primary); font-size: .78rem; font-weight: 800; }
+.job-card-action b { display: inline-block; transition: transform .2s; }
+.job-card:hover .job-card-action b { transform: translateX(4px); }
+.job-card:focus-visible { outline: 3px solid rgba(212,175,55,.45); outline-offset: 3px; }
 .job-empty { padding: 50px; text-align: center; border: 1px dashed #b9c9c0; border-radius: 18px; background: #fff; }
 .job-empty p { max-width: 520px; margin: 10px auto 22px; color: var(--muted); }
 .career-process-section { padding: 82px 0; background: #fff; }
@@ -2313,7 +2317,7 @@ table.schedule th { background: var(--primary); color: #fff; }
     .job-board-section { padding-top: 72px; }
     .job-card { grid-template-columns: auto minmax(0,1fr); }
     .job-card-side { grid-column: 2; align-items: flex-start; text-align: left; border: 0; padding: 0; gap: 4px; }
-    .job-card-side a { margin-top: 8px; }
+    .job-card-action { margin-top: 8px; }
     .job-detail-heading { grid-template-columns: auto minmax(0,1fr); }
     .job-detail-heading > .btn { grid-column: 1/-1; }
     .job-detail-layout { grid-template-columns: 1fr; }
@@ -2465,7 +2469,10 @@ img, video, iframe { max-width: 100%; }
 .brochure-value-wide a { margin-top: 8px; color: var(--primary); font-weight: 800; }
 
 /* Unit gallery collage */
-.unit-page-section { background: linear-gradient(180deg,#f5f9f7,#fff); }
+.unit-page-section { position: relative; isolation: isolate; overflow: hidden; background-color: #f7faf8; background-image: url('../images/ornament.svg'),linear-gradient(180deg,#f5f9f7,#fff); background-repeat: repeat,no-repeat; background-size: 120px 120px,auto; }
+.unit-page-section > .container { position: relative; z-index: 1; }
+.unit-page-section::before { content: ''; position: absolute; z-index: 0; top: 5%; right: -130px; width: 440px; aspect-ratio: 1; border: 1px solid rgba(15,81,50,.08); border-radius: 50%; box-shadow: 0 0 0 55px rgba(212,175,55,.035),0 0 0 110px rgba(15,81,50,.025); pointer-events: none; }
+.unit-page-section::after { content: ''; position: absolute; z-index: 0; bottom: 8%; left: -180px; width: 390px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle,rgba(212,175,55,.1),rgba(212,175,55,0) 68%); pointer-events: none; }
 .unit-showcase { display: grid; grid-template-columns: minmax(330px,.75fr) minmax(0,1.25fr); gap: 58px; align-items: center; padding: 68px 0; border-bottom: 1px solid var(--border); }
 .unit-showcase:nth-child(even) .unit-showcase-copy { order: 2; }
 .unit-index { display: block; margin-bottom: 18px; color: var(--secondary-dark); font-size: 2.2rem; font-weight: 900; }

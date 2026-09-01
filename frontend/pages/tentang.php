@@ -6,6 +6,11 @@ $profile = $pdo->query('SELECT * FROM site_profile WHERE id=1')->fetch();
 $leaders = $pdo->query("SELECT * FROM site_content_items WHERE type='leadership' AND is_active=1 AND unit_slug IN ('daycare','tkit','sdit','smpit') ORDER BY sort_order,id")->fetchAll();
 $leaderUnits = ['semua'=>'Semua','daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'];
 $foundation = $pdo->query("SELECT * FROM site_content_items WHERE type='foundation' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+if ($profile) $profile['image'] = public_media_url($profile['image'] ?? null, SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg');
+foreach ($leaders as &$leaderItem) $leaderItem['image'] = public_media_url($leaderItem['image'] ?? null, SITE_URL . '/frontend/assets/images/logo-sit-round.png');
+unset($leaderItem);
+foreach ($foundation as &$foundationItem) if (!empty($foundationItem['image'])) $foundationItem['image'] = public_media_url($foundationItem['image'], '');
+unset($foundationItem);
 require_once __DIR__ . '/../components/header.php';
 ?>
 

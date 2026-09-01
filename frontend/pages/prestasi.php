@@ -3,6 +3,8 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Prestasi';
 $achievements = $pdo->query("SELECT * FROM site_content_items WHERE type='achievement' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+foreach ($achievements as &$achievementItem) $achievementItem['image'] = public_media_url($achievementItem['image'] ?? null, SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg');
+unset($achievementItem);
 $achievement_units = ['Semua', 'Daycare', 'TKIT', 'SDIT', 'SMPIT'];
 require_once __DIR__ . '/../components/header.php';
 ?>
@@ -31,7 +33,7 @@ require_once __DIR__ . '/../components/header.php';
                     $unit = $a['extra'] ?: 'SDIT';
                     $unitKey = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $unit));
                     $level = $a['badge'] ?: 'Prestasi';
-                    $image = $a['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg';
+                    $image = $a['image'];
                 ?>
             <div class="card achieve-card" id="prestasi-<?php echo (int)$a['id']; ?>" data-achievement-unit="<?php echo esc($unitKey); ?>">
                 <a class="card-stretched-link" href="detail-prestasi.php?id=<?php echo (int)$a['id']; ?>" aria-label="Baca cerita <?php echo esc($a['title']); ?>"></a>

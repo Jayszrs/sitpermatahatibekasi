@@ -21,7 +21,7 @@ $jobs = $stmt->fetchAll();
 $units = $pdo->query("SELECT DISTINCT unit FROM job_vacancies WHERE is_active=1 ORDER BY unit")->fetchAll(PDO::FETCH_COLUMN);
 $types = $pdo->query("SELECT DISTINCT employment_type FROM job_vacancies WHERE is_active=1 ORDER BY employment_type")->fetchAll(PDO::FETCH_COLUMN);
 $jobStats = $pdo->query("SELECT COUNT(*) total, COUNT(DISTINCT unit) units, SUM(is_featured=1) featured FROM job_vacancies WHERE is_active=1 AND (deadline IS NULL OR deadline>=CURDATE())")->fetch();
-$careerHeroImage = $jobs[0]['image'] ?? SITE_URL.'/frontend/assets/images/brochures/smpit-promo.png';
+$careerHeroImage = public_media_url($jobs[0]['image'] ?? null, SITE_URL.'/frontend/assets/images/brochures/smpit-promo.png');
 $meta_description = 'Temukan lowongan pendidik dan tenaga profesional di SIT Permata Hati Bekasi.';
 $meta_image = $careerHeroImage;
 
@@ -51,11 +51,11 @@ require_once __DIR__ . '/../components/header.php';
             <div class="job-list">
                 <?php if (!$jobs): ?><div class="job-empty"><h3>Belum ada posisi yang cocok</h3><p>Coba kata kunci atau filter lain. Anda juga dapat kembali memeriksa halaman ini secara berkala.</p><a class="btn btn-primary" href="karir.php">Tampilkan Semua</a></div><?php endif; ?>
                 <?php foreach ($jobs as $job): ?>
-                <article class="job-card<?php echo $job['is_featured'] ? ' featured' : ''; ?>">
+                <a class="job-card<?php echo $job['is_featured'] ? ' featured' : ''; ?>" href="detail-karir.php?slug=<?php echo urlencode($job['slug']); ?>" aria-label="Lihat detail dan lamar posisi <?php echo esc($job['title']); ?>">
                     <div class="job-logo"><img src="<?php echo esc(asset_url('frontend/assets/images/logo-sit-round.png')); ?>" alt=""></div>
-                    <div class="job-card-main"><div class="job-card-top"><?php if($job['is_featured']): ?><span class="job-featured">Prioritas</span><?php endif; ?><span><?php echo esc($job['department']); ?></span></div><h3><a href="detail-karir.php?slug=<?php echo urlencode($job['slug']); ?>"><?php echo esc($job['title']); ?></a></h3><p><?php echo esc($job['summary']); ?></p><div class="job-meta"><span><?php echo esc($job['unit']); ?></span><span><?php echo esc($job['employment_type']); ?></span><span><?php echo esc($job['work_location']); ?></span></div></div>
-                    <div class="job-card-side"><?php if($job['deadline']): ?><small>Batas lamaran</small><strong><?php echo esc(tanggal_indo($job['deadline'])); ?></strong><?php else: ?><small>Dibuka sampai</small><strong>Posisi terpenuhi</strong><?php endif; ?><a href="detail-karir.php?slug=<?php echo urlencode($job['slug']); ?>">Lihat Detail <span>&rarr;</span></a></div>
-                </article>
+                    <div class="job-card-main"><div class="job-card-top"><?php if($job['is_featured']): ?><span class="job-featured">Prioritas</span><?php endif; ?><span><?php echo esc($job['department']); ?></span></div><h3><?php echo esc($job['title']); ?></h3><p><?php echo esc($job['summary']); ?></p><div class="job-meta"><span><?php echo esc($job['unit']); ?></span><span><?php echo esc($job['employment_type']); ?></span><span><?php echo esc($job['work_location']); ?></span></div></div>
+                    <div class="job-card-side"><?php if($job['deadline']): ?><small>Batas lamaran</small><strong><?php echo esc(tanggal_indo($job['deadline'])); ?></strong><?php else: ?><small>Dibuka sampai</small><strong>Posisi terpenuhi</strong><?php endif; ?><span class="job-card-action">Detail &amp; Apply <b>&rarr;</b></span></div>
+                </a>
                 <?php endforeach; ?>
             </div>
         </div>

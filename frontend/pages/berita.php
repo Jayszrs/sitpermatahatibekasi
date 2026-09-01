@@ -5,6 +5,8 @@ $page_title = 'Berita';
 
 $stmt = $pdo->query("SELECT * FROM news ORDER BY published_at DESC");
 $news_list = $stmt->fetchAll();
+foreach ($news_list as &$newsItem) $newsItem['image'] = public_media_url($newsItem['image'] ?? null);
+unset($newsItem);
 $news_units = ['Semua', 'Daycare', 'TKIT', 'SDIT', 'SMPIT'];
 
 require_once __DIR__ . '/../components/header.php';

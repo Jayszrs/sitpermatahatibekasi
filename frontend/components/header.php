@@ -1,7 +1,7 @@
 <?php
 $metaTitle = isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME;
 $metaDescription = $meta_description ?? SITE_TAGLINE;
-$metaImage = $meta_image ?? SITE_URL . '/frontend/assets/images/school/hero-school.png';
+$metaImage = public_media_url($meta_image ?? null);
 $metaUrl = $canonical_url ?? SITE_URL . '/' . ltrim((string)($current_page ?? 'index.php'), '/');
 $metaType = $meta_type ?? 'website';
 ?>

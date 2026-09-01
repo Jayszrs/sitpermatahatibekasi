@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title='Unit Sekolah';
 $units=fetch_school_units($pdo);
 $galleryStmt=$pdo->prepare('SELECT * FROM unit_gallery_photos WHERE unit_slug=? AND is_active=1 ORDER BY sort_order,id');
-$unitGalleries=[]; foreach($units as $unit){$key=$unit['slug'];$galleryStmt->execute([$key]);$unitGalleries[$key]=$galleryStmt->fetchAll();}
+$unitGalleries=[]; foreach($units as $unit){$key=$unit['slug'];$galleryStmt->execute([$key]);$unitGalleries[$key]=$galleryStmt->fetchAll();foreach($unitGalleries[$key] as &$galleryPhoto){$galleryPhoto['image']=public_media_url($galleryPhoto['image']??null,$unit['image']);}unset($galleryPhoto);}
 require_once __DIR__.'/../components/header.php';
 ?>
 <section class="page-header"><div class="container"><span class="page-kicker">Daycare · TKIT · SDIT · SMPIT</span><h1>Unit Sekolah</h1><p>Setiap tahap memiliki pendekatan, program, dan ruang belajar yang dirancang sesuai kebutuhan tumbuh kembang siswa.</p><p class="breadcrumb"><a href="index.php">Beranda</a> / Unit Sekolah</p></div></section>
