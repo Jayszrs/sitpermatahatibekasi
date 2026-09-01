@@ -48,6 +48,81 @@ function asset_url(string $relativePath): string {
     return SITE_URL . '/' . $relativePath . '?v=' . rawurlencode($version);
 }
 
+function school_unit_slug(string $value): string {
+    $value = strtolower(trim($value));
+    if (str_contains($value, 'daycare')) return 'daycare';
+    if (str_contains($value, 'tkit') || preg_match('/(^|\s)tk($|\s)/', $value)) return 'tkit';
+    if (str_contains($value, 'sdit') || preg_match('/(^|\s)sd($|\s)/', $value)) return 'sdit';
+    if (str_contains($value, 'smpit') || preg_match('/(^|\s)smp($|\s)/', $value)) return 'smpit';
+    return preg_replace('/[^a-z0-9]+/', '-', $value) ?: 'unit';
+}
+
+function school_unit_catalog(): array {
+    return [
+        'daycare' => [
+            'subtitle' => 'Daycare',
+            'title' => 'Daycare Permata Hati Bekasi',
+            'description' => 'Layanan pengasuhan anak usia dini dengan suasana aman, hangat, dan pembiasaan adab Islami sejak awal.',
+            'extra' => "Stimulasi motorik\nPembiasaan doa\nAktivitas sensorik\nLaporan harian",
+            'image' => SITE_URL . '/frontend/assets/images/units/daycare-building.webp',
+            'address' => SITE_DAYCARE_TKIT_CAMPUS_ADDRESS,
+            'latitude' => SITE_DAYCARE_TKIT_LATITUDE,
+            'longitude' => SITE_DAYCARE_TKIT_LONGITUDE,
+            'instagram' => SITE_DAYCARE_INSTAGRAM,
+        ],
+        'tkit' => [
+            'subtitle' => 'TKIT',
+            'title' => 'TKIT Permata Hati Bekasi',
+            'description' => 'Jenjang taman kanak-kanak Islam terpadu yang menumbuhkan kemandirian, kreativitas, dan cinta Al-Quran.',
+            'extra' => "Sentra bermain\nTahsin dasar\nDoa harian\nKemandirian",
+            'image' => SITE_URL . '/frontend/assets/images/units/tkit-building.webp',
+            'address' => SITE_DAYCARE_TKIT_CAMPUS_ADDRESS,
+            'latitude' => SITE_DAYCARE_TKIT_LATITUDE,
+            'longitude' => SITE_DAYCARE_TKIT_LONGITUDE,
+            'instagram' => SITE_TKIT_INSTAGRAM,
+        ],
+        'sdit' => [
+            'subtitle' => 'SDIT',
+            'title' => 'SDIT Permata Hati Bekasi',
+            'description' => 'Pendidikan dasar terpadu yang menguatkan akademik, tahfidz, adab, dan karakter mandiri siswa.',
+            'extra' => "Tahfidz Juz 30\nLiterasi numerasi\nEkstrakurikuler\nFull Day School",
+            'image' => SITE_URL . '/frontend/assets/images/units/sdit-building.webp',
+            'address' => SITE_SDIT_CAMPUS_ADDRESS,
+            'latitude' => SITE_SDIT_LATITUDE,
+            'longitude' => SITE_SDIT_LONGITUDE,
+            'instagram' => SITE_SDIT_INSTAGRAM,
+        ],
+        'smpit' => [
+            'subtitle' => 'SMPIT',
+            'title' => 'SMPIT Permata Hati Bekasi',
+            'description' => 'Jenjang menengah pertama yang membangun kompetensi akademik, kepemimpinan, dan akhlak remaja muslim.',
+            'extra' => "Tahfidz lanjutan\nEnglish Club\nKlub Sains\nLeadership Project",
+            'image' => SITE_URL . '/frontend/assets/images/units/smpit-building.webp',
+            'address' => SITE_SMPIT_CAMPUS_ADDRESS,
+            'latitude' => SITE_SMPIT_LATITUDE,
+            'longitude' => SITE_SMPIT_LONGITUDE,
+            'instagram' => SITE_SMPIT_INSTAGRAM,
+        ],
+    ];
+}
+
+function fetch_school_units(PDO $pdo): array {
+    $catalog = school_unit_catalog();
+    $rows = $pdo->query("SELECT * FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+    $selected = [];
+    foreach ($rows as $row) {
+        $slug = school_unit_slug((string) ($row['subtitle'] ?: $row['title']));
+        if (isset($catalog[$slug]) && !isset($selected[$slug])) $selected[$slug] = $row;
+    }
+    foreach ($catalog as $slug => $defaults) {
+        $row = $selected[$slug] ?? [];
+        $selected[$slug] = array_merge($defaults, $row);
+        $selected[$slug]['slug'] = $slug;
+        if (empty($selected[$slug]['image'])) $selected[$slug]['image'] = $defaults['image'];
+    }
+    return array_values($selected);
+}
+
 function school_advantages(): array {
     return [
         'pendidikan-islami' => [

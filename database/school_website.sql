@@ -50,6 +50,9 @@ CREATE TABLE IF NOT EXISTS `gallery_photos` (
     `title` VARCHAR(255) NOT NULL,
     `image` VARCHAR(255) NOT NULL,
     `description` VARCHAR(255) DEFAULT NULL,
+    `unit_slug` VARCHAR(30) DEFAULT NULL,
+    `instagram_url` VARCHAR(255) DEFAULT NULL,
+    `published_at` DATE DEFAULT NULL,
     `sort_order` INT NOT NULL DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_gallery_photo_album` (`album_id`,`sort_order`,`id`),
@@ -138,6 +141,9 @@ CREATE TABLE IF NOT EXISTS `site_content_items` (
     `extra` TEXT DEFAULT NULL,
     `link_url` VARCHAR(255) DEFAULT NULL,
     `link_label` VARCHAR(80) DEFAULT NULL,
+    `unit_slug` VARCHAR(30) DEFAULT NULL,
+    `education` VARCHAR(255) DEFAULT NULL,
+    `teaching_scope` VARCHAR(255) DEFAULT NULL,
     `sort_order` INT NOT NULL DEFAULT 0,
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -348,6 +354,22 @@ INSERT INTO `site_content_items` (`type`,`title`,`subtitle`,`description`,`image
 ('activity','Kreasi Seni Angklung','SDIT','Pembelajaran seni budaya yang melatih kekompakan, percaya diri, dan apresiasi siswa terhadap kekayaan Indonesia.','http://localhost/school-website/frontend/assets/images/activities/sdit-kegiatan.jpeg',NULL,NULL,NULL,3),
 ('activity','Riset Kebun Sekolah','SMPIT','Kegiatan observasi tanaman yang mengajak siswa berpikir ilmiah, peduli lingkungan, dan aktif berdiskusi.','http://localhost/school-website/frontend/assets/images/activities/smpit-kegiatan.jpeg',NULL,NULL,NULL,4);
 
+UPDATE `site_content_items` SET `image`='http://localhost/school-website/frontend/assets/images/units/daycare-building.webp' WHERE `type`='unit' AND `subtitle`='Daycare';
+UPDATE `site_content_items` SET `image`='http://localhost/school-website/frontend/assets/images/units/tkit-building.webp' WHERE `type`='unit' AND `subtitle`='TKIT';
+UPDATE `site_content_items` SET `image`='http://localhost/school-website/frontend/assets/images/units/sdit-building.webp' WHERE `type`='unit' AND `subtitle`='SDIT';
+UPDATE `site_content_items` SET `image`='http://localhost/school-website/frontend/assets/images/units/smpit-building.webp' WHERE `type`='unit' AND `subtitle`='SMPIT';
+
+DELETE FROM `site_content_items` WHERE `type`='leadership';
+INSERT INTO `site_content_items` (`type`,`title`,`subtitle`,`description`,`image`,`unit_slug`,`education`,`teaching_scope`,`sort_order`,`is_active`) VALUES
+('leadership','Siti Rahmawati, S.Pd.','Kepala Unit Daycare','Mendampingi layanan pengasuhan yang aman, hangat, dan selaras dengan kebutuhan tumbuh kembang anak.','http://localhost/school-website/frontend/assets/images/leaders/daycare-head.webp','daycare','S1 Pendidikan Anak Usia Dini','Daycare - pembiasaan adab dan stimulasi anak',1,1),
+('leadership','Nur Aini Fadilah, S.Psi.','Koordinator Tumbuh Kembang','Mengkoordinasikan observasi perkembangan, kegiatan sensorik, dan komunikasi harian bersama orang tua.','http://localhost/school-website/frontend/assets/images/leaders/daycare-coordinator.webp','daycare','S1 Psikologi','Daycare - stimulasi sensorik dan sosial emosional',2,1),
+('leadership','Hj. Rina Marlina, S.Pd.AUD.','Kepala TKIT','Memimpin pembelajaran berbasis sentra serta penguatan kemandirian dan adab Islami anak.','http://localhost/school-website/frontend/assets/images/leaders/tkit-principal.webp','tkit','S1 Pendidikan Guru PAUD','TKIT - pembelajaran sentra dan tahsin dasar',3,1),
+('leadership','Ahmad Fauzan, S.Pd.','Wakil Kepala Bidang Kurikulum','Mengembangkan program tematik, asesmen perkembangan, dan kesiapan belajar anak menuju sekolah dasar.','http://localhost/school-website/frontend/assets/images/leaders/tkit-vice.webp','tkit','S1 Pendidikan Anak Usia Dini','TKIT - literasi awal dan kurikulum tematik',4,1),
+('leadership','H. Dedi Kurniawan, M.Pd.','Kepala SDIT','Memimpin penguatan mutu akademik, Al-Quran, karakter, dan kolaborasi sekolah bersama keluarga.','http://localhost/school-website/frontend/assets/images/leaders/sdit-principal.webp','sdit','S2 Manajemen Pendidikan','SDIT - kepemimpinan sekolah dan pendidikan karakter',5,1),
+('leadership','Fitri Handayani, M.Pd.','Wakil Kepala Bidang Kurikulum','Mengawal perencanaan pembelajaran, literasi, numerasi, dan pengembangan kompetensi guru.','http://localhost/school-website/frontend/assets/images/leaders/sdit-vice.webp','sdit','S2 Pendidikan Dasar','SDIT - literasi, numerasi, dan pengembangan kurikulum',6,1),
+('leadership','Nurul Hidayati, M.Pd.','Kepala SMPIT','Memimpin pendidikan remaja muslim yang unggul dalam akademik, akhlak, kemandirian, dan kepemimpinan.','http://localhost/school-website/frontend/assets/images/leaders/smpit-principal.webp','smpit','S2 Manajemen Pendidikan','SMPIT - kepemimpinan sekolah dan mentoring remaja',7,1),
+('leadership','Fajar Ramadhan, S.Pd.','Wakil Kepala Bidang Kesiswaan','Membina organisasi siswa, disiplin positif, kegiatan sekolah, dan proyek kepemimpinan remaja.','http://localhost/school-website/frontend/assets/images/leaders/smpit-vice.webp','smpit','S1 Pendidikan Pancasila dan Kewarganegaraan','SMPIT - PPKn, kesiswaan, dan leadership project',8,1);
+
 -- ============================================================
 -- SAMPLE DATA: news
 -- ============================================================
@@ -389,6 +411,9 @@ INSERT INTO `gallery_albums` (`id`,`title`,`slug`,`description`,`sort_order`,`is
 (4, 'Gedung Sekolah', 'gedung-sekolah', 'Dokumentasi gedung dan lingkungan unit pendidikan SIT Permata Hati Bekasi.', 4, 1),
 (5, 'Dokumentasi Sekolah', 'dokumentasi-sekolah', 'Kumpulan dokumentasi fasilitas, suasana, dan aktivitas sekolah.', 5, 1);
 
+INSERT INTO `gallery_albums` (`id`,`title`,`slug`,`description`,`sort_order`,`is_active`) VALUES
+(6, 'Publikasi Unit', 'publikasi-unit', 'Pilihan publikasi kegiatan dari Instagram setiap unit sekolah.', 0, 1);
+
 INSERT INTO `gallery_photos` (`album_id`,`title`,`image`,`description`,`sort_order`) VALUES
 (1, 'Pembelajaran Interaktif di Kelas', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-01.jpeg', 'Siswa aktif bertanya dan berdiskusi dalam suasana kelas yang nyaman.', 1),
 (1, 'Digital Learning dan Diskusi Kelas', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-02.jpeg', 'Pemanfaatan media digital untuk mendukung proses belajar yang fokus dan terarah.', 2),
@@ -410,5 +435,11 @@ INSERT INTO `gallery_photos` (`album_id`,`title`,`image`,`description`,`sort_ord
 (5, 'Perpustakaan', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-02.jpeg', 'Ruang baca dan koleksi buku', 4),
 (5, 'Laboratorium Komputer', 'http://localhost/school-website/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-03.jpeg', 'Fasilitas digital learning', 5),
 (5, 'Masjid Sekolah', 'http://localhost/school-website/frontend/assets/images/gallery/masjid-sekolah/masjid-01.jpeg', 'Pusat kegiatan keagamaan siswa', 6);
+
+INSERT INTO `gallery_photos` (`album_id`,`title`,`image`,`description`,`unit_slug`,`instagram_url`,`published_at`,`sort_order`) VALUES
+(6,'Momen Tumbuh Bersama Daycare','http://localhost/school-website/frontend/assets/images/activities/daycare-kegiatan.jpeg','Kegiatan stimulasi dan pembiasaan harian anak.','daycare','https://www.instagram.com/daycarepermatahati.bekasi/','2026-09-01',1),
+(6,'Eksplorasi Ceria TKIT','http://localhost/school-website/frontend/assets/images/activities/tkit-kegiatan.jpeg','Publikasi pembelajaran sentra dan kreativitas anak.','tkit','https://www.instagram.com/tkitpermatahatibekasi/','2026-09-01',2),
+(6,'Karya dan Aktivitas SDIT','http://localhost/school-website/frontend/assets/images/activities/sdit-kegiatan.jpeg','Dokumentasi kegiatan belajar dan pengembangan minat siswa.','sdit','https://www.instagram.com/sditphbekasi/','2026-09-01',3),
+(6,'Proyek Kepemimpinan SMPIT','http://localhost/school-website/frontend/assets/images/activities/smpit-kegiatan.jpeg','Kegiatan kolaboratif dan pengembangan kepemimpinan remaja.','smpit','https://www.instagram.com/smpit_permatahati/?hl=id','2026-09-01',4);
 
 -- Selesai

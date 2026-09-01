@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $publicCsrfToken = public_form_csrf_token();
 $page_title = 'Form Pendaftaran SPMB';
-$spmbLevelRows = $pdo->query("SELECT subtitle,title FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+$spmbLevelRows = fetch_school_units($pdo);
 $spmbLevels = [];
 foreach ($spmbLevelRows as $row) {
     $value = trim((string) ($row['subtitle'] ?: $row['title']));

@@ -82,14 +82,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $title = trim($_POST['title'] ?? '');
             $description = trim($_POST['description'] ?? '');
             $sortOrder = (int)($_POST['sort_order'] ?? 0);
+            $unitSlug = strtolower(trim($_POST['unit_slug'] ?? ''));
+            $instagramUrl = trim($_POST['instagram_url'] ?? '');
+            $galleryPublishedAt = trim($_POST['gallery_published_at'] ?? '');
+            if ($unitSlug !== '' && !in_array($unitSlug, ['daycare','tkit','sdit','smpit'], true)) throw new RuntimeException('Kategori unit galeri tidak valid.');
+            if ($instagramUrl !== '' && $unitSlug === '') throw new RuntimeException('Pilih unit untuk publikasi Instagram.');
             if ($albumId <= 0) throw new RuntimeException('Pilih album galeri terlebih dahulu.');
             if ($title === '') throw new RuntimeException('Judul foto wajib diisi.');
             $albumCheck = $pdo->prepare('SELECT id FROM gallery_albums WHERE id=? LIMIT 1');
             $albumCheck->execute([$albumId]);
             if (!$albumCheck->fetch()) throw new RuntimeException('Album galeri tidak ditemukan.');
             $image = portal_upload_image($_FILES['image'] ?? [], 'galeri');
-            $stmt = $pdo->prepare('INSERT INTO gallery_photos (album_id, title, image, description, sort_order) VALUES (?,?,?,?,?)');
-            $stmt->execute([$albumId, $title, $image, $description ?: null, $sortOrder]);
+            $stmt = $pdo->prepare('INSERT INTO gallery_photos (album_id,title,image,description,unit_slug,instagram_url,published_at,sort_order) VALUES (?,?,?,?,?,?,?,?)');
+            $stmt->execute([$albumId,$title,$image,$description?:null,$unitSlug?:null,$instagramUrl?:null,$galleryPublishedAt?:null,$sortOrder]);
             portal_log($pdo, 'create_gallery_photo', 'Menambahkan foto galeri: ' . $title);
             portal_flash('success', 'Foto galeri berhasil diunggah.');
         } elseif ($action === 'delete_gallery_photo' || $action === 'delete_gallery') {
@@ -178,6 +183,9 @@ require __DIR__ . '/../../components/portal-header.php';
         <div class="field"><label>Judul foto</label><input name="title" required></div>
         <div class="field"><label>Gambar (maksimal 5 MB)</label><input type="file" name="image" accept="image/jpeg,image/png,image/webp" required></div>
         <div class="field"><label>Urutan dalam album</label><input type="number" name="sort_order" value="0"></div>
+        <div class="field"><label>Kategori unit (opsional)</label><select name="unit_slug"><option value="">Album biasa / tanpa filter unit</option><?php foreach(['daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'] as $slug=>$label): ?><option value="<?php echo $slug; ?>"><?php echo $label; ?></option><?php endforeach; ?></select></div>
+        <div class="field"><label>Tanggal publikasi</label><input type="date" name="gallery_published_at" value="<?php echo date('Y-m-d'); ?>"></div>
+        <div class="field full"><label>Tautan postingan Instagram (opsional)</label><input type="url" name="instagram_url" placeholder="https://www.instagram.com/p/..."><small style="color:var(--portal-muted)">Jika diisi bersama kategori unit, foto akan tampil pada bagian Publikasi Instagram di halaman Galeri.</small></div>
         <div class="field full"><label>Keterangan</label><textarea name="description" style="min-height:80px"></textarea></div>
         <div class="form-actions field full"><a class="portal-action secondary" href="<?php echo SITE_URL; ?>/portal/content">Batal</a><button class="portal-action" type="submit">Unggah Foto</button></div>
     </form>
@@ -200,8 +208,8 @@ require __DIR__ . '/../../components/portal-header.php';
 
 <section class="portal-panel">
     <div class="panel-head"><h3>Foto Galeri (<?php echo count($gallery); ?>)</h3></div>
-    <div class="portal-table-wrap"><table class="portal-table"><thead><tr><th>Foto</th><th>Judul</th><th>Album</th><th>Keterangan</th><th>Aksi</th></tr></thead><tbody>
-    <?php foreach ($gallery as $item): ?><tr><td><img src="<?php echo esc($item['image']); ?>" alt=""></td><td><strong><?php echo esc($item['title']); ?></strong></td><td><?php echo esc($item['album_title']); ?></td><td><?php echo esc($item['description'] ?: '-'); ?></td><td><form method="post" onsubmit="return confirm('Hapus foto ini?')"><input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="delete_gallery_photo"><input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>"><button class="portal-action danger small">Hapus</button></form></td></tr><?php endforeach; ?>
+    <div class="portal-table-wrap"><table class="portal-table"><thead><tr><th>Foto</th><th>Judul</th><th>Album</th><th>Unit/Publikasi</th><th>Keterangan</th><th>Aksi</th></tr></thead><tbody>
+    <?php foreach ($gallery as $item): ?><tr><td><img src="<?php echo esc($item['image']); ?>" alt=""></td><td><strong><?php echo esc($item['title']); ?></strong></td><td><?php echo esc($item['album_title']); ?></td><td><?php echo $item['unit_slug']?esc(strtoupper($item['unit_slug'])):'-'; ?><?php if($item['instagram_url']): ?><br><a href="<?php echo esc($item['instagram_url']); ?>" target="_blank" rel="noopener">Instagram &nearr;</a><?php endif; ?></td><td><?php echo esc($item['description'] ?: '-'); ?></td><td><form method="post" onsubmit="return confirm('Hapus foto ini?')"><input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="delete_gallery_photo"><input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>"><button class="portal-action danger small">Hapus</button></form></td></tr><?php endforeach; ?>
     </tbody></table></div>
 </section>
 <?php require __DIR__ . '/../../components/portal-footer.php'; ?>

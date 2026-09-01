@@ -2,14 +2,10 @@
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'SPMB - Penerimaan Murid Baru';
-$spmbUnits = $pdo->query("SELECT * FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+$spmbUnits = fetch_school_units($pdo);
 $spmbUnitNames = array_map(static fn(array $unit): string => (string) ($unit['subtitle'] ?: $unit['title']), $spmbUnits);
-$spmbUnitImageMap = [
-    'daycare' => SITE_URL . '/frontend/assets/images/brochures/daycare-promo.png',
-    'tkit' => SITE_URL . '/frontend/assets/images/brochures/tkit-promo.png',
-    'sdit' => SITE_URL . '/frontend/assets/images/brochures/sdit-promo.png',
-    'smpit' => SITE_URL . '/frontend/assets/images/brochures/smpit-promo.png',
-];
+$spmbUnitCatalog = school_unit_catalog();
+$spmbUnitImageMap = array_combine(array_keys($spmbUnitCatalog), array_column($spmbUnitCatalog, 'image'));
 require_once __DIR__ . '/../components/header.php';
 ?>
 

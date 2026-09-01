@@ -7,6 +7,9 @@
 function ensure_public_schema(PDO $pdo): void
 {
     $siteBase = defined('SITE_URL') ? SITE_URL : 'http://localhost/' . basename(dirname(__DIR__, 2));
+    if (PHP_SAPI === 'cli' && in_array((string) parse_url($siteBase, PHP_URL_PATH), ['', '/'], true)) {
+        $siteBase = rtrim($siteBase, '/') . '/' . basename(dirname(__DIR__, 2));
+    }
     $pdo->exec("CREATE TABLE IF NOT EXISTS schema_migrations (
         version VARCHAR(80) PRIMARY KEY,
         description VARCHAR(255) NOT NULL,
@@ -90,11 +93,25 @@ function ensure_public_schema(PDO $pdo): void
         title VARCHAR(255) NOT NULL,
         image VARCHAR(255) NOT NULL,
         description VARCHAR(255) DEFAULT NULL,
+        unit_slug VARCHAR(30) NULL,
+        instagram_url VARCHAR(255) NULL,
+        published_at DATE NULL,
         sort_order INT NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_gallery_photo_album (album_id, sort_order, id),
         CONSTRAINT fk_gallery_photo_album FOREIGN KEY (album_id) REFERENCES gallery_albums(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    foreach ([
+        'unit_slug' => "ALTER TABLE gallery_photos ADD COLUMN unit_slug VARCHAR(30) NULL AFTER description",
+        'instagram_url' => "ALTER TABLE gallery_photos ADD COLUMN instagram_url VARCHAR(255) NULL AFTER unit_slug",
+        'published_at' => "ALTER TABLE gallery_photos ADD COLUMN published_at DATE NULL AFTER instagram_url",
+    ] as $column => $sql) {
+        if (!$columnExists('gallery_photos', $column)) $pdo->exec($sql);
+    }
+    if (!$columnExists('gallery_photos', 'unit_slug')) {
+        throw new RuntimeException('Kolom kategori unit galeri gagal dibuat.');
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS job_vacancies (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -205,6 +222,13 @@ function ensure_public_schema(PDO $pdo): void
         if (!$columnExists('site_content_items', 'link_label')) {
             $pdo->exec("ALTER TABLE site_content_items ADD COLUMN link_label VARCHAR(80) NULL AFTER link_url");
         }
+        foreach ([
+            'unit_slug' => "ALTER TABLE site_content_items ADD COLUMN unit_slug VARCHAR(30) NULL AFTER link_label",
+            'education' => "ALTER TABLE site_content_items ADD COLUMN education VARCHAR(255) NULL AFTER unit_slug",
+            'teaching_scope' => "ALTER TABLE site_content_items ADD COLUMN teaching_scope VARCHAR(255) NULL AFTER education",
+        ] as $column => $sql) {
+            if (!$columnExists('site_content_items', $column)) $pdo->exec($sql);
+        }
         $recordMigration('20260828-content-links', 'Tautan publikasi untuk program, prestasi, dan kegiatan');
         $foundationCount = $pdo->prepare("SELECT COUNT(*) FROM site_content_items WHERE type='foundation'");
         $foundationCount->execute();
@@ -222,7 +246,65 @@ function ensure_public_schema(PDO $pdo): void
         ];
         $linkAchievement = $pdo->prepare("UPDATE site_content_items SET link_url=?,link_label='Lihat Publikasi' WHERE type='achievement' AND extra=? AND (link_url IS NULL OR link_url='')");
         foreach ($achievementLinks as $unit => $url) $linkAchievement->execute([$url, $unit]);
+
+        // Bersihkan hanya baris seed unit yang identik. Konten berbeda buatan admin tetap dipertahankan.
+        $pdo->exec("DELETE newer FROM site_content_items newer
+            INNER JOIN site_content_items older
+                ON newer.type='unit' AND older.type='unit'
+                AND newer.id>older.id
+                AND COALESCE(newer.title,'')=COALESCE(older.title,'')
+                AND COALESCE(newer.subtitle,'')=COALESCE(older.subtitle,'')
+                AND COALESCE(newer.description,'')=COALESCE(older.description,'')
+                AND COALESCE(newer.extra,'')=COALESCE(older.extra,'')");
+
+        $unitImages = [
+            'Daycare' => $siteBase.'/frontend/assets/images/units/daycare-building.webp',
+            'TKIT' => $siteBase.'/frontend/assets/images/units/tkit-building.webp',
+            'SDIT' => $siteBase.'/frontend/assets/images/units/sdit-building.webp',
+            'SMPIT' => $siteBase.'/frontend/assets/images/units/smpit-building.webp',
+        ];
+        $setUnitImage = $pdo->prepare("UPDATE site_content_items SET image=? WHERE type='unit' AND subtitle=? AND (image IS NULL OR image='')");
+        foreach ($unitImages as $unit => $image) $setUnitImage->execute([$image, $unit]);
+
+        $leaderCount = $pdo->query("SELECT COUNT(*) FROM site_content_items WHERE type='leadership' AND unit_slug IN ('daycare','tkit','sdit','smpit')")->fetchColumn();
+        if ((int)$leaderCount === 0) {
+            $pdo->exec("DELETE FROM site_content_items WHERE type='leadership' AND image IS NULL AND title IN ('Nama Kepala Sekolah','Nama Wakil Kepala Sekolah')");
+            $insertLeader = $pdo->prepare("INSERT INTO site_content_items
+                (type,title,subtitle,description,image,unit_slug,education,teaching_scope,sort_order,is_active)
+                VALUES ('leadership',?,?,?,?,?,?,?,?,1)");
+            $leaders = [
+                ['Siti Rahmawati, S.Pd.','Kepala Unit Daycare','Mendampingi layanan pengasuhan yang aman, hangat, dan selaras dengan kebutuhan tumbuh kembang anak.',$siteBase.'/frontend/assets/images/leaders/daycare-head.webp','daycare','S1 Pendidikan Anak Usia Dini','Daycare - pembiasaan adab dan stimulasi anak',1],
+                ['Nur Aini Fadilah, S.Psi.','Koordinator Tumbuh Kembang','Mengkoordinasikan observasi perkembangan, kegiatan sensorik, dan komunikasi harian bersama orang tua.',$siteBase.'/frontend/assets/images/leaders/daycare-coordinator.webp','daycare','S1 Psikologi','Daycare - stimulasi sensorik dan sosial emosional',2],
+                ['Hj. Rina Marlina, S.Pd.AUD.','Kepala TKIT','Memimpin pembelajaran berbasis sentra serta penguatan kemandirian dan adab Islami anak.',$siteBase.'/frontend/assets/images/leaders/tkit-principal.webp','tkit','S1 Pendidikan Guru PAUD','TKIT - pembelajaran sentra dan tahsin dasar',3],
+                ['Ahmad Fauzan, S.Pd.','Wakil Kepala Bidang Kurikulum','Mengembangkan program tematik, asesmen perkembangan, dan kesiapan belajar anak menuju sekolah dasar.',$siteBase.'/frontend/assets/images/leaders/tkit-vice.webp','tkit','S1 Pendidikan Anak Usia Dini','TKIT - literasi awal dan kurikulum tematik',4],
+                ['H. Dedi Kurniawan, M.Pd.','Kepala SDIT','Memimpin penguatan mutu akademik, Al-Quran, karakter, dan kolaborasi sekolah bersama keluarga.',$siteBase.'/frontend/assets/images/leaders/sdit-principal.webp','sdit','S2 Manajemen Pendidikan','SDIT - kepemimpinan sekolah dan pendidikan karakter',5],
+                ['Fitri Handayani, M.Pd.','Wakil Kepala Bidang Kurikulum','Mengawal perencanaan pembelajaran, literasi, numerasi, dan pengembangan kompetensi guru.',$siteBase.'/frontend/assets/images/leaders/sdit-vice.webp','sdit','S2 Pendidikan Dasar','SDIT - literasi, numerasi, dan pengembangan kurikulum',6],
+                ['Nurul Hidayati, M.Pd.','Kepala SMPIT','Memimpin pendidikan remaja muslim yang unggul dalam akademik, akhlak, kemandirian, dan kepemimpinan.',$siteBase.'/frontend/assets/images/leaders/smpit-principal.webp','smpit','S2 Manajemen Pendidikan','SMPIT - kepemimpinan sekolah dan mentoring remaja',7],
+                ['Fajar Ramadhan, S.Pd.','Wakil Kepala Bidang Kesiswaan','Membina organisasi siswa, disiplin positif, kegiatan sekolah, dan proyek kepemimpinan remaja.',$siteBase.'/frontend/assets/images/leaders/smpit-vice.webp','smpit','S1 Pendidikan Pancasila dan Kewarganegaraan','SMPIT - PPKn, kesiswaan, dan leadership project',8],
+            ];
+            foreach ($leaders as $leader) $insertLeader->execute($leader);
+        }
+        $recordMigration('20260901-four-units-leadership', 'Empat unit resmi, foto gedung, dan profil pimpinan per unit');
     }
+
+    $pdo->exec("INSERT IGNORE INTO gallery_albums (title,slug,description,sort_order,is_active)
+        VALUES ('Publikasi Unit','publikasi-unit','Pilihan publikasi kegiatan dari Instagram setiap unit sekolah.',0,1)");
+    $publicationAlbumId = (int)$pdo->query("SELECT id FROM gallery_albums WHERE slug='publikasi-unit' LIMIT 1")->fetchColumn();
+    if ($publicationAlbumId > 0) {
+        $publicationSeeds = [
+            ['daycare','Momen Tumbuh Bersama Daycare','Kegiatan stimulasi dan pembiasaan harian anak.',$siteBase.'/frontend/assets/images/activities/daycare-kegiatan.jpeg','https://www.instagram.com/daycarepermatahati.bekasi/'],
+            ['tkit','Eksplorasi Ceria TKIT','Publikasi pembelajaran sentra dan kreativitas anak.',$siteBase.'/frontend/assets/images/activities/tkit-kegiatan.jpeg','https://www.instagram.com/tkitpermatahatibekasi/'],
+            ['sdit','Karya dan Aktivitas SDIT','Dokumentasi kegiatan belajar dan pengembangan minat siswa.',$siteBase.'/frontend/assets/images/activities/sdit-kegiatan.jpeg','https://www.instagram.com/sditphbekasi/'],
+            ['smpit','Proyek Kepemimpinan SMPIT','Kegiatan kolaboratif dan pengembangan kepemimpinan remaja.',$siteBase.'/frontend/assets/images/activities/smpit-kegiatan.jpeg','https://www.instagram.com/smpit_permatahati/?hl=id'],
+        ];
+        $publicationExists = $pdo->prepare("SELECT COUNT(*) FROM gallery_photos WHERE unit_slug=? AND instagram_url IS NOT NULL AND instagram_url<>''");
+        $insertPublication = $pdo->prepare('INSERT INTO gallery_photos (album_id,title,image,description,unit_slug,instagram_url,published_at,sort_order) VALUES (?,?,?,?,?,?,CURDATE(),?)');
+        foreach ($publicationSeeds as $index => $publication) {
+            $publicationExists->execute([$publication[0]]);
+            if ((int)$publicationExists->fetchColumn() === 0) $insertPublication->execute([$publicationAlbumId,$publication[1],$publication[3],$publication[2],$publication[0],$publication[4],$index+1]);
+        }
+    }
+    $recordMigration('20260901-gallery-unit-publications', 'Publikasi galeri Instagram berdasarkan empat unit');
 
     if ($tableExists('spmb_registrations')) {
         if (!$columnExists('spmb_registrations', 'academic_year')) {

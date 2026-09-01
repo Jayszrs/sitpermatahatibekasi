@@ -3,29 +3,7 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Kontak';
 
-$campuses = [
-    [
-        'label' => SITE_DAYCARE_TKIT_CAMPUS_LABEL,
-        'title' => 'Daycare & TKIT Permata Hati',
-        'address' => SITE_DAYCARE_TKIT_CAMPUS_ADDRESS,
-        'latitude' => SITE_DAYCARE_TKIT_LATITUDE,
-        'longitude' => SITE_DAYCARE_TKIT_LONGITUDE,
-    ],
-    [
-        'label' => SITE_SDIT_CAMPUS_LABEL,
-        'title' => 'SDIT Permata Hati',
-        'address' => SITE_SDIT_CAMPUS_ADDRESS,
-        'latitude' => SITE_SDIT_LATITUDE,
-        'longitude' => SITE_SDIT_LONGITUDE,
-    ],
-    [
-        'label' => SITE_SMPIT_CAMPUS_LABEL,
-        'title' => 'SMPIT Permata Hati',
-        'address' => SITE_SMPIT_CAMPUS_ADDRESS,
-        'latitude' => SITE_SMPIT_LATITUDE,
-        'longitude' => SITE_SMPIT_LONGITUDE,
-    ],
-];
+$campuses = school_unit_catalog();
 
 require_once __DIR__ . '/../components/header.php';
 ?>
@@ -41,12 +19,12 @@ require_once __DIR__ . '/../components/header.php';
     <div class="container contact-page-layout">
         <div class="contact-section-head">
             <span class="section-eyebrow">Informasi Lokasi</span>
-            <h2>Tiga Lokasi, Satu Standar Pendidikan</h2>
-            <p>Pilih kampus sesuai jenjang, lihat peta, lalu buka petunjuk arah langsung di Google Maps.</p>
+            <h2>Empat Unit, Arah yang Lebih Jelas</h2>
+            <p>Daycare dan TKIT ditampilkan terpisah agar orang tua langsung memilih jenjang, meskipun keduanya berada di alamat kampus yang sama.</p>
         </div>
 
         <div class="location-card-grid">
-            <?php foreach ($campuses as $campusIndex => $campus): ?>
+            <?php foreach (array_values($campuses) as $campusIndex => $campus): ?>
                 <?php
                     $coordinates = $campus['latitude'] . ',' . $campus['longitude'];
                     $mapEmbed = 'https://maps.google.com/maps?q=' . rawurlencode($coordinates) . '&t=&z=17&ie=UTF8&iwloc=&output=embed';
@@ -55,10 +33,11 @@ require_once __DIR__ . '/../components/header.php';
                 <article class="campus-card">
                     <span class="campus-number">0<?php echo $campusIndex+1; ?></span>
                     <div class="campus-card-head">
-                        <span><?php echo esc($campus['label']); ?></span>
+                        <span><?php echo esc($campus['subtitle']); ?></span>
                         <h3><?php echo esc($campus['title']); ?></h3>
                     </div>
                     <p><?php echo esc($campus['address']); ?></p>
+                    <img class="campus-building" src="<?php echo esc($campus['image']); ?>" alt="Gedung <?php echo esc($campus['title']); ?>" loading="lazy">
                     <div class="map-wrap campus-map">
                         <iframe src="<?php echo esc($mapEmbed); ?>" loading="lazy" title="Lokasi <?php echo esc($campus['title']); ?>"></iframe>
                     </div>

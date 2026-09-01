@@ -5,9 +5,9 @@ require_once __DIR__ . '/../../../backend/auth.php';
 portal_require_auth(['admin', 'humas']);
 
 $contentTypes = [
-    'unit' => ['label' => 'Unit Sekolah', 'title' => 'Nama unit', 'subtitle' => 'Singkatan/jenjang', 'extra' => 'Program unggulan (satu per baris)', 'help' => 'Kelola gambar dan deskripsi Daycare, TKIT, SDIT, SMPIT, atau unit lainnya.'],
+    'unit' => ['label' => 'Unit Sekolah', 'title' => 'Nama unit', 'subtitle' => 'Singkatan/jenjang', 'extra' => 'Program unggulan (satu per baris)', 'help' => 'Kelola tepat empat unit resmi: Daycare, TKIT, SDIT, dan SMPIT.'],
     'achievement' => ['label' => 'Prestasi', 'title' => 'Nama prestasi', 'subtitle' => 'Tingkat perlombaan', 'extra' => null, 'help' => 'Publikasikan prestasi siswa lengkap dengan tingkat, tahun, dan dokumentasi.'],
-    'leadership' => ['label' => 'Struktur Pimpinan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan', 'extra' => null, 'help' => 'Tampilkan foto, nama, jabatan, dan profil pimpinan sekolah.'],
+    'leadership' => ['label' => 'Struktur Pimpinan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan', 'extra' => null, 'help' => 'Kelola pimpinan per unit lengkap dengan foto, pendidikan, tempat mengajar, dan bidang/mata pelajaran.'],
     'foundation' => ['label' => 'Struktur Yayasan', 'title' => 'Nama lengkap', 'subtitle' => 'Jabatan yayasan', 'extra' => null, 'help' => 'Kelola susunan pengurus yayasan lengkap dengan foto, jabatan, dan penjelasan tanggung jawab.'],
     'program' => ['label' => 'Program Unggulan', 'title' => 'Nama program', 'subtitle' => 'Unit/kategori', 'extra' => null, 'help' => 'Kelola program per unit pendidikan beserta gambar, penjelasan, dan tautan publikasinya.'],
     'activity' => ['label' => 'Kegiatan', 'title' => 'Nama kegiatan', 'subtitle' => 'Periode/kategori', 'extra' => null, 'help' => 'Kelola agenda dan dokumentasi kegiatan sekolah.'],
@@ -31,9 +31,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $extra = trim($_POST['extra'] ?? '');
             $linkUrl = trim($_POST['link_url'] ?? '');
             $linkLabel = trim($_POST['link_label'] ?? '');
+            $unitSlug = strtolower(trim($_POST['unit_slug'] ?? ''));
+            $education = trim($_POST['education'] ?? '');
+            $teachingScope = trim($_POST['teaching_scope'] ?? '');
             $sortOrder = max(0, (int)($_POST['sort_order'] ?? 0));
             $isActive = isset($_POST['is_active']) ? 1 : 0;
             if ($title === '' || $description === '') throw new RuntimeException('Judul/nama dan deskripsi wajib diisi.');
+            if ($itemType === 'unit') {
+                $unitSlug = school_unit_slug($subtitle ?: $title);
+                $catalog = school_unit_catalog();
+                if (!isset($catalog[$unitSlug])) throw new RuntimeException('Unit sekolah hanya boleh Daycare, TKIT, SDIT, atau SMPIT.');
+                $subtitle = $catalog[$unitSlug]['subtitle'];
+                $duplicate = $pdo->prepare("SELECT COUNT(*) FROM site_content_items WHERE type='unit' AND LOWER(subtitle)=LOWER(?) AND id<>?");
+                $duplicate->execute([$subtitle,$id]);
+                if ((int)$duplicate->fetchColumn() > 0) throw new RuntimeException('Unit '.$subtitle.' sudah tersedia. Silakan edit data yang ada.');
+            }
+            if ($itemType === 'leadership' && (!in_array($unitSlug,['daycare','tkit','sdit','smpit'],true) || $education==='' || $teachingScope==='')) {
+                throw new RuntimeException('Unit, riwayat pendidikan, dan tempat/bidang mengajar pimpinan wajib diisi.');
+            }
             $image = ''; $previousImage = null;
             if ($id) {
                 $stmt = $pdo->prepare('SELECT image FROM site_content_items WHERE id=? AND type=?'); $stmt->execute([$id,$itemType]);
@@ -41,13 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if (!empty($_FILES['image']['name'])) $image = portal_upload_image($_FILES['image'], $itemType);
             if ($id) {
-                $stmt = $pdo->prepare('UPDATE site_content_items SET title=?,subtitle=?,description=?,image=?,badge=?,year=?,extra=?,link_url=?,link_label=?,sort_order=?,is_active=? WHERE id=? AND type=?');
-                $stmt->execute([$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$linkUrl?:null,$linkLabel?:null,$sortOrder,$isActive,$id,$itemType]);
+                $stmt = $pdo->prepare('UPDATE site_content_items SET title=?,subtitle=?,description=?,image=?,badge=?,year=?,extra=?,link_url=?,link_label=?,unit_slug=?,education=?,teaching_scope=?,sort_order=?,is_active=? WHERE id=? AND type=?');
+                $stmt->execute([$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$linkUrl?:null,$linkLabel?:null,$unitSlug?:null,$education?:null,$teachingScope?:null,$sortOrder,$isActive,$id,$itemType]);
                 if ($previousImage && $previousImage !== $image) portal_delete_uploaded_image($previousImage);
                 portal_log($pdo, 'update_content', 'Memperbarui ' . $contentTypes[$itemType]['label'] . ': ' . $title);
             } else {
-                $stmt = $pdo->prepare('INSERT INTO site_content_items (type,title,subtitle,description,image,badge,year,extra,link_url,link_label,sort_order,is_active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)');
-                $stmt->execute([$itemType,$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$linkUrl?:null,$linkLabel?:null,$sortOrder,$isActive]);
+                $stmt = $pdo->prepare('INSERT INTO site_content_items (type,title,subtitle,description,image,badge,year,extra,link_url,link_label,unit_slug,education,teaching_scope,sort_order,is_active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+                $stmt->execute([$itemType,$title,$subtitle?:null,$description,$image?:null,$badge?:null,$year?:null,$extra?:null,$linkUrl?:null,$linkLabel?:null,$unitSlug?:null,$education?:null,$teachingScope?:null,$sortOrder,$isActive]);
                 portal_log($pdo, 'create_content', 'Menambahkan ' . $contentTypes[$itemType]['label'] . ': ' . $title);
             }
             portal_flash('success', 'Konten berhasil disimpan dan diperbarui di website.');
@@ -103,6 +118,7 @@ require __DIR__ . '/../../components/portal-header.php';
 <form class="portal-form portal-form-grid" method="post" enctype="multipart/form-data"><input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="save_item"><input type="hidden" name="type" value="<?php echo $type; ?>"><input type="hidden" name="id" value="<?php echo (int)($editItem['id']??0); ?>">
 <div class="field"><label><?php echo esc($config['title']); ?></label><input name="title" value="<?php echo esc($editItem['title']??''); ?>" required></div><div class="field"><label><?php echo esc($config['subtitle']); ?></label><input name="subtitle" value="<?php echo esc($editItem['subtitle']??''); ?>"></div>
 <?php if($type==='achievement'): ?><div class="field"><label>Label prestasi</label><input name="badge" value="<?php echo esc($editItem['badge']??''); ?>" placeholder="Nasional / Provinsi / Kota"></div><div class="field"><label>Tahun</label><input name="year" maxlength="10" value="<?php echo esc($editItem['year']??date('Y')); ?>"></div><div class="field"><label>Unit sekolah</label><select name="extra"><option value="">Pilih unit</option><?php foreach(['Daycare','TKIT','SDIT','SMPIT'] as $unitOption): ?><option value="<?php echo esc($unitOption); ?>" <?php echo (($editItem['extra']??'')===$unitOption)?'selected':''; ?>><?php echo esc($unitOption); ?></option><?php endforeach; ?></select></div><?php endif; ?>
+<?php if($type==='leadership'): ?><div class="field"><label>Unit sekolah</label><select name="unit_slug" required><option value="">Pilih unit</option><?php foreach(['daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'] as $slug=>$label): ?><option value="<?php echo $slug; ?>" <?php echo (($editItem['unit_slug']??'')===$slug)?'selected':''; ?>><?php echo $label; ?></option><?php endforeach; ?></select></div><div class="field"><label>Riwayat pendidikan</label><input name="education" value="<?php echo esc($editItem['education']??''); ?>" placeholder="Contoh: S2 Manajemen Pendidikan" required></div><div class="field full"><label>Mengajar di mana dan bidang/mata pelajaran</label><input name="teaching_scope" value="<?php echo esc($editItem['teaching_scope']??''); ?>" placeholder="Contoh: SDIT - Literasi, Numerasi, dan Kurikulum" required></div><?php endif; ?>
 <div class="field"><label>Gambar/foto <?php echo $editItem?'(kosongkan jika tetap)':''; ?></label><input type="file" name="image" accept="image/jpeg,image/png,image/webp"><small style="color:var(--portal-muted)">JPG, PNG, atau WebP. Maksimal 5 MB.</small></div><div class="field"><label>Urutan tampil</label><input type="number" min="0" name="sort_order" value="<?php echo (int)($editItem['sort_order']??count($items)+1); ?>"></div>
 <div class="field full"><label>Deskripsi lengkap</label><textarea name="description" required><?php echo esc($editItem['description']??''); ?></textarea></div>
 <?php if(in_array($type,['program','achievement','activity'],true)): ?><div class="field"><label>Tautan publikasi / tujuan</label><input type="url" name="link_url" value="<?php echo esc($editItem['link_url']??''); ?>" placeholder="https://instagram.com/... atau halaman berita"></div><div class="field"><label>Teks tombol</label><input name="link_label" value="<?php echo esc($editItem['link_label']??''); ?>" placeholder="Lihat Publikasi"></div><?php endif; ?>

@@ -3,7 +3,8 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Tentang Kami';
 $profile = $pdo->query('SELECT * FROM site_profile WHERE id=1')->fetch();
-$leaders = $pdo->query("SELECT * FROM site_content_items WHERE type='leadership' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+$leaders = $pdo->query("SELECT * FROM site_content_items WHERE type='leadership' AND is_active=1 AND unit_slug IN ('daycare','tkit','sdit','smpit') ORDER BY sort_order,id")->fetchAll();
+$leaderUnits = ['semua'=>'Semua','daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'];
 $foundation = $pdo->query("SELECT * FROM site_content_items WHERE type='foundation' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
 require_once __DIR__ . '/../components/header.php';
 ?>
@@ -48,10 +49,11 @@ require_once __DIR__ . '/../components/header.php';
         <div class="section-head">
             <span class="section-eyebrow">Struktur</span>
             <h2>Kepemimpinan Sekolah</h2>
-            <p>Dipimpin oleh tenaga pendidik profesional dan berpengalaman.</p>
+            <p>Kenali pimpinan dan koordinator yang mendampingi setiap jenjang. Pilih unit untuk melihat struktur yang relevan.</p>
         </div>
-        <div class="grid-3">
-            <?php foreach($leaders as $leader): ?><div class="card"><img src="<?php echo esc($leader['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($leader['title']); ?>"><div class="card-body"><span class="section-eyebrow"><?php echo esc($leader['subtitle']); ?></span><h3><?php echo esc($leader['title']); ?></h3><p><?php echo nl2br(esc($leader['description'])); ?></p></div></div><?php endforeach; ?>
+        <div class="achievement-tabs leadership-tabs" aria-label="Filter pimpinan per unit"><?php foreach($leaderUnits as $slug=>$label): ?><button type="button" class="achievement-tab<?php echo $slug==='semua'?' active':''; ?>" data-leader-filter="<?php echo $slug; ?>"><?php echo $label; ?></button><?php endforeach; ?></div>
+        <div class="leadership-grid">
+            <?php foreach($leaders as $leader): ?><a class="leadership-card" data-leader-unit="<?php echo esc($leader['unit_slug']); ?>" href="detail-pimpinan.php?id=<?php echo (int)$leader['id']; ?>"><div class="leadership-photo"><img src="<?php echo esc($leader['image']); ?>" alt="<?php echo esc($leader['title']); ?>" loading="lazy"><span><?php echo esc(strtoupper($leader['unit_slug'])); ?></span></div><div class="leadership-copy"><small><?php echo esc($leader['subtitle']); ?></small><h3><?php echo esc($leader['title']); ?></h3><p><?php echo esc($leader['education']); ?></p><strong>Lihat profil lengkap &rarr;</strong></div></a><?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -64,3 +66,15 @@ require_once __DIR__ . '/../components/header.php';
 </section>
 
 <?php require_once __DIR__ . '/../components/footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('[data-leader-filter]');
+    const cards = document.querySelectorAll('[data-leader-unit]');
+    buttons.forEach((button) => button.addEventListener('click', function () {
+        const filter = button.dataset.leaderFilter;
+        buttons.forEach((item) => item.classList.toggle('active', item === button));
+        cards.forEach((card) => card.classList.toggle('is-hidden', filter !== 'semua' && card.dataset.leaderUnit !== filter));
+    }));
+});
+</script>

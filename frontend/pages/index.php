@@ -36,18 +36,14 @@ foreach ($gallery_albums as $album) {
     $galleryAlbumPhotoStmt->execute([(int)$album['id']]);
     $gallery_album_slides[(int)$album['id']] = $galleryAlbumPhotoStmt->fetchAll();
 }
-$home_units = $pdo->query("SELECT * FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id LIMIT 4")->fetchAll();
+$home_units = fetch_school_units($pdo);
 $home_programs = $pdo->query("SELECT * FROM site_content_items WHERE type='program' AND is_active=1 ORDER BY sort_order,id LIMIT 8")->fetchAll();
 $home_achievements = $pdo->query("SELECT * FROM site_content_items WHERE type='achievement' AND is_active=1 ORDER BY sort_order,id LIMIT 6")->fetchAll();
 $home_profile = $pdo->query('SELECT * FROM site_profile WHERE id=1')->fetch();
 $home_activities = $pdo->query("SELECT * FROM site_content_items WHERE type='activity' AND is_active=1 ORDER BY sort_order,id LIMIT 4")->fetchAll();
 $school_advantages = school_advantages();
-$unit_image_map = [
-    'daycare' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
-    'tkit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
-    'sdit' => SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg',
-    'smpit' => SITE_URL . '/frontend/assets/images/school/gedung-smpit.jpeg',
-];
+$unitCatalog = school_unit_catalog();
+$unit_image_map = array_combine(array_keys($unitCatalog), array_column($unitCatalog, 'image'));
 $unit_icons = [
     '<svg viewBox="0 0 24 24"><path d="M12 21s-7-3.9-7-10V5l7-3 7 3v6c0 6.1-7 10-7 10Z"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>',
     '<svg viewBox="0 0 24 24"><path d="M4 19V6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 0 4 21"/><path d="M8 8h8"/><path d="M8 12h6"/></svg>',
@@ -86,7 +82,7 @@ require_once __DIR__ . '/../components/header.php';
         <div class="hero-copy-stack"><?php foreach($hero_media as $index=>$slide): ?><div class="hero-copy<?php echo $index===0?' active':''; ?>" data-hero-copy="<?php echo $index; ?>"><span class="hero-eyebrow"><?php echo esc($slide['eyebrow'] ?: 'SIT Permata Hati Bekasi'); ?></span><h1><?php echo esc($slide['title']); ?></h1><p><?php echo esc($slide['description']); ?></p><div class="hero-actions"><?php if($slide['cta_label'] && $slide['cta_url']): ?><a href="<?php echo esc($slide['cta_url']); ?>" class="btn btn-gold"><?php echo esc($slide['cta_label']); ?></a><?php endif; ?><a href="tentang.php" class="btn btn-outline-light">Kenali Sekolah</a></div></div><?php endforeach; ?></div>
         <div class="hero-side-note"><span>SIT PHB</span><p>Pendidikan terpadu dari usia dini sampai remaja.</p></div>
     </div></div>
-    <div class="container hero-bottom"><div class="hero-trust"><span><strong>4</strong> Unit Pendidikan</span><span><strong>Islamic</strong> Learning Culture</span><span><strong>Bekasi</strong> Tambun Selatan</span></div><div class="hero-controls"><button type="button" data-hero-prev aria-label="Slide sebelumnya">&larr;</button><span data-hero-counter>01 / <?php echo str_pad((string)count($hero_media),2,'0',STR_PAD_LEFT); ?></span><button type="button" data-hero-next aria-label="Slide berikutnya">&rarr;</button></div></div>
+    <div class="container hero-bottom"><div class="hero-trust"><span><strong>4</strong> Unit Pendidikan</span><span><strong>Islamic</strong> Learning Culture</span><span><strong>Bekasi</strong> Tambun Selatan</span></div></div>
     <div class="hero-pagination" aria-label="Navigasi slide"><?php foreach($hero_media as $index=>$slide): ?><button type="button" class="<?php echo $index===0?'active':''; ?>" data-hero-go="<?php echo $index; ?>" aria-label="Slide <?php echo $index+1; ?>"><span></span></button><?php endforeach; ?></div>
 </section>
 
@@ -279,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const slides = [...root.querySelectorAll('.hero-slide')];
     const copies = [...root.querySelectorAll('.hero-copy')];
     const dots = [...root.querySelectorAll('[data-hero-go]')];
-    const counter = root.querySelector('[data-hero-counter]');
     let current = 0;
     let timer = null;
 
@@ -301,16 +296,11 @@ document.addEventListener('DOMContentLoaded', () => {
         slides.forEach((slide, i) => { slide.classList.toggle('active', i === current); const video=slide.querySelector('video'); if(video && i!==current) video.pause(); });
         copies.forEach((copy, i) => copy.classList.toggle('active', i === current));
         dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
-        if (counter) counter.textContent = String(current + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
         schedule();
     };
     const next = () => show(current + 1);
     slides.forEach((slide) => { const video=slide.querySelector('video'); if(video) video.addEventListener('ended', next); });
     dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.heroGo))));
-    const previousButton=root.querySelector('[data-hero-prev]');
-    const nextButton=root.querySelector('[data-hero-next]');
-    if(previousButton) previousButton.addEventListener('click',()=>show(current-1));
-    if(nextButton) nextButton.addEventListener('click',()=>show(current+1));
     if (slides.length > 1) schedule();
 
     // Parallax ringan hanya pada media hero; navbar tetap utuh saat sticky.

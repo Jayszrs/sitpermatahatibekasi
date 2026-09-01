@@ -1,8 +1,7 @@
 <?php
 $footerUnits = [];
 if (isset($pdo) && $pdo instanceof PDO) {
-    $footerUnitStmt = $pdo->query("SELECT id,title,subtitle FROM site_content_items WHERE type='unit' AND is_active=1 ORDER BY sort_order,id");
-    $footerUnits = $footerUnitStmt->fetchAll();
+    $footerUnits = fetch_school_units($pdo);
 }
 ?>
 <footer class="site-footer">
@@ -56,7 +55,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
             <h4>Unit Sekolah</h4>
             <ul>
                 <?php foreach ($footerUnits as $footerUnit): ?>
-                <?php $footerUnitAnchor = strtolower($footerUnit['subtitle'] ?: 'unit-' . $footerUnit['id']); ?>
+                <?php $footerUnitAnchor = $footerUnit['slug']; ?>
                 <li><a href="<?php echo SITE_URL; ?>/unit.php#<?php echo esc($footerUnitAnchor); ?>"><?php echo esc($footerUnit['title']); ?></a></li>
                 <?php endforeach; ?>
                 <li><a href="<?php echo SITE_URL; ?>/spmb.php">Penerimaan Siswa Baru</a></li>
