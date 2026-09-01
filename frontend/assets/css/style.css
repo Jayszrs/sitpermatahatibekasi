@@ -1614,6 +1614,7 @@ textarea.form-control { resize: vertical; min-height: 120px; }
     position: relative;
     display: flex;
     flex-direction: column;
+    min-width: 0;
     background: #fff;
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -1640,6 +1641,14 @@ textarea.form-control { resize: vertical; min-height: 120px; }
     font-size: 0.92rem;
     margin-bottom: 14px;
 }
+.campus-direct-contact { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 0 0 16px; padding: 13px 14px; border: 1px solid rgba(15,81,50,.1); border-radius: 13px; background: linear-gradient(135deg,var(--primary-light),#fff); }
+.campus-direct-contact > div:first-child { display: grid; gap: 2px; min-width: 0; }
+.campus-direct-contact small { color: var(--muted); font-size: .67rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.campus-direct-contact > div:first-child a { color: var(--primary-dark); font-size: .9rem; font-weight: 900; }
+.campus-social-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.campus-social-links a { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 7px 9px; border: 1px solid rgba(15,81,50,.13); border-radius: 9px; color: var(--primary); background: #fff; font-size: .7rem; font-weight: 800; transition: color .2s,background .2s,transform .2s; }
+.campus-social-links a:hover { color: #fff; background: var(--primary); transform: translateY(-2px); }
+.campus-social-links svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .campus-building {
     width: 100%;
     aspect-ratio: 16 / 8;
@@ -2294,7 +2303,13 @@ table.schedule th { background: var(--primary); color: #fff; }
     .contact-form-fields,
     .contact-message-row,
     .contact-social-groups { grid-template-columns: 1fr; }
+    .location-card-grid { grid-template-columns: minmax(0, 1fr); }
+    .contact-page-layout,.contact-section-head,.location-card-grid,.campus-card,.campus-building,.campus-map { width: 100%; min-width: 0; max-width: 100%; }
+    .contact-section-head,.campus-card { overflow: hidden; }
+    .contact-section h2,.campus-card h3,.campus-card p,.campus-direct-contact a { overflow-wrap: anywhere; }
     .contact-form-landscape { width: 100%; }
+    .campus-direct-contact { align-items: flex-start; flex-direction: column; }
+    .campus-social-links { justify-content: flex-start; width: 100%; }
     .contact-message-row .btn { width: 100%; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     .footer-grid { grid-template-columns: 1fr; }

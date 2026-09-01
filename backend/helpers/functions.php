@@ -9,6 +9,12 @@ define('SITE_TAGLINE', 'Sekolah Islam Terpadu - Sholeh, Cerdas, Mandiri, dan Ber
 if (!defined('SITE_URL')) define('SITE_URL', 'http://localhost/' . basename(dirname(__DIR__, 2)));
 define('SITE_PHONE', '(021) 1234-5678');
 define('SITE_WHATSAPP', '6281234567890');
+// Nomor awal memakai kontak pusat. Masing-masing unit dapat diubah dari
+// Portal pada menu Unit Sekolah tanpa mengubah source code.
+define('SITE_DAYCARE_WHATSAPP', SITE_WHATSAPP);
+define('SITE_TKIT_WHATSAPP', SITE_WHATSAPP);
+define('SITE_SDIT_WHATSAPP', SITE_WHATSAPP);
+define('SITE_SMPIT_WHATSAPP', SITE_WHATSAPP);
 define('SITE_EMAIL', 'info@sitpermatahati-bekasi.sch.id');
 define('SITE_ADDRESS', 'Kp. Buwek Jaya Gg. Buser No. 23-24, Sumberjaya, Tambun Selatan, Bekasi, Jawa Barat 17510');
 define('SITE_DAYCARE_TKIT_CAMPUS_LABEL', 'Daycare, TKIT');
@@ -99,6 +105,8 @@ function school_unit_catalog(): array {
             'latitude' => SITE_DAYCARE_TKIT_LATITUDE,
             'longitude' => SITE_DAYCARE_TKIT_LONGITUDE,
             'instagram' => SITE_DAYCARE_INSTAGRAM,
+            'youtube' => null,
+            'whatsapp' => SITE_DAYCARE_WHATSAPP,
         ],
         'tkit' => [
             'subtitle' => 'TKIT',
@@ -110,6 +118,8 @@ function school_unit_catalog(): array {
             'latitude' => SITE_DAYCARE_TKIT_LATITUDE,
             'longitude' => SITE_DAYCARE_TKIT_LONGITUDE,
             'instagram' => SITE_TKIT_INSTAGRAM,
+            'youtube' => null,
+            'whatsapp' => SITE_TKIT_WHATSAPP,
         ],
         'sdit' => [
             'subtitle' => 'SDIT',
@@ -121,6 +131,8 @@ function school_unit_catalog(): array {
             'latitude' => SITE_SDIT_LATITUDE,
             'longitude' => SITE_SDIT_LONGITUDE,
             'instagram' => SITE_SDIT_INSTAGRAM,
+            'youtube' => SITE_SDIT_YOUTUBE,
+            'whatsapp' => SITE_SDIT_WHATSAPP,
         ],
         'smpit' => [
             'subtitle' => 'SMPIT',
@@ -132,6 +144,8 @@ function school_unit_catalog(): array {
             'latitude' => SITE_SMPIT_LATITUDE,
             'longitude' => SITE_SMPIT_LONGITUDE,
             'instagram' => SITE_SMPIT_INSTAGRAM,
+            'youtube' => SITE_SMPIT_YOUTUBE,
+            'whatsapp' => SITE_SMPIT_WHATSAPP,
         ],
     ];
 }
@@ -150,6 +164,11 @@ function fetch_school_units(PDO $pdo): array {
         $selected[$slug]['slug'] = $slug;
         if (empty($selected[$slug]['image'])) $selected[$slug]['image'] = $defaults['image'];
         $selected[$slug]['image'] = public_media_url($selected[$slug]['image'], $defaults['image']);
+        if (!empty($row['instagram_url'])) $selected[$slug]['instagram'] = $row['instagram_url'];
+        if (!empty($row['youtube_url'])) $selected[$slug]['youtube'] = $row['youtube_url'];
+        foreach (['whatsapp', 'instagram', 'youtube'] as $contactField) {
+            if (empty($selected[$slug][$contactField])) $selected[$slug][$contactField] = $defaults[$contactField];
+        }
     }
     return array_values($selected);
 }

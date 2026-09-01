@@ -29,6 +29,8 @@ require_once __DIR__ . '/../components/header.php';
                     $coordinates = $campus['latitude'] . ',' . $campus['longitude'];
                     $mapEmbed = 'https://maps.google.com/maps?q=' . rawurlencode($coordinates) . '&t=&z=17&ie=UTF8&iwloc=&output=embed';
                     $mapOpen = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($coordinates);
+                    $whatsapp = preg_replace('/\D+/', '', (string)($campus['whatsapp'] ?? SITE_WHATSAPP));
+                    $waMessage = rawurlencode('Assalamu alaikum, saya ingin bertanya mengenai unit ' . $campus['subtitle'] . ' Permata Hati Bekasi.');
                 ?>
                 <article class="campus-card">
                     <span class="campus-number">0<?php echo $campusIndex+1; ?></span>
@@ -37,6 +39,13 @@ require_once __DIR__ . '/../components/header.php';
                         <h3><?php echo esc($campus['title']); ?></h3>
                     </div>
                     <p><?php echo esc($campus['address']); ?></p>
+                    <div class="campus-direct-contact">
+                        <div><small>Kontak <?php echo esc($campus['subtitle']); ?></small><a href="https://wa.me/<?php echo esc($whatsapp); ?>?text=<?php echo esc($waMessage); ?>" target="_blank" rel="noopener">+<?php echo esc($whatsapp); ?></a></div>
+                        <div class="campus-social-links" aria-label="Media sosial <?php echo esc($campus['subtitle']); ?>">
+                            <?php if(!empty($campus['instagram'])): ?><a href="<?php echo esc($campus['instagram']); ?>" target="_blank" rel="noopener" aria-label="Instagram <?php echo esc($campus['subtitle']); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><path d="M17.5 6.5h.01"></path></svg><span>Instagram</span></a><?php endif; ?>
+                            <?php if(!empty($campus['youtube'])): ?><a href="<?php echo esc($campus['youtube']); ?>" target="_blank" rel="noopener" aria-label="YouTube <?php echo esc($campus['subtitle']); ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12s0-4-1-6c-.5-1-1.5-1.5-2.5-1.7C16.8 4 12 4 12 4s-4.8 0-6.5.3C4.5 4.5 3.5 5 3 6c-1 2-1 6-1 6s0 4 1 6c.5 1 1.5 1.5 2.5 1.7C7.2 20 12 20s4.8 0 6.5-.3c1-.2 2-.7 2.5-1.7 1-2 1-6 1-6Z"></path><path d="m10 9 5 3-5 3Z"></path></svg><span>YouTube</span></a><?php endif; ?>
+                        </div>
+                    </div>
                     <img class="campus-building" src="<?php echo esc($campus['image']); ?>" alt="Gedung <?php echo esc($campus['title']); ?>" loading="lazy">
                     <div class="map-wrap campus-map">
                         <iframe src="<?php echo esc($mapEmbed); ?>" loading="lazy" title="Lokasi <?php echo esc($campus['title']); ?>"></iframe>
@@ -63,16 +72,6 @@ require_once __DIR__ . '/../components/header.php';
                 <div class="contact-info-item">
                     <div class="contact-info-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2Z"></path><path d="m22 6-10 7L2 6"></path></svg></div>
                     <div><h4>Email</h4><p><?php echo esc(SITE_EMAIL); ?></p></div>
-                </div>
-                <div class="contact-info-item contact-social-item">
-                    <div class="contact-info-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M16 8h.01"></path><rect x="3" y="3" width="18" height="18" rx="5"></rect></svg></div>
-                    <div>
-                        <h4>Media Sosial</h4>
-                        <div class="contact-social-groups">
-                            <div><strong>Instagram</strong><p class="contact-social-links"><a href="<?php echo esc(SITE_DAYCARE_INSTAGRAM); ?>" target="_blank" rel="noopener">Daycare</a><a href="<?php echo esc(SITE_TKIT_INSTAGRAM); ?>" target="_blank" rel="noopener">TKIT</a><a href="<?php echo esc(SITE_SDIT_INSTAGRAM); ?>" target="_blank" rel="noopener">SDIT</a><a href="<?php echo esc(SITE_SMPIT_INSTAGRAM); ?>" target="_blank" rel="noopener">SMPIT</a></p></div>
-                            <div><strong>YouTube</strong><p class="contact-social-links"><a href="<?php echo esc(SITE_SDIT_YOUTUBE); ?>" target="_blank" rel="noopener">SDIT</a><a href="<?php echo esc(SITE_SMPIT_YOUTUBE); ?>" target="_blank" rel="noopener">SMPIT</a></p></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

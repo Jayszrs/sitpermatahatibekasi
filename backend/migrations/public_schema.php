@@ -243,9 +243,13 @@ function ensure_public_schema(PDO $pdo): void
             'unit_slug' => "ALTER TABLE site_content_items ADD COLUMN unit_slug VARCHAR(30) NULL AFTER link_label",
             'education' => "ALTER TABLE site_content_items ADD COLUMN education VARCHAR(255) NULL AFTER unit_slug",
             'teaching_scope' => "ALTER TABLE site_content_items ADD COLUMN teaching_scope VARCHAR(255) NULL AFTER education",
+            'whatsapp' => "ALTER TABLE site_content_items ADD COLUMN whatsapp VARCHAR(30) NULL AFTER teaching_scope",
+            'instagram_url' => "ALTER TABLE site_content_items ADD COLUMN instagram_url VARCHAR(255) NULL AFTER whatsapp",
+            'youtube_url' => "ALTER TABLE site_content_items ADD COLUMN youtube_url VARCHAR(255) NULL AFTER instagram_url",
         ] as $column => $sql) {
             if (!$columnExists('site_content_items', $column)) $pdo->exec($sql);
         }
+        $recordMigration('20260902-unit-contacts', 'Kontak WhatsApp dan media sosial berbeda untuk setiap unit sekolah');
         $recordMigration('20260828-content-links', 'Tautan publikasi untuk program, prestasi, dan kegiatan');
         $foundationCount = $pdo->prepare("SELECT COUNT(*) FROM site_content_items WHERE type='foundation'");
         $foundationCount->execute();
