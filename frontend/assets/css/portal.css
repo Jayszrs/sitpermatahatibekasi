@@ -206,3 +206,47 @@ a { color: inherit; text-decoration: none; }
 .media-needs-grid span { color: var(--portal-muted); font-size: .76rem; line-height: 1.5; }
 @media (max-width: 1050px) { .media-needs-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 620px) { .media-needs-grid { grid-template-columns: 1fr; } }
+
+/* Mobile admin experience shared by every CMS screen. */
+@media (max-width: 760px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+    .login-form-side { overflow: hidden; }
+    .portal-sidebar { width: min(86vw, 310px); padding: 20px 15px; box-shadow: 20px 0 55px rgba(3,30,19,.28); }
+    .portal-topbar { height: 68px; gap: 10px; padding-inline: 16px; }
+    .portal-topbar h1 { min-width: 0; overflow: hidden; font-size: .95rem; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-toggle { flex: none; width: 42px; height: 42px; padding: 0; font-size: 1.15rem; }
+    .topbar-user { flex: none; max-width: 94px; }
+    .topbar-user strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .portal-content { padding: 24px 16px 44px; }
+    .portal-welcome { gap: 15px; margin-bottom: 22px; }
+    .portal-welcome h2 { font-size: 1.45rem; }
+    .portal-welcome > .portal-action { width: 100%; min-height: 44px; }
+    .portal-panel { padding: 17px; border-radius: 12px; }
+    .panel-head { align-items: flex-start; flex-wrap: wrap; }
+    .panel-head h3 { max-width: 75%; }
+    .portal-form, .portal-form-grid { gap: 14px; }
+    .portal-form input, .portal-form select, .portal-form textarea { min-height: 46px; padding: 11px 12px; font-size: 16px; }
+    .portal-form input[type="file"] { padding: 8px; }
+    .form-actions { align-items: stretch; flex-direction: column-reverse; }
+    .form-actions .portal-action { width: 100%; min-height: 44px; }
+    .filters { display: grid; grid-template-columns: minmax(0,1fr); }
+    .filters input, .filters select, .filters .portal-action { width: 100%; min-height: 44px; font-size: 16px; }
+    .portal-table-wrap { width: calc(100% + 34px); max-width: none; margin-inline: -17px; padding-inline: 17px; overscroll-behavior-inline: contain; }
+    .portal-table { min-width: 680px; }
+    .table-actions { flex-wrap: wrap; }
+    .content-tabs { margin-inline: -16px; padding-inline: 16px; scroll-snap-type: x proximity; scrollbar-width: none; }
+    .content-tabs::-webkit-scrollbar { display: none; }
+    .content-tabs a { min-height: 42px; display: inline-flex; align-items: center; scroll-snap-align: start; }
+}
+
+@media (max-width: 480px) {
+    .login-form-side { min-height: 100svh; padding: 48px 0 28px; }
+    .login-box { width: calc(100% - 32px); }
+    .mobile-brand { margin-bottom: 20px; }
+    .login-subtitle { margin-bottom: 28px; }
+    .stat-grid { gap: 12px; }
+    .stat-card { padding: 18px; }
+    .portal-panel { padding: 16px; }
+    .portal-table-wrap { width: calc(100% + 32px); margin-inline: -16px; padding-inline: 16px; }
+    .candidate-links .portal-action { width: 100%; }
+}

@@ -2665,3 +2665,284 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
     .job-search-bar { min-height: 0; transform: translateY(34px); padding: 16px; }
     .job-board-section { padding-top: 92px; }
 }
+
+/* ===== MOBILE EXPERIENCE 2026 =====
+   Final responsive layer shared by every public page. */
+@media (max-width: 768px) {
+    :root {
+        --radius: 16px;
+        --shadow: 0 8px 24px rgba(15,81,50,.08);
+        --shadow-lg: 0 16px 38px rgba(15,81,50,.14);
+    }
+
+    html { scroll-padding-top: 82px; }
+    [id] { scroll-margin-top: 82px; }
+    body { font-size: 15px; line-height: 1.62; }
+    main, section, .container, .container > *, [class*="-grid"] > * { min-width: 0; }
+    p, h1, h2, h3, h4, a, strong, small { overflow-wrap: break-word; }
+    .container { width: 100%; padding-inline: 18px; }
+    .section, .section-alt {
+        padding-block: 52px;
+        background-attachment: scroll;
+        background-size: 112px;
+    }
+    .section-head { max-width: 560px; margin-bottom: 30px; }
+    .section-head h2 { font-size: clamp(1.65rem,7vw,2.1rem); text-wrap: balance; }
+    .section-head p { font-size: .94rem; }
+    .section-eyebrow, .page-kicker { font-size: .68rem; line-height: 1.35; }
+
+    .btn, button, input, select, textarea { font-size: 16px; }
+    .btn { min-height: 46px; padding: 11px 18px; text-align: center; }
+
+    /* Compact sticky header and a full-width, touch-friendly menu. */
+    .site-header { background: rgba(255,255,255,.98); box-shadow: 0 7px 22px rgba(3,30,19,.09); }
+    .header-inner { min-height: 68px; padding: 7px 16px; }
+    .brand { min-width: 0; gap: 9px; }
+    .brand-logo { width: 46px; height: 46px; }
+    .nav-toggle {
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        border-radius: 11px;
+        background: var(--primary-light);
+    }
+    .nav-toggle span { width: 24px; height: 2px; }
+    .nav-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .main-nav {
+        position: fixed;
+        top: 68px;
+        right: 10px;
+        left: 10px;
+        display: flex;
+        max-height: calc(100svh - 80px);
+        padding: 10px 12px 16px;
+        overflow-y: auto;
+        border: 1px solid var(--border);
+        border-radius: 0 0 18px 18px;
+        background: rgba(255,255,255,.99);
+        box-shadow: 0 20px 50px rgba(3,30,19,.18);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-10px);
+        transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .main-nav.open { opacity: 1; visibility: visible; pointer-events: auto; transform: none; }
+    .main-nav ul { width: 100%; gap: 3px; }
+    .main-nav a, .main-nav .dropdown-trigger {
+        min-height: 46px;
+        padding: 11px 13px;
+        border: 0;
+        border-radius: 10px;
+        font-size: .9rem;
+    }
+    .main-nav a.active, .main-nav .dropdown-trigger.active { color: #fff; background: var(--primary); }
+    .main-nav .dropdown-menu { display: none; margin: 3px 0 6px; padding: 5px !important; border-radius: 10px; background: #f4f8f6; }
+    .main-nav .has-dropdown.dropdown-open > .dropdown-menu { display: flex; }
+    .dropdown-menu a { padding: 10px 12px !important; }
+
+    /* Consistent inner-page banner hierarchy. */
+    .page-header { min-height: 190px; padding-block: 38px; background-position: center; }
+    .page-header::before { background: linear-gradient(90deg,rgba(3,30,19,.9),rgba(3,30,19,.55)); }
+    .page-header h1 { max-width: 92%; margin-bottom: 8px; font-size: clamp(2rem,8.5vw,2.65rem); line-height: 1.08; text-wrap: balance; }
+    .page-header .container > p:not(.breadcrumb) { max-width: 94%; font-size: .9rem; }
+    .breadcrumb { font-size: .78rem; }
+
+    /* Cards and grids become readable instead of squeezed into columns. */
+    .grid-2, .grid-3, .grid-4, .why-grid, .steps-grid,
+    .quran-program-grid, .career-grid, .activity-grid,
+    .album-grid, .achievement-grid, .news-modern-grid,
+    .gallery-publication-grid, .leadership-grid,
+    .brochure-grid, .spmb-unit-grid { grid-template-columns: minmax(0,1fr); gap: 18px; }
+    .card, .why-item, .quran-program-card, .career-card,
+    .news-modern-card, .gallery-album-card, .leadership-card,
+    .brochure-card, .campus-card { border-radius: 18px; }
+    .card-body { padding: 20px; }
+    .program-card { min-height: 0; padding: 24px 20px; text-align: left; }
+    .program-icon { margin-inline: 0; }
+    .why-item { min-height: 0; padding: 22px; }
+
+    /* Horizontal filters remain one clean row and can be swiped. */
+    .achievement-tabs {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        gap: 9px;
+        margin-inline: -18px;
+        padding: 4px 18px 11px;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+        scroll-snap-type: x proximity;
+    }
+    .achievement-tabs::-webkit-scrollbar { display: none; }
+    .achievement-tab { flex: 0 0 auto; min-height: 44px; padding: 10px 17px; scroll-snap-align: start; }
+
+    /* Homepage. */
+    .hero-slider, .hero-slider .hero-inner { min-height: calc(100svh - 68px); }
+    .hero-slider .hero-inner { padding: 64px 18px 132px; }
+    .hero-slider .hero-copy { padding: 21px; border-radius: 18px; }
+    .hero-slider .hero-copy h1 { font-size: clamp(2.1rem,10vw,3rem); }
+    .hero-slider .hero-copy p { margin-bottom: 22px; font-size: .91rem; }
+    .hero-bottom { bottom: 25px; width: calc(100% - 36px); }
+    .hero-trust { gap: 20px; }
+    .home-pulse-section { padding-block: 50px; }
+    .home-pulse-grid { gap: 42px; }
+    .pulse-heading { margin-bottom: 18px; }
+    .pulse-news-card { grid-template-columns: 108px minmax(0,1fr); min-height: 120px; }
+    .pulse-news-card > div { padding: 15px; }
+    .pulse-news-card img { min-height: 120px; }
+    .pulse-achievement-card { grid-template-columns: 94px minmax(0,1fr); }
+    .pulse-achievement-card img { width: 94px; }
+    .about-grid { gap: 34px; }
+
+    /* Program, advantages, brochures and profile details. */
+    .program-detail-hero, .brochure-detail-hero, .advantage-hero,
+    .leader-detail-hero, .achievement-detail-hero, .job-detail-hero { padding-block: 46px; }
+    .program-detail-grid, .brochure-detail-grid, .advantage-hero-grid,
+    .leader-detail-grid, .achievement-detail-grid { gap: 30px; }
+    .program-detail-grid h1, .brochure-detail-grid h1,
+    .leader-detail-copy h1, .advantage-hero h1 { font-size: clamp(2.15rem,10vw,3.1rem); line-height: 1.04; }
+    .program-detail-visual, .brochure-poster, .brochure-preview,
+    .leader-detail-photo, .achievement-detail-image { width: 100%; max-width: 480px; justify-self: center; border-radius: 20px; transform: none; }
+    .program-detail-body, .brochure-info-grid, .program-outcome-grid,
+    .advantage-detail-grid, .achievement-story-grid { gap: 34px; }
+    .program-journey-grid, .advantage-process-grid { gap: 14px; }
+    .program-journey-grid article, .advantage-process-grid article { padding: 22px; }
+    .program-journey-grid article > span, .advantage-process-grid article > span { margin-bottom: 20px; }
+    .program-outcome-list div { padding: 18px; }
+    .program-detail-cta, .advantage-result-card { gap: 22px; padding: 26px 21px; border-radius: 20px; }
+    .advantage-highlight { min-height: 260px; padding: 24px; border-radius: 20px; }
+    .advantage-highlight span { font-size: 3.2rem; }
+    .back-link { margin-bottom: 22px; }
+    .brochure-intro { gap: 14px; margin-bottom: 28px; }
+    .brochure-card-premium { grid-template-columns: minmax(0,1fr); }
+    .brochure-card-premium .brochure-cover { min-height: 390px; }
+    .brochure-card-premium > div, .brochure-value-card { padding: 22px; }
+    .brochure-value-grid { gap: 16px; }
+    .brochure-quick-links a { padding: 18px; }
+    .leader-facts { gap: 9px; }
+    .leadership-copy { padding: 18px; }
+
+    /* News and achievements. */
+    .news-unit-tabs { margin-bottom: 24px; }
+    .news-featured-card { min-height: 0; border-radius: 20px; }
+    .news-featured-image { min-height: 0; aspect-ratio: 16/10; }
+    .news-featured-card > div:last-child { padding: 24px 21px 27px; }
+    .news-featured-card h2 { font-size: clamp(1.75rem,8vw,2.35rem); }
+    .news-index-head { gap: 10px; margin: 48px 0 20px; }
+    .news-modern-card h3, .news-modern-card p { min-height: 0; }
+    .news-modern-card > div { padding: 20px; }
+    .news-article-layout { gap: 28px; }
+    .news-article { border-radius: 18px; }
+    .news-article-meta { flex-wrap: wrap; gap: 7px 14px; padding: 16px 18px; }
+    .news-article-content { padding: 25px 20px; font-size: 1rem; line-height: 1.82; }
+    .news-article-footer { padding: 20px; }
+    .news-article-aside { padding: 22px; }
+    .achievement-detail-image img { max-height: 520px; object-fit: cover; }
+
+    /* Unit, location and gallery. */
+    .unit-page-section { background-size: 100px 100px,auto; }
+    .unit-showcase { gap: 28px; padding-block: 44px; }
+    .unit-showcase-copy h2 { font-size: clamp(1.65rem,7vw,2rem); }
+    .unit-collage { grid-auto-rows: 98px; }
+    .location-card-grid { gap: 18px; }
+    .campus-card { padding: 17px; }
+    .campus-building { aspect-ratio: 16/10; }
+    .campus-map iframe { height: 210px; }
+    .campus-direct-contact { align-items: stretch; padding: 12px; }
+    .campus-social-links a { min-height: 40px; padding: 8px 10px; }
+    .album-detail-head { align-items: flex-start; flex-direction: column; gap: 18px; }
+    .album-photo-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .gallery-publication-copy p { min-height: 0; }
+    .image-lightbox { padding: 14px; }
+    .image-lightbox-dialog { width: 100%; }
+    .image-lightbox-close { top: 8px; right: 8px; }
+
+    /* SPMB, forms and job board. */
+    .spmb-form-shell { width: 100%; }
+    .page-form-spmb .form-card, .form-card { padding: 23px 18px; border-radius: 18px; }
+    .spmb-form-intro { margin-bottom: 24px; padding-bottom: 21px; }
+    .form-group { margin-bottom: 17px; }
+    .form-control { min-height: 49px; padding: 12px 13px; }
+    textarea.form-control { min-height: 120px; }
+    .table-wrap { width: 100%; max-width: 100%; margin-inline: 0; padding: 0; }
+    table.schedule { min-width: 620px; }
+    .faq-item summary { min-height: 50px; padding: 14px 16px; }
+    .career-board-hero { padding-top: 48px; }
+    .career-board-hero-grid { gap: 28px; padding-bottom: 26px; }
+    .career-board-hero h1 { font-size: clamp(2.4rem,11vw,3.35rem); line-height: 1.03; }
+    .career-board-hero-grid > div:first-child > p { font-size: .98rem; }
+    .career-hero-points { gap: 8px; margin-top: 20px; }
+    .career-hero-visual, .career-hero-visual > img { min-height: 300px; }
+    .career-hero-visual { border-radius: 21px 21px 0 21px; }
+    .career-hero-card { padding: 19px; }
+    .job-search-bar { gap: 12px; padding: 15px; border-radius: 16px; transform: translateY(26px); }
+    .job-board-section { padding-top: 78px; }
+    .job-sidebar { padding: 22px; }
+    .job-card { gap: 14px; padding: 18px; }
+    .job-logo { width: 50px; height: 50px; }
+    .job-card-side { grid-column: 1/-1; }
+    .job-detail-heading { gap: 15px; }
+    .job-detail-heading > .btn { width: 100%; }
+    .job-detail-layout, .job-apply-grid { gap: 30px; }
+
+    .site-footer { margin-top: 0; padding-top: 32px; }
+    .footer-grid { gap: 28px; }
+    .site-footer .brand-logo-footer { width: 54px; height: 54px; }
+    .school-social-links a { min-height: 32px; padding: 6px 9px; }
+    .wa-float { right: 16px; bottom: 16px; width: 54px; height: 54px; }
+    .wa-float svg { width: 29px; height: 29px; }
+}
+
+@media (max-width: 480px) {
+    .container { padding-inline: 16px; }
+    .section, .section-alt { padding-block: 46px; }
+    .page-header { min-height: 178px; padding-block: 34px; }
+    .page-header h1 { max-width: 100%; }
+    .hero-slider .hero-inner { padding-inline: 16px; }
+    .hero-slider .hero-copy { padding: 19px 17px; }
+    .hero-actions, .quran-actions, .advantage-actions,
+    .brochure-actions, .cta-actions, .unit-showcase-actions {
+        display: grid;
+        grid-template-columns: minmax(0,1fr);
+        width: 100%;
+        gap: 10px;
+    }
+    .hero-actions .btn, .quran-actions .btn, .advantage-actions .btn,
+    .brochure-actions .btn, .cta-actions .btn, .unit-showcase-actions .btn { width: 100%; }
+    .achievement-tabs { margin-inline: -16px; padding-inline: 16px; }
+    .stats-grid { gap: 12px; }
+    .stat-item { padding: 8px; }
+    .pulse-heading { align-items: flex-start; flex-direction: column; gap: 7px; }
+    .pulse-news-card { grid-template-columns: 96px minmax(0,1fr); }
+    .pulse-news-card > div { padding: 13px; }
+    .pulse-news-card h3 { font-size: .9rem; }
+    .pulse-achievement-card { grid-template-columns: 86px minmax(0,1fr); }
+    .pulse-achievement-card img { width: 86px; }
+    .program-detail-grid h1, .brochure-detail-grid h1,
+    .leader-detail-copy h1, .advantage-hero h1 { font-size: clamp(2rem,10vw,2.65rem); }
+    .brochure-card-premium .brochure-cover { min-height: 360px; }
+    .leader-facts { grid-template-columns: minmax(0,1fr); }
+    .news-featured-image { aspect-ratio: 4/3; }
+    .news-featured-image span { top: 14px; left: 14px; }
+    .news-article-cover { aspect-ratio: 4/3; }
+    .album-photo-grid { gap: 8px; }
+    .album-photo-item span { right: 8px; bottom: 8px; left: 8px; }
+    .unit-collage { grid-auto-rows: 88px; }
+    .campus-card-head { padding-right: 34px; }
+    .campus-social-links { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .campus-social-links a { justify-content: center; padding-inline: 6px; }
+    .job-card { grid-template-columns: 44px minmax(0,1fr); }
+    .job-logo { width: 44px; height: 44px; border-radius: 11px; }
+    .job-meta { gap: 6px; }
+    .job-meta span { font-size: .68rem; }
+    .job-detail-heading { grid-template-columns: minmax(0,1fr); }
+    .job-detail-heading .job-logo { width: 56px; height: 56px; }
+    .job-detail-heading > .btn { grid-column: auto; }
+    .job-detail-list.benefit { grid-template-columns: minmax(0,1fr); }
+    .form-actions { align-items: stretch; flex-direction: column-reverse; }
+    .form-actions .btn, .form-actions .portal-action { width: 100%; }
+}

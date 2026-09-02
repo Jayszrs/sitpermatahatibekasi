@@ -55,7 +55,7 @@ $isNavActive = static function (string $target) use ($current_page): bool {
             </span>
         </a>
 
-        <button class="nav-toggle" id="navToggle" aria-label="Buka menu" aria-expanded="false">
+        <button class="nav-toggle" id="navToggle" aria-label="Buka menu" aria-controls="mainNav" aria-expanded="false">
             <span></span><span></span><span></span>
         </button>
 
@@ -105,10 +105,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Mobile nav toggle
     var toggle = document.getElementById('navToggle');
     var nav = document.getElementById('mainNav');
-    toggle.addEventListener('click', function () {
-        var isOpen = nav.classList.toggle('open');
-        toggle.classList.toggle('active');
+    function setNavOpen(isOpen) {
+        nav.classList.toggle('open', isOpen);
+        toggle.classList.toggle('active', isOpen);
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        toggle.setAttribute('aria-label', isOpen ? 'Tutup menu' : 'Buka menu');
+    }
+    toggle.addEventListener('click', function () {
+        setNavOpen(!nav.classList.contains('open'));
     });
 
     // Dropdown dapat dibuka dengan klik/tap maupun keyboard.
@@ -129,6 +133,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768 && nav.classList.contains('open') && !e.target.closest('#mainNav') && !e.target.closest('#navToggle')) {
+            setNavOpen(false);
+        }
         if (e.target.closest('.has-dropdown')) return;
         document.querySelectorAll('.has-dropdown.dropdown-open').forEach(function(item) {
             item.classList.remove('dropdown-open');
@@ -139,10 +146,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     nav.querySelectorAll('a').forEach(function(link) {
         link.addEventListener('click', function() {
-            nav.classList.remove('open');
-            toggle.classList.remove('active');
-            toggle.setAttribute('aria-expanded', 'false');
+            setNavOpen(false);
         });
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && nav.classList.contains('open')) {
+            setNavOpen(false);
+            toggle.focus();
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && nav.classList.contains('open')) setNavOpen(false);
     });
 });
 </script>
