@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daftar Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</title>
+<style>
+    :root {
+        --blue: #1976c9;
+        --green: #0f5132;
+        --gold: #c9a227;
+        --ink: #171717;
+        --muted: #646464;
+        --line: #aeb4b1;
+        --soft: #f3f7f5;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #e9eceb; color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+    body { font-size: 9.1pt; line-height: 1.33; }
+    @page { size: A4; margin: 0; }
+    .page {
+        position: relative;
+        width: 210mm;
+        height: 297mm;
+        margin: 0 auto 8mm;
+        padding: 12mm 16mm 15mm;
+        overflow: hidden;
+        background: #fff;
+        page-break-after: always;
+    }
+    .page:last-child { page-break-after: auto; }
+    .watermark {
+        position: absolute;
+        z-index: 0;
+        left: 50%;
+        top: 54%;
+        width: 118mm;
+        height: 118mm;
+        object-fit: contain;
+        opacity: .035;
+        filter: grayscale(1);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+    .page-header, .page-content, .page-footer { position: relative; z-index: 1; }
+    .page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        min-height: 18mm;
+        padding-bottom: 2.4mm;
+        border-bottom: .35mm solid var(--line);
+    }
+    .header-logo { width: 15mm; height: 15mm; object-fit: contain; }
+    .header-meta { padding-top: 1mm; text-align: right; font-size: 8.8pt; line-height: 1.22; }
+    .page-content { padding-top: 5mm; }
+    h1 { margin: 0 0 4mm; font-size: 27pt; line-height: 1.05; letter-spacing: -.5pt; }
+    h2 { margin: 4.2mm 0 1.4mm; color: var(--blue); font-size: 12.8pt; line-height: 1.15; }
+    h2 .num { display: inline-block; min-width: 6mm; }
+    h3 { margin: 2.6mm 0 .8mm; font-size: 9.8pt; line-height: 1.2; }
+    p { margin: 0 0 1.6mm; }
+    ul { margin: .7mm 0 2mm; padding-left: 6mm; }
+    li { margin: 0 0 .65mm; padding-left: .6mm; }
+    strong { font-weight: 700; }
+    .lead { max-width: 166mm; margin-bottom: 3.4mm; font-size: 10.1pt; line-height: 1.45; }
+    .note {
+        margin: 2.5mm 0;
+        padding: 2.7mm 3.2mm;
+        border-left: 1.2mm solid var(--gold);
+        background: #fbfaf4;
+    }
+    .priority-grid, .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+    .priority-card {
+        min-height: 24mm;
+        padding: 3mm;
+        border: .3mm solid #d8dfdc;
+        background: rgba(248,250,249,.9);
+    }
+    .priority-card b { display: block; margin-bottom: 1mm; color: var(--green); font-size: 9.6pt; }
+    .tag { display: inline-block; margin-right: 1mm; padding: .6mm 1.7mm; border-radius: 4mm; color: #fff; background: var(--green); font-size: 7.2pt; font-weight: 700; }
+    .tag.gold { color: #2f280a; background: #e0bd3d; }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li { position: relative; padding-left: 5.5mm; }
+    .checklist li::before { content: ""; position: absolute; left: .3mm; top: 1.1mm; width: 3mm; height: 3mm; border: .35mm solid #4d5d55; background: #fff; }
+    .compact li { margin-bottom: .45mm; }
+    .matrix { width: 100%; margin-top: 1.5mm; border-collapse: collapse; font-size: 8.15pt; }
+    .matrix th, .matrix td { padding: 1.5mm 1.7mm; border: .25mm solid #cfd6d2; text-align: left; vertical-align: top; }
+    .matrix th { color: #fff; background: var(--green); font-size: 7.8pt; }
+    .matrix tbody tr:nth-child(even) { background: rgba(243,247,245,.75); }
+    .spec { font-family: Consolas, "Courier New", monospace; font-size: 7.8pt; }
+    .folder-tree { margin: 2mm 0; padding: 3mm 4mm; border: .3mm solid #d8dfdc; background: #f8faf9; font-family: Consolas, "Courier New", monospace; font-size: 8pt; line-height: 1.45; white-space: pre-line; }
+    .fill-line { display: inline-block; min-width: 54mm; height: 3.8mm; margin-left: 1.5mm; border-bottom: .3mm solid #555; vertical-align: bottom; }
+    .small { color: var(--muted); font-size: 7.8pt; }
+    .page-footer {
+        position: absolute;
+        right: 16mm;
+        bottom: 7mm;
+        left: 16mm;
+        display: flex;
+        justify-content: space-between;
+        padding-top: 2.2mm;
+        border-top: .25mm solid #c4c8c6;
+        color: #676767;
+        font-size: 7.7pt;
+    }
+    .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20mm; margin-top: 8mm; }
+    .signature { min-height: 31mm; }
+    .signature b { display: block; }
+    .signature-line { width: 48mm; margin-top: 22mm; padding-top: 1mm; border-top: .3mm solid #555; }
+    .avoid-break { break-inside: avoid; }
+    @media print {
+        html, body { background: #fff; }
+        .page { margin: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<section class="page">
+    <img class="watermark" src="assets/logo-sit-round-print.webp" alt="">
+    <header class="page-header">
+        <img class="header-logo" src="assets/logo-sit-round-print.webp" alt="Logo SIT Permata Hati Bekasi">
+        <div class="header-meta">Bekasi, 2 September 2026<br>No. Doc: DR/WEB-SCH/2026/09</div>
+    </header>
+    <main class="page-content">
+        <h1>Daftar Kebutuhan Data &amp; Media Website</h1>
+        <p class="lead"><strong>SIT Permata Hati Bekasi</strong><br>Checklist pengumpulan materi untuk website publik, SPMB Online, brosur digital, karir, dan Portal Internal/CMS.</p>
+
+        <h2><span class="num">1.</span> Tujuan Dokumen</h2>
+        <p>Dokumen ini digunakan sebagai daftar permintaan resmi kepada pihak Sekolah/Yayasan agar data, foto, video, dokumen, dan tautan resmi yang dibutuhkan website dapat dikumpulkan secara lengkap dan terstruktur.</p>
+        <div class="note"><strong>Catatan:</strong> file contoh dan gambar hasil generasi yang saat ini tampil di website hanya bersifat sementara. Materi resmi dari Permata Hati akan menggantikan konten tersebut setelah diterima dan disetujui.</div>
+
+        <h2><span class="num">2.</span> Prioritas Pengumpulan</h2>
+        <div class="priority-grid">
+            <div class="priority-card"><b><span class="tag">P1</span> Wajib sebelum Go Live</b>Logo resmi, profil sekolah, alamat, kontak per unit, informasi SPMB, struktur pimpinan/yayasan, foto gedung, dan legalitas penggunaan media.</div>
+            <div class="priority-card"><b><span class="tag">P2</span> Konten utama</b>Foto/video hero, profil tiap unit, program unggulan, kegiatan, prestasi, berita awal, galeri, brosur, dan informasi karir.</div>
+            <div class="priority-card"><b><span class="tag gold">P3</span> Pelengkap</b>Testimoni, statistik sekolah, publikasi media sosial, dokumen unduhan, FAQ tambahan, dan arsip berita/prestasi lama.</div>
+            <div class="priority-card"><b><span class="tag gold">PIC</span> Penanggung jawab</b>Satu PIC utama dan satu PIC cadangan untuk konfirmasi isi, koreksi nama/jabatan, serta persetujuan materi sebelum tayang.</div>
+        </div>
+
+        <h2><span class="num">3.</span> Data Koordinasi</h2>
+        <ul class="checklist compact">
+            <li>Nama PIC utama: <span class="fill-line"></span></li>
+            <li>Jabatan dan unit PIC: <span class="fill-line"></span></li>
+            <li>Nomor WhatsApp PIC: <span class="fill-line"></span></li>
+            <li>Email PIC: <span class="fill-line"></span></li>
+            <li>Target penyerahan materi: <span class="fill-line"></span></li>
+            <li>Tautan folder Google Drive/penyimpanan: <span class="fill-line"></span></li>
+        </ul>
+
+        <h2><span class="num">4.</span> Cara Penyerahan</h2>
+        <ul>
+            <li>Kirim file asli melalui satu folder bersama; hindari pengiriman foto berulang melalui WhatsApp karena kualitas dapat menurun.</li>
+            <li>Gunakan nama file yang jelas, misalnya <span class="spec">SDIT_Gedung-Depan_01.jpg</span> atau <span class="spec">TKIT_Kegiatan-Manasik_2026_03.jpg</span>.</li>
+            <li>Sertakan keterangan singkat, unit, tanggal, dan nama kegiatan pada setiap kelompok foto.</li>
+        </ul>
+    </main>
+    <footer class="page-footer"><span>Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</span><span>Halaman 1 dari 7</span></footer>
+</section>
+
+<!-- PAGE 2 -->
+<section class="page">
+    <img class="watermark" src="assets/logo-sit-round-print.webp" alt="">
+    <header class="page-header">
+        <img class="header-logo" src="assets/logo-sit-round-print.webp" alt="Logo SIT Permata Hati Bekasi">
+        <div class="header-meta">Bekasi, 2 September 2026<br>No. Doc: DR/WEB-SCH/2026/09</div>
+    </header>
+    <main class="page-content">
+        <h2><span class="num">5.</span> Identitas, Kontak &amp; Informasi Resmi</h2>
+        <h3>A. Identitas Sekolah/Yayasan</h3>
+        <ul class="checklist compact">
+            <li>Nama resmi sekolah dan nama resmi yayasan sesuai dokumen legal.</li>
+            <li>Logo master berwarna dan monokrom: format SVG/AI/EPS bila ada, serta PNG transparan resolusi tinggi.</li>
+            <li>Tagline/slogan resmi, deskripsi singkat lembaga, dan tahun berdiri.</li>
+            <li>Palet warna, font, atau panduan identitas merek bila tersedia.</li>
+            <li>Nomor NPSN, status akreditasi, SK pendirian/izin operasional yang boleh dipublikasikan.</li>
+            <li>Nama badan hukum, NPWP, atau informasi legal lain hanya bila memang perlu ditampilkan.</li>
+        </ul>
+
+        <h3>B. Kontak Umum</h3>
+        <ul class="checklist compact">
+            <li>Nomor telepon dan WhatsApp pusat yang aktif.</li>
+            <li>Email resmi sekolah/yayasan untuk informasi publik.</li>
+            <li>Jam operasional layanan dan jam terbaik untuk menghubungi admin.</li>
+            <li>Tautan Google Maps resmi dan koordinat lokasi.</li>
+            <li>Instagram, YouTube, Facebook, TikTok, dan kanal resmi lain yang masih aktif.</li>
+        </ul>
+
+        <h3>C. Kontak Wajib Per Unit</h3>
+        <table class="matrix">
+            <thead><tr><th>Unit</th><th>Alamat lengkap &amp; Maps</th><th>WhatsApp</th><th>Instagram</th><th>YouTube/Media lain</th></tr></thead>
+            <tbody>
+                <tr><td>Daycare</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td></tr>
+                <tr><td>TKIT</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td></tr>
+                <tr><td>SDIT</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td></tr>
+                <tr><td>SMPIT</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td><td>&#9633; Disiapkan</td></tr>
+            </tbody>
+        </table>
+
+        <h2><span class="num">6.</span> Beranda &amp; Onboarding/Hero</h2>
+        <h3>A. Materi Hero yang Dapat Ditambah Tanpa Batas</h3>
+        <ul class="checklist compact">
+            <li>Minimal 5 foto horizontal unggulan yang mewakili gedung, suasana kelas, kegiatan Islami, prestasi, dan kebersamaan siswa.</li>
+            <li>Video company profile/sekolah, video drone, atau cuplikan kegiatan. Sertakan poster/thumbnail untuk setiap video.</li>
+            <li>Judul utama, label pendek, deskripsi, teks tombol, dan tujuan link untuk setiap slide.</li>
+            <li>Urutan tampil serta periode tayang bila berkaitan dengan penerimaan siswa atau acara tertentu.</li>
+        </ul>
+        <h3>B. Informasi Pendukung Beranda</h3>
+        <ul class="checklist compact">
+            <li>Pengumuman berjalan: teks, tanggal mulai, tanggal selesai, dan link tujuan.</li>
+            <li>Angka/statistik resmi: jumlah unit, siswa, guru, lulusan, prestasi, atau tahun pengalaman.</li>
+            <li>Enam alasan memilih sekolah: judul, deskripsi, bukti pendukung, dan foto masing-masing.</li>
+            <li>Tiga berita terbaru dan tiga prestasi unggulan untuk konten awal.</li>
+            <li>CTA utama yang diprioritaskan: SPMB, konsultasi, kunjungan sekolah, atau unduh brosur.</li>
+        </ul>
+    </main>
+    <footer class="page-footer"><span>Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</span><span>Halaman 2 dari 7</span></footer>
+</section>
+
+<!-- PAGE 3 -->
+<section class="page">
+    <img class="watermark" src="assets/logo-sit-round-print.webp" alt="">
+    <header class="page-header">
+        <img class="header-logo" src="assets/logo-sit-round-print.webp" alt="Logo SIT Permata Hati Bekasi">
+        <div class="header-meta">Bekasi, 2 September 2026<br>No. Doc: DR/WEB-SCH/2026/09</div>
+    </header>
+    <main class="page-content">
+        <h2><span class="num">7.</span> Tentang Kami &amp; Informasi Kelembagaan</h2>
+        <h3>A. Profil Umum</h3>
+        <ul class="checklist compact">
+            <li>Sejarah lengkap dan versi ringkas perjalanan SIT Permata Hati Bekasi.</li>
+            <li>Visi, misi, nilai utama, tujuan pendidikan, serta filosofi nama/logo.</li>
+            <li>Sambutan Kepala Sekolah atau Ketua Yayasan, termasuk nama dan jabatan resmi.</li>
+            <li>Foto gedung lama/baru, tonggak sejarah, kegiatan pendirian, atau dokumen historis yang boleh ditampilkan.</li>
+            <li>Informasi kemitraan, asosiasi, akreditasi, sertifikasi, dan penghargaan kelembagaan.</li>
+        </ul>
+
+        <h3>B. Struktur Pimpinan Sekolah</h3>
+        <p>Data berikut dibutuhkan untuk setiap Kepala Unit/pimpinan yang ditampilkan:</p>
+        <ul class="checklist compact">
+            <li>Nama lengkap beserta gelar, jabatan resmi, dan unit.</li>
+            <li>Foto portrait formal terbaru.</li>
+            <li>Ringkasan profil, pendidikan, pengalaman, bidang keahlian, dan masa jabatan.</li>
+            <li>Pesan/kutipan singkat serta fokus kepemimpinan.</li>
+            <li>Urutan tampil dan status aktif/nonaktif.</li>
+        </ul>
+
+        <h3>C. Struktur/Pengurus Yayasan</h3>
+        <p>Minimal untuk Ketua, Sekretaris, dan Bendahara; tambahkan Pembina/Pengawas bila memang ditampilkan.</p>
+        <ul class="checklist compact">
+            <li>Nama lengkap dan gelar masing-masing pengurus.</li>
+            <li>Jabatan resmi dan deskripsi tanggung jawab.</li>
+            <li>Foto portrait formal berbeda untuk setiap orang.</li>
+            <li>Riwayat pendidikan, pengalaman organisasi/profesional, kompetensi, dan masa tugas.</li>
+            <li>Pesan singkat, fokus tata kelola, serta informasi publik lain yang telah disetujui.</li>
+        </ul>
+
+        <div class="note"><strong>Foto struktur:</strong> gunakan latar dan pencahayaan yang seragam bila memungkinkan. Jangan mengirim foto identitas/KTP; cukup foto portrait yang memang disetujui untuk publikasi.</div>
+
+        <h2><span class="num">8.</span> Data Privasi &amp; Persetujuan Publikasi</h2>
+        <ul class="checklist compact">
+            <li>Konfirmasi bahwa sekolah memiliki izin penggunaan foto/video siswa, guru, staf, dan pengurus.</li>
+            <li>Daftar siswa/orang yang tidak boleh ditampilkan bila ada pembatasan publikasi.</li>
+            <li>Konfirmasi hak penggunaan logo mitra, sertifikat, karya siswa, musik video, atau materi pihak ketiga.</li>
+            <li>Kebijakan privasi singkat untuk Form SPMB dan Form Lamaran.</li>
+            <li>Nama/jabatan pihak yang memberikan persetujuan akhir konten.</li>
+        </ul>
+    </main>
+    <footer class="page-footer"><span>Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</span><span>Halaman 3 dari 7</span></footer>
+</section>
+
+<!-- PAGE 4 -->
+<section class="page">
+    <img class="watermark" src="assets/logo-sit-round-print.webp" alt="">
+    <header class="page-header">
+        <img class="header-logo" src="assets/logo-sit-round-print.webp" alt="Logo SIT Permata Hati Bekasi">
+        <div class="header-meta">Bekasi, 2 September 2026<br>No. Doc: DR/WEB-SCH/2026/09</div>
+    </header>
+    <main class="page-content">
+        <h2><span class="num">9.</span> Data Tiap Unit Pendidikan</h2>
+        <p class="lead">Isi data berikut secara terpisah untuk <strong>Daycare, TKIT, SDIT, dan SMPIT</strong>.</p>
+        <table class="matrix">
+            <thead><tr><th>Kategori</th><th>Data yang diperlukan per unit</th></tr></thead>
+            <tbody>
+                <tr><td>Profil</td><td>Nama resmi unit, deskripsi singkat/panjang, sasaran usia/kelas, jam layanan, kapasitas, dan keunggulan utama.</td></tr>
+                <tr><td>Kurikulum</td><td>Kurikulum yang digunakan, pendekatan belajar, target perkembangan/lulusan, porsi akademik, Al-Quran, karakter, bahasa, dan teknologi.</td></tr>
+                <tr><td>Program</td><td>Daftar program harian, mingguan, tahunan, ekstrakurikuler, pembiasaan ibadah, outing, proyek, serta layanan pendampingan.</td></tr>
+                <tr><td>Fasilitas</td><td>Daftar ruang/fasilitas, fungsi, kondisi, kapasitas, keamanan, serta foto masing-masing fasilitas.</td></tr>
+                <tr><td>Tenaga pendidik</td><td>Jumlah guru/staf, rasio pendamping, kualifikasi umum, sertifikasi, dan pelatihan utama tanpa data pribadi sensitif.</td></tr>
+                <tr><td>Jadwal</td><td>Hari dan jam belajar, layanan antar-jemput bila ada, kalender akademik, jadwal kunjungan, dan kontak unit.</td></tr>
+                <tr><td>Lokasi</td><td>Alamat lengkap, patokan, Google Maps, nomor WhatsApp, Instagram, YouTube, dan foto gedung unit.</td></tr>
+                <tr><td>SPMB</td><td>Usia masuk, kelas yang tersedia, kuota, gelombang, biaya yang boleh dipublikasikan, dokumen syarat, observasi/tes, dan PIC.</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Foto Wajib Per Unit</h3>
+        <ul class="checklist compact">
+            <li>Gedung depan, gerbang, papan nama, area penerimaan, dan lingkungan sekitar.</li>
+            <li>Ruang kelas, perpustakaan, ruang ibadah, playground/lapangan, laboratorium, toilet, UKS, dan fasilitas lain.</li>
+            <li>Proses belajar, kegiatan Al-Quran, aktivitas motorik/sains/seni, makan bersama, upacara, dan interaksi guru-siswa.</li>
+            <li>Minimal 12&ndash;20 foto pilihan per unit untuk kolase dan galeri tanpa batas.</li>
+            <li>Caption setiap foto: nama kegiatan/fasilitas, unit, tahun, dan satu kalimat penjelasan.</li>
+        </ul>
+
+        <h2><span class="num">10.</span> Program Unggulan</h2>
+        <p>Data berikut disiapkan untuk setiap program, misalnya Tahfidz &amp; Tahsin, stimulasi anak usia dini, sentra kreativitas, literasi &amp; numerasi, digital learning, English active class, character building, dan leadership project.</p>
+        <ul class="checklist compact">
+            <li>Nama program, unit yang menjalankan, kategori, dan sasaran peserta.</li>
+            <li>Ringkasan, tujuan, latar belakang, metode pelaksanaan, tahapan kegiatan, frekuensi, dan durasi.</li>
+            <li>Empat manfaat/hasil yang diharapkan dan cara evaluasi perkembangan.</li>
+            <li>Foto utama serta 3&ndash;6 foto dokumentasi pendukung.</li>
+            <li>Link publikasi, video, dokumen, atau kontak konsultasi program bila ada.</li>
+        </ul>
+    </main>
+    <footer class="page-footer"><span>Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</span><span>Halaman 4 dari 7</span></footer>
+</section>
+
+<!-- PAGE 5 -->
+<section class="page">
+    <img class="watermark" src="assets/logo-sit-round-print.webp" alt="">
+    <header class="page-header">
+        <img class="header-logo" src="assets/logo-sit-round-print.webp" alt="Logo SIT Permata Hati Bekasi">
+        <div class="header-meta">Bekasi, 2 September 2026<br>No. Doc: DR/WEB-SCH/2026/09</div>
+    </header>
+    <main class="page-content">
+        <h2><span class="num">11.</span> Berita, Prestasi, Kegiatan &amp; Galeri</h2>
+        <h3>A. Berita Per Unit</h3>
+        <p>Berita dikategorikan menjadi Daycare, TKIT, SDIT, dan SMPIT. Siapkan minimal 3 berita awal per unit bila tersedia.</p>
+        <ul class="checklist compact">
+            <li>Judul, slug/judul pendek, unit, tanggal publikasi, nama penulis/narasumber bila perlu.</li>
+            <li>Ringkasan 1&ndash;2 kalimat dan isi berita lengkap.</li>
+            <li>Foto sampul horizontal serta foto isi artikel jika ada.</li>
+            <li>Caption, nama fotografer/sumber, link publikasi Instagram/YouTube, dan izin publikasi.</li>
+        </ul>
+
+        <h3>B. Prestasi Per Unit</h3>
+        <ul class="checklist compact">
+            <li>Nama prestasi, tingkat/kategori lomba, penyelenggara, lokasi, dan tanggal/tahun.</li>
+            <li>Unit, nama siswa/tim/guru (setelah disetujui), kelas, peringkat/medali, dan deskripsi cerita.</li>
+            <li>Foto penerima penghargaan, kegiatan lomba, piagam/piala yang boleh ditampilkan.</li>
+            <li>Tautan publikasi resmi atau media sosial.</li>
+        </ul>
+
+        <h3>C. Kegiatan Sekolah</h3>
+        <ul class="checklist compact">
+            <li>Nama kegiatan, kategori, unit, waktu pelaksanaan, tujuan, sasaran peserta, dan deskripsi.</li>
+            <li>Foto utama, galeri kegiatan, video bila ada, serta link media sosial.</li>
+            <li>Daftar kegiatan rutin tahunan: pesantren Ramadan, wisuda tahfidz, manasik, outing, market day, parenting, lomba, dan kegiatan lain.</li>
+        </ul>
+
+        <h3>D. Album Galeri</h3>
+        <ul class="checklist compact">
+            <li>Nama album, deskripsi, unit/kategori, tanggal, dan urutan tampil.</li>
+            <li>Minimal 8&ndash;15 foto pilihan per album, seluruhnya dengan orientasi dan kualitas yang layak.</li>
+            <li>Judul/caption foto dan link Instagram bila album terhubung dengan publikasi sosial media.</li>
+        </ul>
+
+        <h2><span class="num">12.</span> Testimoni &amp; Publikasi Pendukung</h2>
+        <ul class="checklist compact">
+            <li>Testimoni orang tua/alumni: nama, hubungan/unit, kutipan, foto opsional, dan persetujuan publikasi.</li>
+            <li>Daftar mitra sekolah dan logo mitra yang diizinkan tayang.</li>
+            <li>Artikel keagamaan/pendidikan yang akan ditampilkan atau ditautkan.</li>
+            <li>Video profil, liputan media, podcast, atau dokumentasi YouTube resmi.</li>
+        </ul>
+
+        <div class="note"><strong>Untuk preview saat dibagikan ke WhatsApp/media sosial:</strong> setiap berita, prestasi, dan lowongan sebaiknya mempunyai satu gambar sampul yang bersih, tidak pecah, serta tidak berisi teks terlalu kecil.</div>
+    </main>
+    <footer class="page-footer"><span>Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</span><span>Halaman 5 dari 7</span></footer>
+</section>
+
+<!-- PAGE 6 -->
+<section class="page">
+    <img class="watermark" src="assets/logo-sit-round-print.webp" alt="">
+    <header class="page-header">
+        <img class="header-logo" src="assets/logo-sit-round-print.webp" alt="Logo SIT Permata Hati Bekasi">
+        <div class="header-meta">Bekasi, 2 September 2026<br>No. Doc: DR/WEB-SCH/2026/09</div>
+    </header>
+    <main class="page-content">
+        <h2><span class="num">13.</span> SPMB Online</h2>
+        <ul class="checklist compact">
+            <li>Tahun ajaran aktif dan daftar waiting list untuk 10 tahun berikutnya.</li>
+            <li>Jenjang yang dibuka: Daycare, TKIT, SDIT, dan SMPIT; kelas/kelompok usia serta kuota masing-masing.</li>
+            <li>Gelombang pendaftaran, tanggal buka/tutup, jadwal observasi/tes/wawancara, dan jadwal pengumuman.</li>
+            <li>Alur pendaftaran lengkap, persyaratan dokumen, kriteria usia, biaya formulir/masuk yang boleh dipublikasikan.</li>
+            <li>Nomor WhatsApp PIC SPMB per unit dan format pesan otomatis yang diinginkan.</li>
+            <li>FAQ SPMB beserta jawaban resmi.</li>
+            <li>Format nomor pendaftaran/kuitansi, jenis pembayaran, metode pembayaran, rekening resmi, serta kebijakan pengembalian bila ada.</li>
+            <li>Pernyataan persetujuan pengolahan data pendaftar dan masa penyimpanan data.</li>
+        </ul>
+
+        <h2><span class="num">14.</span> Brosur Digital Per Unit</h2>
+        <p>Disiapkan terpisah untuk Daycare, TKIT, SDIT, dan SMPIT.</p>
+        <ul class="checklist compact">
+            <li>Judul promosi, target usia/kelas, deskripsi, program unggulan, fasilitas, jadwal, kontak, dan CTA.</li>
+            <li>Biaya/gelombang pendaftaran bila disetujui untuk publikasi.</li>
+            <li>Poster vertikal resolusi tinggi dan PDF final resmi.</li>
+            <li>Logo, foto utama, QR code/link pendaftaran, alamat, WhatsApp, serta sosial media unit.</li>
+            <li>Konfirmasi apakah poster sementara yang sudah dibuat akan direvisi atau diganti seluruhnya.</li>
+        </ul>
+
+        <h2><span class="num">15.</span> Karir &amp; Lamaran</h2>
+        <ul class="checklist compact">
+            <li>PIC rekrutmen dan unit yang berwenang menginput lowongan melalui CMS.</li>
+            <li>Judul posisi, unit, divisi, lokasi, tipe pekerjaan, jumlah kebutuhan, prioritas, dan batas lamaran.</li>
+            <li>Ringkasan posisi, tanggung jawab, kualifikasi wajib/tambahan, pendidikan, pengalaman, dan kompetensi.</li>
+            <li>Benefit/fasilitas, tahapan seleksi, estimasi waktu proses, serta dokumen lamaran.</li>
+            <li>Email/WhatsApp HR bila akan ditampilkan dan kebijakan privasi data kandidat.</li>
+            <li>Gambar sampul lowongan untuk preview media sosial; disarankan satu template konsisten per unit.</li>
+        </ul>
+
+        <h2><span class="num">16.</span> Akses Portal &amp; Operasional CMS</h2>
+        <ul class="checklist compact">
+            <li>Daftar operator: nama, username, role Admin/Humas/Kasir, dan unit kerja.</li>
+            <li>Siapa yang mengelola berita, hero, galeri, brosur, struktur, program, prestasi, karir, SPMB, dan pembayaran.</li>
+            <li>Alur persetujuan sebelum konten diterbitkan serta PIC koreksi apabila ditemukan kesalahan.</li>
+            <li>Password awal tidak ditulis di dokumen ini; serahkan melalui kanal privat kepada masing-masing pengguna.</li>
+        </ul>
+    </main>
+    <footer class="page-footer"><span>Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</span><span>Halaman 6 dari 7</span></footer>
+</section>
+
+<!-- PAGE 7 -->
+<section class="page">
+    <img class="watermark" src="assets/logo-sit-round-print.webp" alt="">
+    <header class="page-header">
+        <img class="header-logo" src="assets/logo-sit-round-print.webp" alt="Logo SIT Permata Hati Bekasi">
+        <div class="header-meta">Bekasi, 2 September 2026<br>No. Doc: DR/WEB-SCH/2026/09</div>
+    </header>
+    <main class="page-content">
+        <h2><span class="num">17.</span> Spesifikasi Teknis Media</h2>
+        <table class="matrix">
+            <thead><tr><th>Jenis media</th><th>Format &amp; ukuran yang disarankan</th><th>Keterangan</th></tr></thead>
+            <tbody>
+                <tr><td>Logo</td><td>SVG/AI/EPS + PNG transparan, minimal 2000 px</td><td>Jangan berupa screenshot atau foto logo.</td></tr>
+                <tr><td>Hero website</td><td>JPG/WebP 1920&times;1080, maksimal 10 MB</td><td>Landscape 16:9, subjek tidak terlalu dekat tepi.</td></tr>
+                <tr><td>Video hero</td><td>MP4/WebM 1920&times;1080, maksimal 80 MB</td><td>Landscape 16:9, poster video wajib, audio opsional.</td></tr>
+                <tr><td>Berita/kegiatan</td><td>JPG/WebP minimal 1600&times;1000</td><td>Landscape 16:10 atau 4:3.</td></tr>
+                <tr><td>Prestasi/sosial</td><td>JPG/WebP minimal 1200&times;1500</td><td>Portrait 4:5, wajah dan penghargaan terlihat jelas.</td></tr>
+                <tr><td>Foto pengurus</td><td>JPG/WebP minimal 1200&times;1500</td><td>Portrait 4:5, latar bersih dan gaya seragam.</td></tr>
+                <tr><td>Galeri/fasilitas</td><td>JPG/WebP sisi panjang minimal 1800 px</td><td>Kirim file asli; sistem akan mengoptimalkan.</td></tr>
+                <tr><td>Poster brosur</td><td>PNG/JPG 2000&times;3000 + PDF A4</td><td>Rasio 2:3, teks terbaca dan QR code aktif.</td></tr>
+            </tbody>
+        </table>
+
+        <h2><span class="num">18.</span> Struktur Folder Penyerahan</h2>
+        <div class="folder-tree">01_Identitas-Logo-Kontak
+02_Beranda-Hero-Video
+03_Tentang-Visi-Misi-Sejarah
+04_Struktur-Pimpinan-Yayasan
+05_Unit-Sekolah / Daycare / TKIT / SDIT / SMPIT
+06_Program-Unggulan
+07_Berita / Daycare / TKIT / SDIT / SMPIT
+08_Prestasi-dan-Kegiatan
+09_Galeri-dan-Fasilitas
+10_SPMB-dan-Pembayaran
+11_Brosur-Per-Unit
+12_Karir-dan-Rekrutmen</div>
+
+        <h2><span class="num">19.</span> Pemeriksaan Akhir Sebelum Dikirim</h2>
+        <div class="two-col">
+            <ul class="checklist compact">
+                <li>Nama dan jabatan sudah benar.</li>
+                <li>Kontak tiap unit sudah diuji.</li>
+                <li>Link Maps dan sosial media aktif.</li>
+                <li>Foto tidak pecah atau duplikat.</li>
+                <li>Caption dan kategori unit tersedia.</li>
+            </ul>
+            <ul class="checklist compact">
+                <li>Izin publikasi sudah dikonfirmasi.</li>
+                <li>File brosur PDF dapat dibuka.</li>
+                <li>Informasi SPMB sudah disetujui.</li>
+                <li>Konten sensitif sudah dihapus.</li>
+                <li>PIC persetujuan akhir ditentukan.</li>
+            </ul>
+        </div>
+
+        <div class="signatures">
+            <div class="signature"><b>Disiapkan oleh,</b>Tim Developer Website<div class="signature-line">Nama &amp; Jabatan</div></div>
+            <div class="signature"><b>Diterima oleh,</b>Pihak Sekolah / Yayasan<div class="signature-line">Kepala Sekolah / Perwakilan</div></div>
+        </div>
+    </main>
+    <footer class="page-footer"><span>Kebutuhan Data &amp; Media Website SIT Permata Hati Bekasi</span><span>Halaman 7 dari 7</span></footer>
+</section>
+
+</body>
+</html>
