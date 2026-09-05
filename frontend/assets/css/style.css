@@ -490,6 +490,8 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
     transition: transform 0.3s ease;
 }
 .unit-card:hover .unit-card-photo img { transform: scale(1.05); }
+.unit-card-actions { display: grid; grid-template-columns: 1fr; gap: 9px; margin-top: auto; }
+.unit-card-actions .btn { width: 100%; justify-content: center; padding-inline: 14px; white-space: normal; text-align: center; }
 .unit-card-photo::after {
     content: '';
     position: absolute;

@@ -1,0 +1,116 @@
+/* Foundation portal composition, using only the active unit's local palette. */
+body:has(.wrap) {
+  background: var(--portal-paper) !important;
+}
+body:has(.wrap)::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(color-mix(in srgb,var(--portal-paper) 87%,transparent),color-mix(in srgb,var(--portal-paper) 87%,transparent)),url('../images/ornament.svg');
+  background-size: auto,132px 132px;
+}
+.top {
+  width: 288px !important;
+  padding: 28px 22px !important;
+  background-image: linear-gradient(165deg,color-mix(in srgb,var(--portal-dark) 96%,#06150f),var(--portal-primary)),url('../images/ornament.svg') !important;
+  background-size: auto,132px 132px !important;
+}
+.top > div { padding: 8px 8px 24px !important; }
+.top strong { font-size: 1.18rem !important; }
+.portal-logo { width: 58px; height: 58px; margin-bottom: 9px; }
+.tabs { left: 22px !important; top: 172px !important; width: 244px !important; }
+.tabs a { padding: 12px 14px !important; }
+.wrap {
+  position: relative;
+  width: min(1220px,calc(100% - 352px)) !important;
+  margin-left: 288px !important;
+  padding-top: 132px !important;
+}
+.wrap::before {
+  content: 'Ruang kerja administrasi';
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 288px;
+  right: 0;
+  height: 86px;
+  padding: 0 clamp(28px,4vw,58px);
+  display:flex;
+  align-items:center;
+  background:rgba(255,255,255,.94);
+  border-bottom:1px solid var(--portal-line);
+  box-shadow:0 8px 20px rgba(20,34,26,.04);
+  color:var(--portal-ink);
+  font:700 1.08rem/1 'El Messiri','Segoe UI',sans-serif;
+}
+.wrap::after {
+  content:'Kelola konten, galeri, pendaftar, dan informasi unit dari satu ruang kerja.';
+  position:fixed;
+  z-index:11;
+  top:53px;
+  left:clamp(316px,calc(288px + 4vw),346px);
+  color:var(--portal-muted);
+  font-size:.68rem;
+}
+.panel { border-radius: 12px !important; box-shadow: 0 14px 36px rgba(28,42,33,.08) !important; }
+.panel h2 { font-size:1.6rem !important; }
+.grid { gap:18px!important; }
+.stat { min-height:130px; border-radius:12px!important; background:rgba(255,255,255,.92)!important; }
+.stat b { font-size:2.25rem!important; }
+input,textarea,select { min-height:45px; }
+button { min-height:42px; }
+
+.login { z-index:2; }
+body:has(.login) {
+  min-height:100vh;
+  display:grid !important;
+  grid-template-columns:minmax(0,52%) minmax(0,48%);
+  place-items:center;
+  background:#fffdf8!important;
+}
+body:has(.login)::before {
+  content:'Administrasi Unit\A Lebih Terarah';
+  white-space:pre-line;
+  z-index:0;
+  inset:0 48% 0 0;
+  width:auto;
+  height:auto;
+  padding:clamp(120px,22vh,220px) 8vw;
+  display:flex;
+  align-items:center;
+  color:#fff;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--portal-dark) 94%,#06150f),color-mix(in srgb,var(--portal-primary) 88%,transparent)),url('../images/hero.jpeg') center/cover;
+  font:700 clamp(2.7rem,5vw,5.25rem)/1.04 'El Messiri','Segoe UI',sans-serif;
+}
+body:has(.login)::after {
+  content:'Kelola publikasi sekolah dan administrasi SPMB melalui ruang kerja yang aman, efisien, dan terintegrasi.';
+  z-index:1;
+  left:8vw;
+  top:auto;
+  bottom:17vh;
+  width:min(32vw,520px);
+  color:rgba(255,255,255,.8);
+  font-size:1rem;
+  line-height:1.75;
+}
+.login {
+  grid-column:2;
+  width:min(520px,78%) !important;
+  min-height:auto!important;
+  margin:0!important;
+  padding:56px!important;
+  border:1px solid var(--portal-line)!important;
+  border-radius:12px!important;
+  box-shadow:0 22px 55px rgba(28,42,33,.1)!important;
+  background:rgba(255,255,255,.96)!important;
+}
+.login h1 { font-size:clamp(2.3rem,3.2vw,3.1rem)!important; }
+.login-logo { width:68px; height:68px; margin-bottom:20px; }
+
+@media(max-width:980px) {
+  .top{width:236px!important}.tabs{left:16px!important;width:204px!important}.wrap{margin-left:236px!important;width:min(100% - 270px,1180px)!important}.wrap::before{left:236px}.wrap::after{left:calc(236px + 4vw)} body:has(.login){grid-template-columns:43% 57%} body:has(.login)::before{inset:0 57% 0 0;padding-inline:5vw}body:has(.login)::after{left:5vw;width:33vw}.login{width:min(460px,84%)!important;padding:44px!important}
+}
+@media(max-width:720px) {
+  .wrap{padding-top:24px!important}.wrap::before,.wrap::after{display:none}.top{width:auto!important;background-image:linear-gradient(135deg,var(--portal-dark),var(--portal-primary))!important}.tabs{background:var(--portal-dark)!important}body:has(.login){display:block!important;background:var(--portal-paper)!important}body:has(.login)::before,body:has(.login)::after{display:none}.login{width:min(100% - 36px,480px)!important;margin:0 auto!important;padding:44px 28px!important;box-shadow:none!important;border:0!important;background:transparent!important}
+}

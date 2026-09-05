@@ -63,6 +63,12 @@ unset($activityItem);
 $school_advantages = school_advantages();
 $unitCatalog = school_unit_catalog();
 $unit_image_map = array_combine(array_keys($unitCatalog), array_column($unitCatalog, 'image'));
+$unit_site_links = [
+    'daycare' => SITE_URL . '/daycare/',
+    'tkit' => SITE_URL . '/tkit/',
+    'sdit' => SITE_URL . '/sdit/',
+    'smpit' => SITE_URL . '/smpit/',
+];
 $unit_icons = [
     '<svg viewBox="0 0 24 24"><path d="M12 21s-7-3.9-7-10V5l7-3 7 3v6c0 6.1-7 10-7 10Z"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>',
     '<svg viewBox="0 0 24 24"><path d="M4 19V6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 0 4 21"/><path d="M8 8h8"/><path d="M8 12h6"/></svg>',
@@ -160,7 +166,7 @@ require_once __DIR__ . '/../components/header.php';
             <p>Menyediakan jenjang pendidikan berkelanjutan dari usia dini hingga menengah atas.</p>
         </div>
         <div class="grid-4 unit-home-grid">
-            <?php foreach($home_units as $index => $unit): ?><?php $unit_key = strtolower($unit['subtitle'] ?: 'unit-'.$unit['id']); ?><div class="card unit-card"><div class="unit-card-photo"><img src="<?php echo esc($unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg')); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>"><span><?php echo $unit_icons[$index % count($unit_icons)]; ?><?php echo esc($unit['subtitle'] ?: $unit['title']); ?></span></div><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><a href="unit.php#<?php echo esc($unit_key); ?>" class="btn btn-outline btn-sm">Lihat Detail</a></div></div><?php endforeach; ?>
+            <?php foreach($home_units as $index => $unit): ?><?php $unit_key = strtolower($unit['slug'] ?: $unit['subtitle'] ?: 'unit-'.$unit['id']); $unit_link = $unit_site_links[$unit_key] ?? ('unit.php#' . $unit_key); ?><div class="card unit-card"><div class="unit-card-photo"><img src="<?php echo esc($unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg')); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>"><span><?php echo $unit_icons[$index % count($unit_icons)]; ?><?php echo esc($unit['subtitle'] ?: $unit['title']); ?></span></div><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><div class="unit-card-actions"><a href="unit.php#<?php echo esc($unit_key); ?>" class="btn btn-outline btn-sm">Lihat Detail</a><a href="<?php echo esc($unit_link); ?>" class="btn btn-primary btn-sm">Kunjungi Website Unit</a></div></div></div><?php endforeach; ?>
         </div>
     </div>
 </section>
