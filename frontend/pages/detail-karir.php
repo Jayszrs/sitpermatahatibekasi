@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert = $pdo->prepare('INSERT INTO job_applications (vacancy_id,full_name,email,phone,city,education,experience_years,cover_letter,cv_file,cv_original_name,portfolio_url) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
             $insert->execute([$job['id'],$old['full_name'],$old['email'],$old['phone'],$old['city']?:null,$old['education']?:null,max(0,(float)$old['experience_years']),$old['cover_letter'],$cv['url'],$cv['name'],$old['portfolio_url']?:null]);
         } catch (Throwable $e) {
-            $path = dirname(__DIR__) . '/assets/uploads/careers/' . basename((string)parse_url($cv['url'], PHP_URL_PATH));
-            if (is_file($path)) unlink($path);
+            $path = app_private_cv_path($cv['url']);
+            if ($path && is_file($path)) unlink($path);
             throw $e;
         }
         header('Location: ' . SITE_URL . '/detail-karir.php?slug=' . urlencode($job['slug']) . '&submitted=1');
