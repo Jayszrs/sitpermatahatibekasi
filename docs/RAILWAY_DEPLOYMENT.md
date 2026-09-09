@@ -19,13 +19,13 @@ Referensi perilaku Railpack: PHP dideteksi dari `index.php`/`composer.json`, ver
 
 - Project privat: `sit-permata-hati-demo-v2`
 - Environment: `production`
-- Web service: `web-railpack-v2`, source repo `Jayszrs/sitpermatahatibekasi`, branch `deploy/railway-demo-v2`
+- Web service: `web-railpack-v2`, source fork `lakchamana/sitpermatahatibekasi`, branch `deploy/railway-demo-v2`
 - Database service: `mysql-demo-v2`, dengan volume persisten pada path data MySQL
 - Volume web: `uploads-v2`, mount `/data`
 - Main database: nilai `MYSQLDATABASE` dari service MySQL
 - Database unit: `school_units_portal` pada server MySQL yang sama
 
-Project Railway lama tidak boleh diubah atau dihapus. Service lama `render-db-bootstrap-temp` juga tidak perlu disentuh selama project baru dapat dibuat.
+Deployment V2 hanya memakai project `sit-permata-hati-demo-v2`. Project Railway percobaan sebelumnya tidak menjadi dependency dan tidak perlu dihubungkan kembali.
 
 ## Variable web
 
@@ -102,4 +102,4 @@ Isi `DB_HOST`, `DB_PORT`, `DB_USER`, dan `DB_PASS` melalui environment lokal seb
 6. Redeploy web. Pastikan gambar pada volume tetap tersedia dan `/health` kembali 200.
 7. Trigger satu redeploy lagi dan ulangi health/crawl. Kriteria selesai adalah dua deployment berturut-turut berstatus sehat.
 
-Jika integrasi Railway belum memiliki akses ke repo `Jayszrs/sitpermatahatibekasi`, izinkan repo tersebut satu kali dari pengaturan GitHub Railway. Jika connector tidak dapat membuat volume, pasang `mysql-demo-v2` ke volume database dan `web-railpack-v2` ke `uploads-v2` satu kali melalui dashboard sesuai mount path di atas.
+Jika integrasi Railway belum memiliki akses ke fork `lakchamana/sitpermatahatibekasi`, izinkan fork tersebut satu kali dari pengaturan GitHub Railway. Source upstream `Jayszrs/sitpermatahatibekasi` tidak digunakan langsung karena akun deploy tidak memiliki akses kolaborator. Jika connector tidak dapat membuat volume, pasang `mysql-demo-v2` ke volume database dan `web-railpack-v2` ke `uploads-v2` satu kali melalui dashboard sesuai mount path di atas.
