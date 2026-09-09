@@ -1,6 +1,9 @@
 <?php
 
 date_default_timezone_set('Asia/Jakarta');
+$projectRoot = dirname(__DIR__);
+require_once $projectRoot . '/backend/config/unit_database.php';
+require_once $projectRoot . '/backend/config/storage.php';
 $unit_config = require __DIR__ . '/config.php';
 
 function unit_base_url(): string {
@@ -9,7 +12,9 @@ function unit_base_url(): string {
     $relative = $root !== '' && str_starts_with(str_replace('\\', '/', $folder), str_replace('\\', '/', $root))
         ? substr(str_replace('\\', '/', $folder), strlen(rtrim(str_replace('\\', '/', $root), '/')))
         : '/school-website/' . basename(__DIR__);
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+    $scheme = $secure ? 'https' : 'http';
     return $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim($relative, '/');
 }
 
@@ -23,16 +28,14 @@ function unit_media(?string $path, string $fallback = 'assets/images/hero.jpeg')
     $path = trim((string) $path);
     if ($path === '') $path = $fallback;
     if (preg_match('~^https?://~i', $path)) return $path;
+    if (str_starts_with($path, '/')) return $path;
     return unit_url($path);
 }
 
 function unit_db(): PDO {
     static $pdo = null;
     if ($pdo instanceof PDO) return $pdo;
-    $host = 'localhost'; $user = 'root'; $pass = ''; $name = 'school_units_portal';
-    $server = new PDO("mysql:host={$host};charset=utf8mb4", $user, $pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $server->exec("CREATE DATABASE IF NOT EXISTS `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo = new PDO("mysql:host={$host};dbname={$name};charset=utf8mb4", $user, $pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+    $pdo = unit_database_connection();
     unit_ensure_schema($pdo);
     unit_seed_defaults($pdo);
     return $pdo;

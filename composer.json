@@ -1,0 +1,17 @@
+{
+    "name": "jayszrs/sit-permata-hati-bekasi",
+    "description": "Company profile dan portal demo SIT Permata Hati Bekasi.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "~8.3.0",
+        "ext-fileinfo": "*",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

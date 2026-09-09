@@ -3,6 +3,8 @@
  * Autentikasi dan otorisasi portal internal.
  */
 
+require_once __DIR__ . '/config/storage.php';
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_name('tbz_portal_session');
     session_set_cookie_params([
@@ -10,7 +12,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
         'path' => defined('APP_COOKIE_PATH') ? APP_COOKIE_PATH : '/',
         'httponly' => true,
         'samesite' => 'Lax',
-        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https',
     ]);
     session_start();
 }
@@ -573,30 +576,8 @@ function portal_slug(string $title): string
 
 function portal_upload_image(array $file, string $prefix = 'content'): string
 {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-        throw new RuntimeException('Pilih gambar yang akan diunggah.');
-    }
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        throw new RuntimeException('Gambar gagal diunggah.');
-    }
-    if (($file['size'] ?? 0) > 5 * 1024 * 1024) {
-        throw new RuntimeException('Ukuran gambar maksimal 5 MB.');
-    }
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = $finfo->file($file['tmp_name']);
-    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-    if (!isset($extensions[$mime])) {
-        throw new RuntimeException('Format gambar harus JPG, PNG, atau WebP.');
-    }
-    $directory = __DIR__ . '/../frontend/assets/uploads';
-    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-        throw new RuntimeException('Folder upload tidak dapat dibuat.');
-    }
-    $filename = $prefix . '-' . date('Ymd-His') . '-' . bin2hex(random_bytes(5)) . '.' . $extensions[$mime];
-    if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) {
-        throw new RuntimeException('Gagal menyimpan gambar.');
-    }
-    return SITE_URL . '/frontend/assets/uploads/' . $filename;
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) throw new RuntimeException('Pilih gambar yang akan diunggah.');
+    return app_store_public_image($file, 'public', $prefix);
 }
 
 function portal_upload_hero_media(array $file, string $mediaType): string
@@ -610,11 +591,10 @@ function portal_upload_hero_media(array $file, string $mediaType): string
         ? ['video/mp4' => 'mp4', 'video/webm' => 'webm']
         : ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
     if (!isset($allowed[$mime])) throw new RuntimeException($mediaType === 'video' ? 'Video harus MP4 atau WebM.' : 'Gambar harus JPG, PNG, WebP, atau GIF.');
-    $directory = __DIR__ . '/../frontend/assets/uploads';
-    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) throw new RuntimeException('Folder upload tidak dapat dibuat.');
+    $directory = app_ensure_storage_directory('public');
     $filename = 'hero-' . date('Ymd-His') . '-' . bin2hex(random_bytes(5)) . '.' . $allowed[$mime];
     if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) throw new RuntimeException('Gagal menyimpan media hero.');
-    return SITE_URL . '/frontend/assets/uploads/' . $filename;
+    return app_public_media_url('public/' . $filename);
 }
 
 function portal_upload_brochure(array $file): string
@@ -624,21 +604,22 @@ function portal_upload_brochure(array $file): string
     if (($file['size'] ?? 0) > 15 * 1024 * 1024) throw new RuntimeException('Ukuran brosur maksimal 15 MB.');
     $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
     if ($mime !== 'application/pdf') throw new RuntimeException('Brosur harus berupa file PDF.');
-    $directory = __DIR__ . '/../frontend/assets/uploads';
-    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) throw new RuntimeException('Folder upload tidak dapat dibuat.');
+    $directory = app_ensure_storage_directory('public');
     $filename = 'brosur-' . date('Ymd-His') . '-' . bin2hex(random_bytes(5)) . '.pdf';
     if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) throw new RuntimeException('Gagal menyimpan brosur.');
-    return SITE_URL . '/frontend/assets/uploads/' . $filename;
+    return app_public_media_url('public/' . $filename);
 }
 
 function portal_delete_uploaded_image(?string $url): void
 {
-    $uploadUrl = SITE_URL . '/frontend/assets/uploads/';
-    if (!$url || strpos($url, $uploadUrl) !== 0) return;
-    $filename = basename((string)parse_url($url, PHP_URL_PATH));
-    if ($filename === '' || $filename === '.' || $filename === '..') return;
-    $directory = realpath(__DIR__ . '/../frontend/assets/uploads');
-    if (!$directory) return;
-    $target = $directory . DIRECTORY_SEPARATOR . $filename;
+    if (!$url) return;
+    $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
+    if (str_starts_with($path, '/media/public/')) {
+        $target = app_storage_path('public/' . basename($path));
+    } elseif (str_contains($path, '/frontend/assets/uploads/')) {
+        $target = dirname(__DIR__) . '/frontend/assets/uploads/' . basename($path);
+    } else {
+        return;
+    }
     if (is_file($target)) unlink($target);
 }

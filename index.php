@@ -4,6 +4,13 @@
  * Mengarahkan request ke halaman di dalam frontend/pages/
  */
 
+// Health check tidak menjalankan migrasi dan tidak membuka detail koneksi.
+$incomingPath = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+if ($incomingPath === 'health' || str_ends_with($incomingPath, '/health')) {
+    require __DIR__ . '/backend/health.php';
+    exit;
+}
+
 // Load konfigurasi backend dan koneksi database
 require_once __DIR__ . '/backend/config/database.php';
 require_once __DIR__ . '/backend/helpers/functions.php';

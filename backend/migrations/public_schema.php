@@ -16,6 +16,102 @@ function ensure_public_schema(PDO $pdo): void
         applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    // Tabel fondasi harus dibuat di sini agar instalasi kosong tidak bergantung
+    // pada import dump manual. Data yang sudah ada tidak ditimpa.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS news (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        unit VARCHAR(20) NOT NULL DEFAULT 'SDIT',
+        image VARCHAR(255) NULL,
+        excerpt TEXT NULL,
+        content LONGTEXT NULL,
+        published_at DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_news_unit_date (unit,published_at,id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS gallery (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        image VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS contacts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(150) NOT NULL,
+        email VARCHAR(150) NOT NULL,
+        whatsapp VARCHAR(30) NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS spmb_registrations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        registration_number VARCHAR(40) NULL,
+        student_name VARCHAR(150) NOT NULL,
+        student_nik VARCHAR(30) NULL,
+        gender ENUM('L','P') NULL,
+        birth_place VARCHAR(100) NULL,
+        birth_date DATE NULL,
+        parent_name VARCHAR(150) NOT NULL,
+        parent_nik VARCHAR(30) NULL,
+        family_card_number VARCHAR(30) NULL,
+        whatsapp VARCHAR(30) NOT NULL,
+        email VARCHAR(150) NULL,
+        level VARCHAR(20) NOT NULL,
+        academic_year VARCHAR(9) NULL,
+        admission_track ENUM('reguler','waiting_list') NOT NULL DEFAULT 'reguler',
+        previous_school VARCHAR(150) NULL,
+        address TEXT NULL,
+        registration_status ENUM('baru','verifikasi','lulus','cadangan','ditolak','daftar_ulang') NOT NULL DEFAULT 'baru',
+        document_status ENUM('belum_lengkap','lengkap','terverifikasi') NOT NULL DEFAULT 'belum_lengkap',
+        payment_status ENUM('belum_bayar','sebagian','lunas') NOT NULL DEFAULT 'belum_bayar',
+        payment_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+        payment_method VARCHAR(50) NULL,
+        payment_date DATE NULL,
+        payment_notes TEXT NULL,
+        payment_updated_by INT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS site_content_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        type VARCHAR(30) NOT NULL,
+        title VARCHAR(180) NOT NULL,
+        subtitle VARCHAR(180) NULL,
+        description TEXT NOT NULL,
+        image VARCHAR(255) NULL,
+        badge VARCHAR(80) NULL,
+        year VARCHAR(10) NULL,
+        extra TEXT NULL,
+        link_url VARCHAR(255) NULL,
+        link_label VARCHAR(80) NULL,
+        unit_slug VARCHAR(30) NULL,
+        education VARCHAR(255) NULL,
+        teaching_scope VARCHAR(255) NULL,
+        whatsapp VARCHAR(30) NULL,
+        instagram_url VARCHAR(255) NULL,
+        youtube_url VARCHAR(255) NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_content_type (type,is_active,sort_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS site_profile (
+        id TINYINT PRIMARY KEY,
+        history_title VARCHAR(180) NOT NULL,
+        history_content TEXT NOT NULL,
+        vision TEXT NOT NULL,
+        mission TEXT NOT NULL,
+        image VARCHAR(255) NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
     $tableExists = static function (string $table) use ($pdo): bool {
         $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME=?');
         $stmt->execute([DB_NAME, $table]);

@@ -1,0 +1,31 @@
+{
+    admin off
+    persist_config off
+    auto_https off
+    log {
+        format json
+        output stderr
+        level INFO
+    }
+    frankenphp
+}
+
+:{$PORT:80} {
+    encode zstd br gzip
+
+    @persistent_media path /media/*
+    handle @persistent_media {
+        uri strip_prefix /media
+        root * /data/uploads
+        file_server
+    }
+
+    handle {
+        root * {$RAILPACK_PHP_ROOT_DIR:/app}
+        file_server {
+            hide .git
+            hide .env*
+        }
+        php_server
+    }
+}

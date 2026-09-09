@@ -3,6 +3,8 @@
  * Pengaturan Umum Website dan Fungsi Pembantu (Helpers)
  */
 
+require_once __DIR__ . '/../config/storage.php';
+
 // ==== PENGATURAN UMUM WEBSITE ====
 define('SITE_NAME', 'SIT Permata Hati Bekasi');
 define('SITE_TAGLINE', 'Sekolah Islam Terpadu - Sholeh, Cerdas, Mandiri, dan Berwawasan Global');
@@ -68,6 +70,7 @@ function public_media_url(?string $url, ?string $fallback = null): string {
     if ($value === '') return $fallback;
 
     $normalized = str_replace('\\', '/', $value);
+    if (str_starts_with($normalized, '/') && str_contains($normalized, '/media/')) return $normalized;
     $marker = '/frontend/assets/';
     $markerPosition = strpos($normalized, $marker);
     if ($markerPosition !== false) {
@@ -219,7 +222,7 @@ function school_advantages(): array {
 function public_form_csrf_token(): string {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_name('phb_public_session');
-        session_set_cookie_params(['lifetime' => 0, 'path' => defined('APP_COOKIE_PATH') ? APP_COOKIE_PATH : '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
+        session_set_cookie_params(['lifetime' => 0, 'path' => defined('APP_COOKIE_PATH') ? APP_COOKIE_PATH : '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https']);
         session_start();
     }
     if (empty($_SESSION['public_csrf'])) $_SESSION['public_csrf'] = bin2hex(random_bytes(32));
@@ -242,11 +245,10 @@ function upload_career_document(array $file): array {
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
     ];
     if (!isset($extensions[$mime])) throw new RuntimeException('Format CV harus PDF, DOC, atau DOCX.');
-    $directory = dirname(__DIR__, 2) . '/frontend/assets/uploads/careers';
-    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) throw new RuntimeException('Folder CV tidak dapat dibuat.');
+    $directory = app_ensure_storage_directory('private/careers');
     $filename = 'cv-' . date('Ymd-His') . '-' . bin2hex(random_bytes(6)) . '.' . $extensions[$mime];
     if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) throw new RuntimeException('CV gagal disimpan.');
-    return ['url' => SITE_URL . '/frontend/assets/uploads/careers/' . $filename, 'name' => basename((string)($file['name'] ?? 'CV'))];
+    return ['url' => 'private/careers/' . $filename, 'name' => basename((string)($file['name'] ?? 'CV'))];
 }
 
 // Helper untuk format tanggal Indonesia

@@ -1,5 +1,7 @@
 # School Website — Panduan Instalasi (XAMPP)
 
+> Konfigurasi Railway demo V2 tersedia di [`docs/RAILWAY_DEPLOYMENT.md`](docs/RAILWAY_DEPLOYMENT.md). Konfigurasi tersebut demo-only dan berada di branch terpisah dari `main`.
+
 ## 1. Salin Folder Project
 Salin folder `school-website` ke dalam:
 ```
