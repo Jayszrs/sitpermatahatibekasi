@@ -12,6 +12,8 @@ Dokumen ini khusus untuk branch `deploy/railway-demo-v2`. Jangan merge branch in
 | Koneksi dengan fallback `localhost/root` | Railway dapat diam-diam mencoba database di container web dan exception terlihat ke pengunjung. | Railway memakai `MYSQL*`; XAMPP memakai `.env`. Konfigurasi yang hilang atau koneksi gagal menghasilkan HTTP 503 dan log tanpa credential. |
 | Migrasi mengasumsikan dump sudah di-import | Database kosong tidak mempunyai tabel fondasi. | Migrasi membuat tabel fondasi, tabel konten, karir, lalu seed demo secara idempoten. Dump Downloads dan data privat tidak digunakan. |
 | Upload ditulis ke source container | File hilang setelah redeploy; CV berpotensi berada di web root. | Upload memakai `/data/uploads`; media publik disajikan di `/media`, sedangkan CV berada di `private/careers` dan hanya diunduh melalui portal terautentikasi. |
+| Router memakai `dirname(SCRIPT_NAME)` | FrankenPHP mengisi `SCRIPT_NAME` dari clean URL sehingga halaman bertingkat seperti `/portal/admin` dipotong menjadi rute yang salah dan menghasilkan 404. | Router menghapus hanya `APP_BASE_PATH`, sehingga clean URL bertingkat bekerja di root Railway maupun subfolder XAMPP. |
+| Tautan YouTube lama memakai `http://` | Audit HTTPS menandai halaman publik masih memuat tautan tidak aman. | Seluruh tautan YouTube bawaan memakai `https://`; tidak ada resource atau navigasi publik yang diturunkan ke HTTP. |
 
 Referensi perilaku Railpack: PHP dideteksi dari `index.php`/`composer.json`, versi dibaca dari Composer, ekstensi Composer dipasang otomatis, dan `Caddyfile` serta `php.ini` di root menggantikan konfigurasi default. Lihat dokumentasi resmi [Railpack PHP](https://railpack.com/languages/php) dan [Railway Railpack](https://docs.railway.com/builds/railpack).
 

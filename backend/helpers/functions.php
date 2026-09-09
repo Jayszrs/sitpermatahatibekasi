@@ -39,8 +39,8 @@ define('SITE_DAYCARE_INSTAGRAM', 'https://www.instagram.com/daycarepermatahati.b
 define('SITE_TKIT_INSTAGRAM', 'https://www.instagram.com/tkitpermatahatibekasi/');
 define('SITE_SDIT_INSTAGRAM', 'https://www.instagram.com/sditphbekasi/');
 define('SITE_SMPIT_INSTAGRAM', 'https://www.instagram.com/smpit_permatahati/?hl=id');
-define('SITE_SDIT_YOUTUBE', 'http://www.youtube.com/@sditpermatahatibekasi99');
-define('SITE_SMPIT_YOUTUBE', 'http://www.youtube.com/@smpit_permatahati');
+define('SITE_SDIT_YOUTUBE', 'https://www.youtube.com/@sditpermatahatibekasi99');
+define('SITE_SMPIT_YOUTUBE', 'https://www.youtube.com/@smpit_permatahati');
 define('SITE_DAYCARE_YOUTUBE', SITE_YOUTUBE);
 define('SITE_TKIT_YOUTUBE', SITE_YOUTUBE);
 
