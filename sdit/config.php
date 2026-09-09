@@ -20,7 +20,7 @@ return [
         'address' => 'Kp. Buwek Jaya Gg. Buser No. 23-24, Sumberjaya, Tambun Selatan, Bekasi, Jawa Barat 17510',
         'maps' => 'https://www.google.com/maps/place/SDIT+Permata+Hati/@-6.2391594,107.0796598,17z',
         'instagram' => 'https://www.instagram.com/sditphbekasi/',
-        'youtube' => 'http://www.youtube.com/@sditpermatahatibekasi99',
+        'youtube' => 'https://www.youtube.com/@sditpermatahatibekasi99',
     ],
     'hero_image' => 'assets/images/hero.jpeg',
     'building_image' => 'assets/images/building.webp',
