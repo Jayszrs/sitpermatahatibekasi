@@ -15,13 +15,20 @@ if ($incomingPath === 'health' || str_ends_with($incomingPath, '/health')) {
 require_once __DIR__ . '/backend/config/database.php';
 require_once __DIR__ . '/backend/helpers/functions.php';
 
-// Tentukan halaman dari URL (default ke beranda)
-$request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$script_name = $_SERVER['SCRIPT_NAME'];
+// Tentukan halaman dari URL (default ke beranda). SCRIPT_NAME pada
+// FrankenPHP mengikuti clean URL yang diminta, sehingga dirname(SCRIPT_NAME)
+// tidak aman dipakai untuk menghitung base path halaman bertingkat seperti
+// /portal/admin. APP_BASE_PATH konsisten untuk root Railway dan subfolder XAMPP.
+$request_uri = (string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$base_path = defined('APP_BASE_PATH') ? rtrim(APP_BASE_PATH, '/') : '';
+if ($base_path !== '' && ($request_uri === $base_path || str_starts_with($request_uri, $base_path . '/'))) {
+    $request_uri = substr($request_uri, strlen($base_path));
+}
+$path = trim(str_replace('\\', '/', $request_uri), '/');
 
-// Dapatkan path relatif terhadap script
-$path = str_replace(dirname($script_name), '', $request_uri);
-$path = trim($path, '/');
+if (in_array('..', explode('/', $path), true)) {
+    $path = '__invalid_path__';
+}
 
 // Jika kosong atau index.php, arahkan ke beranda
 if (empty($path) || $path === 'index.php') {

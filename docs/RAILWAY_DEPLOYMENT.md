@@ -6,12 +6,15 @@ Dokumen ini khusus untuk branch `deploy/railway-demo-v2`. Jangan merge branch in
 
 | Pendekatan lama | Gejala | Perubahan V2 |
 |---|---|---|
-| Paket APT `php8.4-mysql` | Paket tidak tersedia di image deploy Railpack sehingga build berhenti dengan exit 100. | PHP dikunci ke 8.3 dan ekstensi dinyatakan sebagai requirement Composer. Railpack membaca `ext-pdo_mysql`, `ext-mbstring`, dan `ext-fileinfo` langsung dari `composer.json`. |
+| Paket APT `php8.4-mysql` | Paket tidak tersedia di image deploy Railpack sehingga build berhenti dengan exit 100. | PHP mengikuti runtime default Railpack 8.4 dan ekstensi dinyatakan sebagai requirement Composer. Railpack membaca `ext-pdo_mysql`, `ext-mbstring`, dan `ext-fileinfo` langsung dari `composer.json`. Constraint `~8.3.0` sengaja tidak dipakai karena Railpack 0.39 tidak lagi menemukan image yang cocok, sementara aplikasi tetap dapat diuji di XAMPP PHP 8.3. |
 | Docker + Apache | `pdo_mysql` berhasil dikompilasi, tetapi container crash karena lebih dari satu MPM Apache dimuat. | Dockerfile, Apache, dan Nixpacks tidak digunakan. Runtime mengikuti Railpack + FrankenPHP. |
 | `RAILPACK_PHP_EXTENSIONS` dan paket deploy APT | Hasilnya bergantung pada nama paket OS dan image runtime. | Kedua variable tersebut sengaja tidak dipasang. Composer menjadi sumber kebutuhan ekstensi. |
 | Koneksi dengan fallback `localhost/root` | Railway dapat diam-diam mencoba database di container web dan exception terlihat ke pengunjung. | Railway memakai `MYSQL*`; XAMPP memakai `.env`. Konfigurasi yang hilang atau koneksi gagal menghasilkan HTTP 503 dan log tanpa credential. |
 | Migrasi mengasumsikan dump sudah di-import | Database kosong tidak mempunyai tabel fondasi. | Migrasi membuat tabel fondasi, tabel konten, karir, lalu seed demo secara idempoten. Dump Downloads dan data privat tidak digunakan. |
-| Upload ditulis ke source container | File hilang setelah redeploy; CV berpotensi berada di web root. | Upload memakai `/data/uploads`; media publik disajikan di `/media`, sedangkan CV berada di `private/careers` dan hanya diunduh melalui portal terautentikasi. |
+| Upload ditulis ke source container | File hilang setelah redeploy; CV berpotensi berada di web root. | Upload memakai `/data/uploads`; Caddy hanya menyajikan `/media/public/*` dan `/media/units/*`, menolak `/media/private/*`, sedangkan CV hanya diunduh melalui portal terautentikasi. |
+| Router memakai `dirname(SCRIPT_NAME)` | FrankenPHP mengisi `SCRIPT_NAME` dari clean URL sehingga halaman bertingkat seperti `/portal/admin` dipotong menjadi rute yang salah dan menghasilkan 404. | Router menghapus hanya `APP_BASE_PATH`, sehingga clean URL bertingkat bekerja di root Railway maupun subfolder XAMPP. |
+| Tautan YouTube lama memakai `http://` | Audit HTTPS menandai halaman publik masih memuat tautan tidak aman. | Seluruh tautan YouTube bawaan memakai `https://`; tidak ada resource atau navigasi publik yang diturunkan ke HTTP. |
+| Bootstrap memakai host request health check | Request pertama Railway dapat memakai host internal `healthcheck.railway.app`, lalu URL absolut internal tersimpan pada seed. | `SITE_URL` memprioritaskan `RAILWAY_PUBLIC_DOMAIN`; migrasi idempoten mengganti URL health-check lama ke domain publik tanpa mengubah data pengguna. |
 
 Referensi perilaku Railpack: PHP dideteksi dari `index.php`/`composer.json`, versi dibaca dari Composer, ekstensi Composer dipasang otomatis, dan `Caddyfile` serta `php.ini` di root menggantikan konfigurasi default. Lihat dokumentasi resmi [Railpack PHP](https://railpack.com/languages/php) dan [Railway Railpack](https://docs.railway.com/builds/railpack).
 
@@ -19,13 +22,13 @@ Referensi perilaku Railpack: PHP dideteksi dari `index.php`/`composer.json`, ver
 
 - Project privat: `sit-permata-hati-demo-v2`
 - Environment: `production`
-- Web service: `web-railpack-v2`, source repo `Jayszrs/sitpermatahatibekasi`, branch `deploy/railway-demo-v2`
+- Web service: `web-railpack-v2`, source fork `lakchamana/sitpermatahatibekasi`, branch `deploy/railway-demo-v2`
 - Database service: `mysql-demo-v2`, dengan volume persisten pada path data MySQL
 - Volume web: `uploads-v2`, mount `/data`
 - Main database: nilai `MYSQLDATABASE` dari service MySQL
 - Database unit: `school_units_portal` pada server MySQL yang sama
 
-Project Railway lama tidak boleh diubah atau dihapus. Service lama `render-db-bootstrap-temp` juga tidak perlu disentuh selama project baru dapat dibuat.
+Deployment V2 hanya memakai project `sit-permata-hati-demo-v2`. Project Railway percobaan sebelumnya tidak menjadi dependency dan tidak perlu dihubungkan kembali.
 
 ## Variable web
 
@@ -102,4 +105,4 @@ Isi `DB_HOST`, `DB_PORT`, `DB_USER`, dan `DB_PASS` melalui environment lokal seb
 6. Redeploy web. Pastikan gambar pada volume tetap tersedia dan `/health` kembali 200.
 7. Trigger satu redeploy lagi dan ulangi health/crawl. Kriteria selesai adalah dua deployment berturut-turut berstatus sehat.
 
-Jika integrasi Railway belum memiliki akses ke repo `Jayszrs/sitpermatahatibekasi`, izinkan repo tersebut satu kali dari pengaturan GitHub Railway. Jika connector tidak dapat membuat volume, pasang `mysql-demo-v2` ke volume database dan `web-railpack-v2` ke `uploads-v2` satu kali melalui dashboard sesuai mount path di atas.
+Jika integrasi Railway belum memiliki akses ke fork `lakchamana/sitpermatahatibekasi`, izinkan fork tersebut satu kali dari pengaturan GitHub Railway. Source upstream `Jayszrs/sitpermatahatibekasi` tidak digunakan langsung karena akun deploy tidak memiliki akses kolaborator. Jika connector tidak dapat membuat volume, pasang `mysql-demo-v2` ke volume database dan `web-railpack-v2` ke `uploads-v2` satu kali melalui dashboard sesuai mount path di atas.

@@ -146,6 +146,8 @@ function ensure_public_schema(PDO $pdo): void
         'http://127.0.0.1/school-website',
         'http://localhost/sitpermatahatibekasi',
         'http://127.0.0.1/sitpermatahatibekasi',
+        'http://healthcheck.railway.app',
+        'https://healthcheck.railway.app',
     ];
     $mediaColumns = [
         'news' => ['image'],

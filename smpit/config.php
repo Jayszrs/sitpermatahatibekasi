@@ -20,7 +20,7 @@ return [
         'address' => 'Jl. Astana No.98, Simpang Lima, Tridaya Sakti, Kec. Tambun Selatan, Kabupaten Bekasi, Jawa Barat 17510',
         'maps' => 'https://www.google.com/maps/place/SMPIT+Permata+Hati/@-6.2494549,107.0781991,17z',
         'instagram' => 'https://www.instagram.com/smpit_permatahati/?hl=id',
-        'youtube' => 'http://www.youtube.com/@smpit_permatahati',
+        'youtube' => 'https://www.youtube.com/@smpit_permatahati',
     ],
     'hero_image' => 'assets/images/hero.jpeg',
     'building_image' => 'assets/images/building.webp',

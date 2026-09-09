@@ -13,7 +13,10 @@
 :{$PORT:80} {
     encode zstd br gzip
 
-    @persistent_media path /media/*
+    @private_media path /media/private/*
+    respond @private_media 404
+
+    @persistent_media path /media/public/* /media/units/*
     handle @persistent_media {
         uri strip_prefix /media
         root * /data/uploads
