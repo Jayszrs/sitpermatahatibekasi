@@ -6,7 +6,7 @@ Dokumen ini khusus untuk branch `deploy/railway-demo-v2`. Jangan merge branch in
 
 | Pendekatan lama | Gejala | Perubahan V2 |
 |---|---|---|
-| Paket APT `php8.4-mysql` | Paket tidak tersedia di image deploy Railpack sehingga build berhenti dengan exit 100. | PHP dikunci ke 8.3 dan ekstensi dinyatakan sebagai requirement Composer. Railpack membaca `ext-pdo_mysql`, `ext-mbstring`, dan `ext-fileinfo` langsung dari `composer.json`. |
+| Paket APT `php8.4-mysql` | Paket tidak tersedia di image deploy Railpack sehingga build berhenti dengan exit 100. | PHP mengikuti runtime default Railpack 8.4 dan ekstensi dinyatakan sebagai requirement Composer. Railpack membaca `ext-pdo_mysql`, `ext-mbstring`, dan `ext-fileinfo` langsung dari `composer.json`. Constraint `~8.3.0` sengaja tidak dipakai karena Railpack 0.39 tidak lagi menemukan image yang cocok, sementara aplikasi tetap dapat diuji di XAMPP PHP 8.3. |
 | Docker + Apache | `pdo_mysql` berhasil dikompilasi, tetapi container crash karena lebih dari satu MPM Apache dimuat. | Dockerfile, Apache, dan Nixpacks tidak digunakan. Runtime mengikuti Railpack + FrankenPHP. |
 | `RAILPACK_PHP_EXTENSIONS` dan paket deploy APT | Hasilnya bergantung pada nama paket OS dan image runtime. | Kedua variable tersebut sengaja tidak dipasang. Composer menjadi sumber kebutuhan ekstensi. |
 | Koneksi dengan fallback `localhost/root` | Railway dapat diam-diam mencoba database di container web dan exception terlihat ke pengunjung. | Railway memakai `MYSQL*`; XAMPP memakai `.env`. Konfigurasi yang hilang atau koneksi gagal menghasilkan HTTP 503 dan log tanpa credential. |
