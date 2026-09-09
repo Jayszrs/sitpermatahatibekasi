@@ -52,11 +52,16 @@ if (!defined('APP_BASE_PATH')) {
     define('APP_BASE_PATH', rtrim($basePath, '/'));
 }
 if (!defined('SITE_URL')) {
-    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
-    $scheme = $isSecure ? 'https' : 'http';
-    $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
-    define('SITE_URL', $scheme . '://' . $host . APP_BASE_PATH);
+    $railwayPublicDomain = trim((string) app_env('RAILWAY_PUBLIC_DOMAIN', ''));
+    if ($railwayPublicDomain !== '' && preg_match('/^[a-zA-Z0-9.-]+(?::[0-9]+)?$/', $railwayPublicDomain)) {
+        define('SITE_URL', 'https://' . $railwayPublicDomain . APP_BASE_PATH);
+    } else {
+        $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+        $scheme = $isSecure ? 'https' : 'http';
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        define('SITE_URL', $scheme . '://' . $host . APP_BASE_PATH);
+    }
 }
 if (!defined('APP_COOKIE_PATH')) define('APP_COOKIE_PATH', APP_BASE_PATH === '' ? '/' : APP_BASE_PATH . '/');
 
