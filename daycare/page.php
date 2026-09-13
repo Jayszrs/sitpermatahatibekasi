@@ -5,13 +5,74 @@ require_once __DIR__ . '/layout.php';
 $page = $unit_page ?? 'home';
 $settings = unit_settings($pdo);
 
-if ($page === 'spmb' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $formMessage = ''; $formError = '';
-    if (!unit_verify_csrf($_POST['csrf'] ?? '')) $formError = 'Sesi formulir tidak valid. Silakan muat ulang halaman.';
-    else {
-        $parent = trim($_POST['parent_name'] ?? ''); $child = trim($_POST['child_name'] ?? ''); $phone = trim($_POST['phone'] ?? '');
-        if ($parent === '' || $child === '' || $phone === '') $formError = 'Nama orang tua, nama calon siswa, dan WhatsApp wajib diisi.';
-        else { $stmt=$pdo->prepare('INSERT INTO unit_enrollments (unit_slug,parent_name,child_name,phone,email,message) VALUES (?,?,?,?,?,?)'); $stmt->execute([UNIT_SLUG,$parent,$child,$phone,trim($_POST['email']??''),trim($_POST['message']??'')]); $message='Assalamu\'alaikum, saya '.$parent.' ingin mendaftarkan '.$child.' ke '.$settings['name'].'.'; header('Location: https://wa.me/'.preg_replace('/\D/','',$settings['whatsapp']).'?text='.rawurlencode($message)); exit; }
+$formError = '';
+$spmbOld = [];
+$spmbSuccess = false;
+$lockedLevel = '';
+$karirSlug = '';
+$karirErrors = [];
+$karirSubmitted = false;
+$karirJob = null;
+$karirJobs = [];
+$karirOld = [];
+if ($page === 'spmb') {
+    require_once __DIR__ . '/../backend/helpers/functions.php';
+    require_once __DIR__ . '/../backend/helpers/spmb_shared.php';
+    $lockedLevel = school_unit_catalog()[UNIT_SLUG]['subtitle'] ?? ucfirst(UNIT_SLUG);
+    $spmbOld = spmb_empty_fields($lockedLevel);
+    $spmbSuccess = false;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!unit_verify_csrf($_POST['csrf'] ?? '')) {
+            $formError = 'Sesi formulir tidak valid. Silakan muat ulang halaman.';
+            $spmbOld = spmb_fields_from_post($_POST, $lockedLevel);
+        } else {
+            require_once __DIR__ . '/../backend/helpers/unit_shared.php';
+            $mainPdo = unit_connect_main_site_pdo();
+            $spmbResult = spmb_validate_and_save($mainPdo, $_POST, $lockedLevel);
+            $spmbOld = $spmbResult['old'];
+            if ($spmbResult['success']) $spmbSuccess = true;
+            else $formError = implode(' ', $spmbResult['errors']);
+        }
+    }
+}
+
+if ($page === 'karir') {
+    require_once __DIR__ . '/../backend/helpers/unit_shared.php';
+    $mainPdo = unit_connect_main_site_pdo();
+    $karirSlug = trim($_GET['slug'] ?? '');
+    $karirErrors = [];
+    $karirSubmitted = isset($_GET['submitted']);
+    $karirJob = null;
+    $karirJobs = [];
+    $karirOld = ['full_name'=>'','email'=>'','phone'=>'','city'=>'','education'=>'','experience_years'=>'0','portfolio_url'=>'','cover_letter'=>''];
+    if ($karirSlug !== '') {
+        $stmt = $mainPdo->prepare("SELECT * FROM job_vacancies WHERE slug=? AND is_active=1 AND (deadline IS NULL OR deadline>=CURDATE()) LIMIT 1");
+        $stmt->execute([$karirSlug]);
+        $karirJob = $stmt->fetch() ?: null;
+        if ($karirJob && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            foreach (array_keys($karirOld) as $key) $karirOld[$key] = trim($_POST[$key] ?? $karirOld[$key]);
+            try {
+                public_verify_csrf($_POST['_token'] ?? null);
+                if (trim($_POST['website'] ?? '') !== '') throw new RuntimeException('Lamaran tidak dapat diproses.');
+                if ($karirOld['full_name']==='' || $karirOld['phone']==='' || $karirOld['cover_letter']==='') throw new RuntimeException('Nama, nomor WhatsApp, dan pengantar lamaran wajib diisi.');
+                if (!filter_var($karirOld['email'], FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Alamat email tidak valid.');
+                $portfolioScheme = $karirOld['portfolio_url'] !== '' ? strtolower((string) parse_url($karirOld['portfolio_url'], PHP_URL_SCHEME)) : '';
+                if ($karirOld['portfolio_url'] !== '' && (!filter_var($karirOld['portfolio_url'], FILTER_VALIDATE_URL) || !in_array($portfolioScheme, ['http','https'], true))) throw new RuntimeException('Tautan portofolio harus menggunakan http atau https.');
+                $cv = upload_career_document($_FILES['cv'] ?? []);
+                try {
+                    $insert = $mainPdo->prepare('INSERT INTO job_applications (vacancy_id,full_name,email,phone,city,education,experience_years,cover_letter,cv_file,cv_original_name,portfolio_url) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+                    $insert->execute([$karirJob['id'],$karirOld['full_name'],$karirOld['email'],$karirOld['phone'],$karirOld['city']?:null,$karirOld['education']?:null,max(0,(float)$karirOld['experience_years']),$karirOld['cover_letter'],$cv['url'],$cv['name'],$karirOld['portfolio_url']?:null]);
+                } catch (Throwable $e) {
+                    $path = app_private_cv_path($cv['url']);
+                    if ($path && is_file($path)) unlink($path);
+                    throw $e;
+                }
+                header('Location: karir.php?slug=' . urlencode($karirJob['slug']) . '&submitted=1');
+                exit;
+            } catch (Throwable $e) { $karirErrors[] = $e->getMessage(); }
+        }
+    } else {
+        $karirJobs = $mainPdo->query("SELECT * FROM job_vacancies WHERE is_active=1 AND (deadline IS NULL OR deadline>=CURDATE()) ORDER BY is_featured DESC, deadline ASC, created_at DESC")->fetchAll();
     }
 }
 
@@ -39,7 +100,7 @@ if ($page === 'home') {
 <section class="section"><div class="shell"><div class="section-head line-head"><div><span class="eyebrow">APRESIASI</span><h2>Pencapaian yang dirayakan</h2></div><a class="text-link" href="achievements.php">Semua prestasi</a></div><?php unit_cards($achievements,'achievement-grid','Prestasi akan segera ditampilkan.'); ?></div></section>
 <?php unit_page_end(); return; }
 
-$pageInfo=['profile'=>['PROFIL UNIT','Mengenal '.$settings['name'],'Komitmen pendidikan dan pengasuhan yang berpihak pada tumbuh kembang siswa.'],'programs'=>['PROGRAM','Program belajar yang bermakna','Rangkaian pembelajaran yang dirancang sesuai usia dan kebutuhan anak.'],'activities'=>['KEGIATAN','Belajar melalui pengalaman','Aktivitas yang memberi ruang bagi anak untuk aktif, berani, dan bahagia.'],'news'=>['BERITA','Kabar terbaru unit','Informasi kegiatan dan cerita terbaru dari lingkungan sekolah.'],'achievements'=>['PRESTASI','Apresiasi untuk setiap proses','Pencapaian siswa yang tumbuh dari usaha, dukungan, dan doa.'],'brochures'=>['BROSUR','Informasi pendaftaran','Unduh informasi layanan dan program '.$settings['name'].'.'],'gallery'=>['GALERI','Potret kegiatan sekolah','Kumpulan momen belajar, bermain, dan bertumbuh bersama.'],'spmb'=>['SPMB','Pendaftaran siswa baru','Isi data singkat, lalu kami arahkan ke WhatsApp unit untuk konsultasi.'],'contact'=>['KONTAK','Mari terhubung dengan kami','Tim kami siap menjawab pertanyaan Anda.']];
+$pageInfo=['profile'=>['PROFIL UNIT','Mengenal '.$settings['name'],'Komitmen pendidikan dan pengasuhan yang berpihak pada tumbuh kembang siswa.'],'programs'=>['PROGRAM','Program belajar yang bermakna','Rangkaian pembelajaran yang dirancang sesuai usia dan kebutuhan anak.'],'activities'=>['KEGIATAN','Belajar melalui pengalaman','Aktivitas yang memberi ruang bagi anak untuk aktif, berani, dan bahagia.'],'news'=>['BERITA','Kabar terbaru unit','Informasi kegiatan dan cerita terbaru dari lingkungan sekolah.'],'achievements'=>['PRESTASI','Apresiasi untuk setiap proses','Pencapaian siswa yang tumbuh dari usaha, dukungan, dan doa.'],'brochures'=>['BROSUR','Informasi pendaftaran','Unduh informasi layanan dan program '.$settings['name'].'.'],'gallery'=>['GALERI','Potret kegiatan sekolah','Kumpulan momen belajar, bermain, dan bertumbuh bersama.'],'spmb'=>['SPMB','Pendaftaran siswa baru','Lengkapi formulir pendaftaran resmi. Tim admin akan menghubungi Anda melalui WhatsApp.'],'karir'=>['KARIR','Bergabung bersama kami','Lihat lowongan yang tersedia di seluruh unit SIT Permata Hati Bekasi.'],'contact'=>['KONTAK','Mari terhubung dengan kami','Tim kami siap menjawab pertanyaan Anda.']];
 [$eyebrow,$title,$text]=$pageInfo[$page]??$pageInfo['profile']; unit_page_start($title,$page); unit_page_banner($eyebrow,$title,$text);
 if($page==='profile'): ?>
 <section class="section"><div class="shell story-grid"><img src="<?php echo unit_e(unit_media($unit_config['building_image'])); ?>" alt="Gedung <?php echo unit_e($settings['name']); ?>"><div><span class="eyebrow">TENTANG KAMI</span><h2><?php echo unit_e($settings['name']); ?></h2><p><?php echo unit_e($settings['description']); ?></p><p>Kami percaya setiap anak perlu didampingi dengan perhatian, keteladanan, dan kesempatan untuk menemukan potensinya.</p><a class="button button-primary" href="contact.php">Hubungi Kami</a></div></div></section>
@@ -48,7 +109,112 @@ if($page==='profile'): ?>
 <?php elseif($page==='news'): ?><section class="section"><div class="shell"><?php unit_cards(unit_content($pdo,'news'),'news-grid','Belum ada berita terbaru.'); ?></div></section>
 <?php elseif($page==='achievements'): ?><section class="section"><div class="shell"><?php unit_cards(unit_content($pdo,'achievement'),'achievement-grid','Prestasi akan segera ditampilkan.'); ?></div></section>
 <?php elseif($page==='brochures'): ?><section class="section"><div class="shell brochure-list"><?php foreach(unit_content($pdo,'brochure') as $item): ?><article class="brochure-row"><div><span class="eyebrow">INFORMASI UNIT</span><h2><?php echo unit_e($item['title']); ?></h2><p><?php echo unit_e($item['summary']); ?></p></div><a class="button button-primary" href="<?php echo unit_e(unit_media($item['image'])); ?>" target="_blank" rel="noopener">Unduh Brosur</a></article><?php endforeach; ?></div></section>
-<?php elseif($page==='gallery'): $selected=(int)($_GET['album']??0); $albums=unit_albums($pdo); if($selected): $photos=unit_album_photos($pdo,$selected); $selectedAlbum=null;foreach($albums as $album)if((int)$album['id']===$selected)$selectedAlbum=$album; ?><section class="section"><div class="shell"><a class="text-link" href="gallery.php">Kembali ke album</a><div class="section-head"><span class="eyebrow">ALBUM</span><h2><?php echo unit_e($selectedAlbum['title']??'Galeri'); ?></h2></div><div class="photo-grid"><?php foreach($photos as $index=>$photo): ?><button class="photo-button" type="button" data-lightbox="<?php echo unit_e(unit_media($photo['image'])); ?>" data-title="<?php echo unit_e($photo['title']); ?>"><img src="<?php echo unit_e(unit_media($photo['image'])); ?>" alt="<?php echo unit_e($photo['title']); ?>"><span><?php echo unit_e($photo['title']); ?></span></button><?php endforeach; ?></div></div></section><?php else: ?><section class="section"><div class="shell album-grid"><?php foreach($albums as $album): ?><a class="album-card" href="gallery.php?album=<?php echo (int)$album['id']; ?>"><img src="<?php echo unit_e(unit_media($album['cover_image'])); ?>" alt="<?php echo unit_e($album['title']); ?>"><div><span><?php echo (int)$album['photo_count']; ?> foto</span><h2><?php echo unit_e($album['title']); ?></h2><p><?php echo unit_e($album['description']); ?></p></div></a><?php endforeach; ?></div></section><?php endif; ?>
-<?php elseif($page==='spmb'): ?><section class="section"><div class="shell form-layout"><div><span class="eyebrow">PENDAFTARAN</span><h2>Mulai percakapan dengan kami.</h2><p>Lengkapi data berikut. Setelah terkirim, Anda akan diarahkan ke WhatsApp admin <?php echo unit_e($settings['name']); ?>.</p><img src="<?php echo unit_e(unit_media($unit_config['hero_image'])); ?>" alt="Kegiatan <?php echo unit_e($settings['name']); ?>"></div><form method="post" class="public-form"><input type="hidden" name="csrf" value="<?php echo unit_e(unit_csrf()); ?>"><?php if(!empty($formError)): ?><p class="form-error"><?php echo unit_e($formError); ?></p><?php endif; ?><label>Nama Orang Tua<input required name="parent_name"></label><label>Nama Calon Siswa<input required name="child_name"></label><div class="form-pair"><label>WhatsApp<input required name="phone" inputmode="tel"></label><label>Email<input type="email" name="email"></label></div><label>Pesan / Pertanyaan<textarea name="message" rows="4"></textarea></label><button class="button button-primary" type="submit">Kirim &amp; Lanjut WhatsApp</button></form></div></section>
+<?php elseif($page==='gallery'): $selected=(int)($_GET['album']??0); $albums=unit_albums($pdo); if($selected): $photos=unit_album_photos($pdo,$selected); $selectedAlbum=null;foreach($albums as $album)if((int)$album['id']===$selected)$selectedAlbum=$album; ?><section class="section"><div class="shell"><a class="text-link" href="gallery.php">Kembali ke album</a><div class="section-head"><span class="eyebrow">ALBUM</span><h2><?php echo unit_e($selectedAlbum['title']??'Galeri'); ?></h2></div><?php if (!$photos): ?><p class="empty-state">Belum ada foto pada album ini.</p><?php else: ?><div class="photo-grid"><?php foreach($photos as $index=>$photo): ?><button class="photo-button" type="button" data-lightbox="<?php echo unit_e(unit_media($photo['image'])); ?>" data-title="<?php echo unit_e($photo['title']); ?>"><img src="<?php echo unit_e(unit_media($photo['image'])); ?>" alt="<?php echo unit_e($photo['title']); ?>"><span><?php echo unit_e($photo['title']); ?></span></button><?php endforeach; ?></div><?php endif; ?></div></section><?php else: ?><section class="section"><div class="shell">
+<?php if (!$albums): ?><p class="empty-state">Galeri sedang disiapkan. Silakan kembali lagi nanti.</p><?php else: ?>
+<div class="album-grid"><?php foreach($albums as $album): ?><a class="album-card" href="gallery.php?album=<?php echo (int)$album['id']; ?>"><img src="<?php echo unit_e(unit_media($album['cover_image'])); ?>" alt="<?php echo unit_e($album['title']); ?>"><div><span><?php echo (int)$album['photo_count']; ?> foto</span><h2><?php echo unit_e($album['title']); ?></h2><p><?php echo unit_e($album['description']); ?></p></div></a><?php endforeach; ?></div>
+<?php endif; ?>
+</div></section><?php endif; ?>
+<?php elseif($page==='spmb'): $spmbAcademicYears = spmb_academic_years(); ?>
+<section class="section"><div class="shell form-layout">
+    <div>
+        <span class="eyebrow">PENDAFTARAN</span>
+        <h2>Mulai pendaftaran <?php echo unit_e($settings['name']); ?>.</h2>
+        <p>Lengkapi data calon siswa dan orang tua berikut. Tim admin akan menghubungi Anda melalui WhatsApp untuk proses selanjutnya.</p>
+        <img src="<?php echo unit_e(unit_media($unit_config['hero_image'])); ?>" alt="Kegiatan <?php echo unit_e($settings['name']); ?>">
+    </div>
+    <form method="post" class="public-form">
+        <input type="hidden" name="csrf" value="<?php echo unit_e(unit_csrf()); ?>">
+        <input type="hidden" name="level" value="<?php echo unit_e($lockedLevel); ?>">
+        <p class="form-locked-level">Mendaftar untuk jenjang: <strong><?php echo unit_e($lockedLevel); ?></strong></p>
+        <?php if (!empty($spmbSuccess)): ?><p class="form-success">Pendaftaran berhasil dikirim. Tim kami akan segera menghubungi Anda melalui WhatsApp.</p><?php endif; ?>
+        <?php if (!empty($formError)): ?><p class="form-error"><?php echo unit_e($formError); ?></p><?php endif; ?>
+        <label>Nama Calon Siswa *<input required name="student_name" value="<?php echo unit_e($spmbOld['student_name']); ?>"></label>
+        <div class="form-pair">
+            <label>NIK Calon Siswa<input name="student_nik" value="<?php echo unit_e($spmbOld['student_nik']); ?>"></label>
+            <label>Jenis Kelamin<select name="gender"><option value="">-- Pilih --</option><option value="L" <?php echo $spmbOld['gender']==='L'?'selected':''; ?>>Laki-laki</option><option value="P" <?php echo $spmbOld['gender']==='P'?'selected':''; ?>>Perempuan</option></select></label>
+        </div>
+        <div class="form-pair">
+            <label>Tempat Lahir<input name="birth_place" value="<?php echo unit_e($spmbOld['birth_place']); ?>"></label>
+            <label>Tanggal Lahir<input type="date" name="birth_date" value="<?php echo unit_e($spmbOld['birth_date']); ?>"></label>
+        </div>
+        <label>Nama Orang Tua *<input required name="parent_name" value="<?php echo unit_e($spmbOld['parent_name']); ?>"></label>
+        <div class="form-pair">
+            <label>NIK Orang Tua/Wali<input name="parent_nik" value="<?php echo unit_e($spmbOld['parent_nik']); ?>"></label>
+            <label>Nomor Kartu Keluarga<input name="family_card_number" value="<?php echo unit_e($spmbOld['family_card_number']); ?>"></label>
+        </div>
+        <label>Nomor WhatsApp *<input required name="whatsapp" inputmode="tel" value="<?php echo unit_e($spmbOld['whatsapp']); ?>"></label>
+        <label>Tahun Ajaran *<select required name="academic_year"><?php foreach ($spmbAcademicYears as $year => $track): ?><option value="<?php echo unit_e($year); ?>" <?php echo $spmbOld['academic_year']===$year?'selected':''; ?>><?php echo unit_e($year.' — '.$track); ?></option><?php endforeach; ?></select><small class="field-help">Tahun berikutnya otomatis tercatat sebagai waiting list.</small></label>
+        <label>Asal Sekolah<input name="previous_school" value="<?php echo unit_e($spmbOld['previous_school']); ?>"></label>
+        <label>Alamat Lengkap<textarea name="address" rows="4"><?php echo unit_e($spmbOld['address']); ?></textarea></label>
+        <button class="button button-primary" type="submit">Kirim Pendaftaran</button>
+    </form>
+</div></section>
+<?php elseif($page==='karir'): if ($karirSlug !== '' && !$karirJob): ?>
+<section class="section"><div class="shell"><p class="empty-state">Lowongan ini sudah ditutup atau tidak tersedia.</p><a class="text-link" href="karir.php">Lihat lowongan lain</a></div></section>
+<?php elseif ($karirJob): $job = $karirJob; ?>
+<section class="section"><div class="shell story-grid">
+    <div>
+        <a class="text-link" href="karir.php">&larr; Kembali ke daftar lowongan</a>
+        <span class="eyebrow"><?php echo unit_e($job['department'] ?: 'LOWONGAN'); ?></span>
+        <h2><?php echo unit_e($job['title']); ?></h2>
+        <p><?php echo nl2br(unit_e($job['description'])); ?></p>
+        <?php if (!empty($job['responsibilities'])): ?><h3>Tanggung Jawab</h3><ul class="job-detail-list"><?php foreach (array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $job['responsibilities']))) as $item): ?><li><?php echo unit_e($item); ?></li><?php endforeach; ?></ul><?php endif; ?>
+        <?php if (!empty($job['requirements'])): ?><h3>Kualifikasi</h3><ul class="job-detail-list"><?php foreach (array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $job['requirements']))) as $item): ?><li><?php echo unit_e($item); ?></li><?php endforeach; ?></ul><?php endif; ?>
+        <?php if (!empty($job['benefits'])): ?><h3>Benefit</h3><ul class="job-detail-list"><?php foreach (array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $job['benefits']))) as $item): ?><li><?php echo unit_e($item); ?></li><?php endforeach; ?></ul><?php endif; ?>
+    </div>
+    <div class="map-card job-summary-card">
+        <dl>
+            <dt>Unit</dt><dd><?php echo unit_e($job['unit']); ?></dd>
+            <dt>Tipe</dt><dd><?php echo unit_e($job['employment_type']); ?></dd>
+            <dt>Lokasi</dt><dd><?php echo unit_e($job['work_location']); ?></dd>
+            <dt>Pendidikan</dt><dd><?php echo unit_e($job['education'] ?: 'Menyesuaikan posisi'); ?></dd>
+            <dt>Batas Lamaran</dt><dd><?php echo $job['deadline'] ? unit_e(tanggal_indo($job['deadline'])) : 'Sampai posisi terpenuhi'; ?></dd>
+        </dl>
+        <a class="button button-primary" href="#lamar">Lamar Posisi Ini</a>
+    </div>
+</div></section>
+<section class="section section-soft" id="lamar"><div class="shell">
+    <div class="section-head"><span class="eyebrow">FORM LAMARAN</span><h2>Lamar sebagai <?php echo unit_e($job['title']); ?></h2></div>
+    <?php if (!empty($karirSubmitted)): ?><p class="form-success">Lamaran berhasil dikirim. Tim kami akan meninjau profil Anda.</p><?php endif; ?>
+    <?php if (!empty($karirErrors)): ?><p class="form-error"><?php echo unit_e(implode(' ', $karirErrors)); ?></p><?php endif; ?>
+    <form method="post" enctype="multipart/form-data" class="public-form">
+        <input type="hidden" name="_token" value="<?php echo unit_e(public_form_csrf_token()); ?>">
+        <div class="form-hp"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <div class="form-pair">
+            <label>Nama Lengkap *<input required name="full_name" value="<?php echo unit_e($karirOld['full_name']); ?>"></label>
+            <label>Email *<input type="email" required name="email" value="<?php echo unit_e($karirOld['email']); ?>"></label>
+        </div>
+        <div class="form-pair">
+            <label>Nomor WhatsApp *<input required name="phone" value="<?php echo unit_e($karirOld['phone']); ?>"></label>
+            <label>Domisili<input name="city" value="<?php echo unit_e($karirOld['city']); ?>"></label>
+        </div>
+        <div class="form-pair">
+            <label>Pendidikan Terakhir<input name="education" value="<?php echo unit_e($karirOld['education']); ?>"></label>
+            <label>Pengalaman Kerja (tahun)<input type="number" min="0" max="50" step="0.5" name="experience_years" value="<?php echo unit_e($karirOld['experience_years']); ?>"></label>
+        </div>
+        <label>Tautan Portofolio/LinkedIn<input type="url" name="portfolio_url" value="<?php echo unit_e($karirOld['portfolio_url']); ?>" placeholder="https://"></label>
+        <label>Pengantar Lamaran *<textarea required name="cover_letter" rows="5"><?php echo unit_e($karirOld['cover_letter']); ?></textarea></label>
+        <label>CV Terbaru *<input type="file" name="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required><small class="field-help">PDF, DOC, atau DOCX. Maksimal 5 MB.</small></label>
+        <button class="button button-primary" type="submit">Kirim Lamaran</button>
+    </form>
+</div></section>
+<?php else: ?>
+<section class="section"><div class="shell">
+    <?php if (!$karirJobs): ?><p class="empty-state">Belum ada lowongan yang dibuka saat ini. Silakan kembali lagi nanti.</p><?php else: ?>
+    <div class="card-grid job-card-grid">
+        <?php foreach ($karirJobs as $job): ?>
+        <a class="content-card job-card-unit" href="karir.php?slug=<?php echo urlencode($job['slug']); ?>">
+            <div class="card-copy">
+                <span class="card-meta"><?php echo unit_e($job['unit']); ?> &middot; <?php echo unit_e($job['employment_type']); ?></span>
+                <h2><?php echo unit_e($job['title']); ?></h2>
+                <p><?php echo unit_e($job['summary']); ?></p>
+                <p class="job-card-unit-meta"><?php echo unit_e($job['work_location']); ?><?php if ($job['deadline']): ?> &middot; Batas <?php echo unit_e(tanggal_indo($job['deadline'])); ?><?php endif; ?></p>
+            </div>
+        </a>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+</div></section>
+<?php endif; ?>
 <?php elseif($page==='contact'): ?><section class="section"><div class="shell contact-grid"><div><span class="eyebrow">KONTAK ADMINISTRASI</span><h2><?php echo unit_e($settings['name']); ?></h2><dl><dt>Alamat</dt><dd><?php echo nl2br(unit_e($settings['address'])); ?></dd><dt>Telepon</dt><dd><a href="tel:<?php echo unit_e(preg_replace('/[^0-9+]/','',$settings['phone'])); ?>"><?php echo unit_e($settings['phone']); ?></a></dd><dt>Email</dt><dd><a href="mailto:<?php echo unit_e($settings['email']); ?>"><?php echo unit_e($settings['email']); ?></a></dd></dl><div class="social-links"><a href="<?php echo unit_e($settings['instagram']); ?>" target="_blank" rel="noopener">Instagram</a><a href="<?php echo unit_e($settings['youtube']); ?>" target="_blank" rel="noopener">YouTube</a></div></div><div class="map-card"><iframe title="Peta <?php echo unit_e($settings['name']); ?>" src="https://www.google.com/maps?q=<?php echo rawurlencode($settings['address']); ?>&output=embed" loading="lazy"></iframe><a class="button button-primary" href="<?php echo unit_e($settings['maps']); ?>" target="_blank" rel="noopener">Buka Petunjuk Arah</a></div></div></section>
 <?php endif; ?><div class="lightbox" data-lightbox-dialog hidden><button type="button" class="lightbox-close" data-lightbox-close aria-label="Tutup">×</button><button type="button" class="lightbox-nav prev" data-lightbox-prev aria-label="Foto sebelumnya">&#8249;</button><img src="" alt=""><button type="button" class="lightbox-nav next" data-lightbox-next aria-label="Foto berikutnya">&#8250;</button><p data-lightbox-title></p></div><?php unit_page_end();

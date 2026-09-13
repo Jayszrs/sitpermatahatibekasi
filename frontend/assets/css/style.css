@@ -1047,7 +1047,7 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
     inset: 0;
     border: 0;
     background: rgba(3,30,19,0.72);
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);backdrop-filter: blur(8px);
     cursor: zoom-out;
 }
 .album-lightbox-dialog {
@@ -1113,7 +1113,7 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
     border: 1px solid rgba(212,175,55,0.55);
     background: rgba(255,255,255,0.14);
     color: #fff;
-    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);backdrop-filter: blur(12px);
     transform: translateY(-50%);
 }
 .album-lightbox-nav svg {
@@ -1350,7 +1350,7 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .career-board-hero h1 { margin: 18px 0; color: #fff; font-family: 'El Messiri', Georgia, serif; font-size: clamp(2.7rem,5.2vw,5rem); }
 .career-board-hero h1 span { color: var(--secondary); }
 .career-board-hero-grid > div:first-child > p { max-width: 700px; color: rgba(255,255,255,.78); font-size: 1.08rem; }
-.career-hero-card { padding: 30px; border: 1px solid rgba(255,255,255,.2); border-radius: 22px; background: rgba(255,255,255,.1); backdrop-filter: blur(12px); }
+.career-hero-card { padding: 30px; border: 1px solid rgba(255,255,255,.2); border-radius: 22px; background: rgba(255,255,255,.1); -webkit-backdrop-filter: blur(12px);backdrop-filter: blur(12px); }
 .career-hero-card span { color: #fff4bd; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
 .career-hero-card strong { display: block; margin: 8px 0; color: #fff; font-size: 2.2rem; }
 .career-hero-card p { color: rgba(255,255,255,.72); font-size: .9rem; }
@@ -1887,7 +1887,7 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 
 @media (max-width: 980px) {
     .hero-slider .hero-inner { justify-content: center; }
-    .hero-copy { max-width: 760px; padding: 34px; border-left: 0; border-radius: 20px; text-align: center; background: rgba(3,30,19,.38); backdrop-filter: blur(6px); }
+    .hero-copy { max-width: 760px; padding: 34px; border-left: 0; border-radius: 20px; text-align: center; background: rgba(3,30,19,.38); -webkit-backdrop-filter: blur(6px);backdrop-filter: blur(6px); }
     .hero-copy .hero-actions { justify-content: center; }
     .home-pulse-grid,.brochure-detail-grid,.program-detail-grid,.brochure-info-grid,.program-detail-body { grid-template-columns: 1fr; }
     .news-featured-card,.news-article-layout { grid-template-columns: 1fr; }
@@ -2263,10 +2263,15 @@ table.schedule th { background: var(--primary); color: #fff; }
         height: 56px;
     }
     .brand-copy {
-        display: none;
+        padding-left: 10px;
+        border-left-width: 2px;
     }
-    .site-footer .brand-copy {
-        display: flex;
+    .brand-copy strong {
+        max-width: 150px;
+        font-size: 0.86rem;
+    }
+    .brand-copy small {
+        font-size: 0.68rem;
     }
     .hero {
         min-height: calc(100svh - 90px);
@@ -2395,8 +2400,8 @@ img, video, iframe { max-width: 100%; }
 }
 .hero-content-shell { display: grid; grid-template-columns: minmax(0,760px) 150px; align-items: end; gap: 34px; width: min(100%,950px); }
 .hero-copy-stack { min-width: 0; }
-.hero-slider .hero-copy { width: 100%; max-width: 760px; padding: 0; border: 0; background: none; backdrop-filter: none; text-align: left; }
-.hero-slider .hero-copy h1 { max-width: 720px; margin: 10px 0 18px; line-height: .98; letter-spacing: -.035em; text-wrap: balance; }
+.hero-slider .hero-copy { width: 100%; max-width: 760px; padding: 0; border: 0; background: none; -webkit-backdrop-filter: none;backdrop-filter: none; text-align: left; }
+.hero-slider .hero-copy h1 { max-width: 720px; margin: 10px 0 18px; line-height: .98; letter-spacing: -.035em; }
 .hero-slider .hero-copy p { margin: 0 0 28px; max-width: 610px; line-height: 1.75; }
 .hero-slider .hero-copy .hero-actions { justify-content: flex-start; }
 .hero-side-note { padding: 0 0 10px 22px; border-left: 1px solid rgba(255,255,255,.35); color: #fff; }
@@ -2522,7 +2527,7 @@ img, video, iframe { max-width: 100%; }
 .career-hero-points span { padding: 8px 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; color: rgba(255,255,255,.82); font-size: .76rem; font-weight: 700; }
 .career-hero-visual { position: relative; min-height: 440px; overflow: hidden; border-radius: 28px 28px 0 28px; box-shadow: 0 34px 80px rgba(0,0,0,.25); }
 .career-hero-visual > img { width: 100%; height: 100%; min-height: 440px; object-fit: cover; }
-.career-hero-card { position: absolute; right: 18px; bottom: 18px; left: 18px; padding: 24px; border: 1px solid rgba(255,255,255,.2); border-radius: 18px; background: rgba(3,30,19,.82); backdrop-filter: blur(12px); }
+.career-hero-card { position: absolute; right: 18px; bottom: 18px; left: 18px; padding: 24px; border: 1px solid rgba(255,255,255,.2); border-radius: 18px; background: rgba(3,30,19,.82); -webkit-backdrop-filter: blur(12px);backdrop-filter: blur(12px); }
 .career-hero-card strong { display: block; margin: 5px 0; }
 .job-search-bar { position: relative; z-index: 5; border: 1px solid rgba(7,67,42,.08); box-shadow: 0 24px 60px rgba(3,30,19,.2); }
 .job-card { transition: transform .25s,box-shadow .25s,border-color .25s; }
@@ -2566,9 +2571,8 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
     .hero-slider .hero-inner { min-height: calc(100svh - 84px); padding: 70px 20px 170px; }
     .hero-content-shell { grid-template-columns: 1fr; }
     .hero-side-note { display: none; }
-    .hero-slider .hero-copy { padding: 28px; border: 1px solid rgba(255,255,255,.16); border-radius: 22px; background: rgba(3,30,19,.46); backdrop-filter: blur(8px); }
+    .hero-slider .hero-copy { padding: 28px; border: 1px solid rgba(255,255,255,.16); border-radius: 22px; background: rgba(3,30,19,.46); -webkit-backdrop-filter: blur(8px);backdrop-filter: blur(8px); }
     .hero-bottom { bottom: 28px; align-items: center; }
-    .hero-trust span:nth-child(2) { display: none; }
     .brochure-intro,.program-outcome-grid,.achievement-detail-grid,.achievement-story-grid,.leader-detail-grid { grid-template-columns: 1fr; }
     .leader-detail-photo { width: min(100%,430px); }
     .brochure-poster { justify-self: start; width: min(100%,480px); transform: none; }
@@ -2595,8 +2599,7 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
     .hero-slider .hero-copy h1 { font-size: clamp(2.1rem,10vw,3.15rem); line-height: 1.02; }
     .hero-slider .hero-copy p { font-size: .93rem; line-height: 1.6; }
     .hero-bottom { width: calc(100% - 32px); padding: 0; }
-    .hero-trust { gap: 14px; }
-    .hero-trust span:nth-child(3) { display: none; }
+    .hero-trust { gap: 14px 20px; }
     .program-journey-grid,.advantage-process-grid,.program-outcome-list,.brochure-value-grid,.spmb-unit-grid { grid-template-columns: 1fr; }
     .brochure-value-wide { grid-column: auto; display: block; }
     .brochure-value-wide > span { display: block; margin-bottom: 20px; }
@@ -2689,7 +2692,7 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
         background-size: 112px;
     }
     .section-head { max-width: 560px; margin-bottom: 30px; }
-    .section-head h2 { font-size: clamp(1.65rem,7vw,2.1rem); text-wrap: balance; }
+    .section-head h2 { font-size: clamp(1.65rem,7vw,2.1rem); }
     .section-head p { font-size: .94rem; }
     .section-eyebrow, .page-kicker { font-size: .68rem; line-height: 1.35; }
 
@@ -2749,7 +2752,7 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
     /* Consistent inner-page banner hierarchy. */
     .page-header { min-height: 190px; padding-block: 38px; background-position: center; }
     .page-header::before { background: linear-gradient(90deg,rgba(3,30,19,.9),rgba(3,30,19,.55)); }
-    .page-header h1 { max-width: 92%; margin-bottom: 8px; font-size: clamp(2rem,8.5vw,2.65rem); line-height: 1.08; text-wrap: balance; }
+    .page-header h1 { max-width: 92%; margin-bottom: 8px; font-size: clamp(2rem,8.5vw,2.65rem); line-height: 1.08; }
     .page-header .container > p:not(.breadcrumb) { max-width: 94%; font-size: .9rem; }
     .breadcrumb { font-size: .78rem; }
 
@@ -2789,7 +2792,8 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
     .hero-slider .hero-copy h1 { font-size: clamp(2.1rem,10vw,3rem); }
     .hero-slider .hero-copy p { margin-bottom: 22px; font-size: .91rem; }
     .hero-bottom { bottom: 25px; width: calc(100% - 36px); }
-    .hero-trust { gap: 20px; }
+    .hero-trust { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .hero-trust span { font-size: .62rem; }
     .home-pulse-section { padding-block: 50px; }
     .home-pulse-grid { gap: 42px; }
     .pulse-heading { margin-bottom: 18px; }
@@ -2947,4 +2951,34 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
     .job-detail-list.benefit { grid-template-columns: minmax(0,1fr); }
     .form-actions { align-items: stretch; flex-direction: column-reverse; }
     .form-actions .btn, .form-actions .portal-action { width: 100%; }
+
+    /* Footer: single left-aligned column with a divider between each section
+       (brand / menu / unit sekolah / kontak) — kept short since the unit list
+       and per-page links are already trimmed down in footer.php. */
+    .site-footer { padding-top: 26px; }
+    .footer-grid { display: grid; grid-template-columns: 1fr; gap: 0; text-align: left; }
+    .footer-col { padding-block: 18px; }
+    .footer-col:first-child { padding-top: 0; }
+    .footer-col + .footer-col { border-top: 1px solid rgba(255,255,255,.12); }
+    .site-footer .footer-col h3, .site-footer .footer-col h4 { margin-bottom: 10px; font-size: .82rem; }
+    .site-footer .footer-col ul li { margin-bottom: 7px; }
+    .site-footer .footer-col ul li a { font-size: .82rem; }
+    .site-footer .brand { justify-content: flex-start; }
+    .site-footer .brand-copy { text-align: left; }
+    /* The full tagline sentence repeats what the small brand subtitle already says — drop it here to save space. */
+    .site-footer .footer-brand > p { display: none; }
+    .school-socials { max-width: 100%; }
+    .school-social-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .footer-contact-list { max-width: 100%; }
+    .footer-contact-list li { grid-template-columns: 22px minmax(0,1fr); gap: 10px; }
+}
+
+/* Balanced heading wrap is a pure visual nicety — guarded so it only
+   applies on browsers that understand it, instead of a bare declaration. */
+@supports (text-wrap: balance) {
+    .hero-slider .hero-copy h1 { text-wrap: balance; }
+    @media (max-width: 768px) {
+        .section-head h2 { text-wrap: balance; }
+        .page-header h1 { text-wrap: balance; }
+    }
 }

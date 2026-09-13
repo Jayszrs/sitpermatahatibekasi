@@ -104,7 +104,11 @@ require_once __DIR__ . '/../components/header.php';
         <?php foreach($hero_media as $index=>$slide): ?><div class="hero-slide<?php echo $index===0?' active':''; ?>" data-media-type="<?php echo esc($slide['media_type']); ?>"><?php if($slide['media_type']==='video'): ?><video muted playsinline preload="metadata" <?php if($slide['poster_url']): ?>poster="<?php echo esc($slide['poster_url']); ?>"<?php endif; ?>><source src="<?php echo esc($slide['media_url']); ?>"></video><?php else: ?><img src="<?php echo esc($slide['media_url']); ?>" alt="" <?php echo $index===0?'fetchpriority="high"':'loading="lazy"'; ?>><?php endif; ?></div><?php endforeach; ?>
     </div>
     <div class="container hero-inner"><div class="hero-content-shell">
-        <div class="hero-copy-stack"><?php foreach($hero_media as $index=>$slide): ?><div class="hero-copy<?php echo $index===0?' active':''; ?>" data-hero-copy="<?php echo $index; ?>"><span class="hero-eyebrow"><?php echo esc($slide['eyebrow'] ?: 'SIT Permata Hati Bekasi'); ?></span><h1><?php echo esc($slide['title']); ?></h1><p><?php echo esc($slide['description']); ?></p><div class="hero-actions"><?php if($slide['cta_label'] && $slide['cta_url']): ?><a href="<?php echo esc($slide['cta_url']); ?>" class="btn btn-gold"><?php echo esc($slide['cta_label']); ?></a><?php endif; ?><a href="tentang.php" class="btn btn-outline-light">Kenali Sekolah</a></div></div><?php endforeach; ?></div>
+        <div class="hero-copy-stack"><?php foreach($hero_media as $index=>$slide):
+            // Avoid a secondary button that duplicates the slide's own CTA destination (e.g. both pointing to "Tentang Kami").
+            $ctaFile = $slide['cta_url'] ? basename(parse_url($slide['cta_url'], PHP_URL_PATH) ?: '') : '';
+            $secondary = $ctaFile === 'tentang.php' ? ['kontak.php', 'Hubungi Kami'] : ['tentang.php', 'Tentang Kami'];
+        ?><div class="hero-copy<?php echo $index===0?' active':''; ?>" data-hero-copy="<?php echo $index; ?>"><span class="hero-eyebrow"><?php echo esc($slide['eyebrow'] ?: 'SIT Permata Hati Bekasi'); ?></span><h1><?php echo esc($slide['title']); ?></h1><p><?php echo esc($slide['description']); ?></p><div class="hero-actions"><?php if($slide['cta_label'] && $slide['cta_url']): ?><a href="<?php echo esc($slide['cta_url']); ?>" class="btn btn-gold"><?php echo esc($slide['cta_label']); ?></a><?php endif; ?><a href="<?php echo esc($secondary[0]); ?>" class="btn btn-outline-light"><?php echo esc($secondary[1]); ?></a></div></div><?php endforeach; ?></div>
         <div class="hero-side-note"><span>SIT PHB</span><p>Pendidikan terpadu dari usia dini sampai remaja.</p></div>
     </div></div>
     <div class="container hero-bottom"><div class="hero-trust"><span><strong>4</strong> Unit Pendidikan</span><span><strong>Islamic</strong> Learning Culture</span><span><strong>Bekasi</strong> Tambun Selatan</span></div></div>
@@ -205,11 +209,11 @@ require_once __DIR__ . '/../components/header.php';
 
 <!-- STATISTIK -->
 <section class="section text-center" style="background: var(--primary-dark); color: white;">
-    <div class="container grid-4" id="statsSection">
-        <div><h2 style="color:var(--accent); font-size:3rem; margin-bottom:10px;"><span class="counter" data-target="1000">0</span>+</h2><p>Siswa</p></div>
-        <div><h2 style="color:var(--accent); font-size:3rem; margin-bottom:10px;"><span class="counter" data-target="100">0</span>+</h2><p>Guru</p></div>
-        <div><h2 style="color:var(--accent); font-size:3rem; margin-bottom:10px;"><span class="counter" data-target="20">0</span>+</h2><p>Program</p></div>
-        <div><h2 style="color:var(--accent); font-size:3rem; margin-bottom:10px;"><span class="counter" data-target="50">0</span>+</h2><p>Prestasi</p></div>
+    <div class="container stats-grid" id="statsSection">
+        <div class="stat-item"><strong><span class="counter" data-target="1000">0</span>+</strong><span>Siswa</span></div>
+        <div class="stat-item"><strong><span class="counter" data-target="100">0</span>+</strong><span>Guru</span></div>
+        <div class="stat-item"><strong><span class="counter" data-target="20">0</span>+</strong><span>Program</span></div>
+        <div class="stat-item"><strong><span class="counter" data-target="50">0</span>+</strong><span>Prestasi</span></div>
     </div>
 </section>
 

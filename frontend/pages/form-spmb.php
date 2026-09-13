@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
+require_once __DIR__ . '/../../backend/helpers/spmb_shared.php';
 $publicCsrfToken = public_form_csrf_token();
 $page_title = 'Form Pendaftaran SPMB';
 $spmbLevelRows = fetch_school_units($pdo);
@@ -14,53 +15,19 @@ $success = false;
 $errors = [];
 $requestedLevel = trim($_GET['level'] ?? '');
 foreach (array_keys($spmbLevels) as $availableLevel) if (strcasecmp($availableLevel, $requestedLevel) === 0) $requestedLevel = $availableLevel;
-$academicYears = [];
-$academicStart = (int) date('Y');
-for ($i=0; $i<=10; $i++) { $year=$academicStart+$i; $academicYears[$year.'/'.($year+1)] = $i===0 ? 'Pendaftaran Berjalan' : 'Waiting List'; }
-$old = ['student_name'=>'','student_nik'=>'','gender'=>'','birth_place'=>'','birth_date'=>'','parent_name'=>'','parent_nik'=>'','family_card_number'=>'','whatsapp'=>'','level'=>$requestedLevel,'academic_year'=>array_key_first($academicYears),'previous_school'=>'','address'=>''];
+$academicYears = spmb_academic_years();
+$old = spmb_empty_fields($requestedLevel !== '' ? $requestedLevel : null, $academicYears);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try { public_verify_csrf($_POST['_token'] ?? null); } catch (Throwable $e) { $errors[] = $e->getMessage(); }
-    $old['student_name']    = trim($_POST['student_name'] ?? '');
-    $old['student_nik']     = trim($_POST['student_nik'] ?? '');
-    $old['gender']          = trim($_POST['gender'] ?? '');
-    $old['birth_place']     = trim($_POST['birth_place'] ?? '');
-    $old['birth_date']      = trim($_POST['birth_date'] ?? '');
-    $old['parent_name']     = trim($_POST['parent_name'] ?? '');
-    $old['parent_nik']      = trim($_POST['parent_nik'] ?? '');
-    $old['family_card_number'] = trim($_POST['family_card_number'] ?? '');
-    $old['whatsapp']        = trim($_POST['whatsapp'] ?? '');
-    $old['level']           = trim($_POST['level'] ?? '');
-    $old['academic_year']   = trim($_POST['academic_year'] ?? '');
-    $old['previous_school'] = trim($_POST['previous_school'] ?? '');
-    $old['address']         = trim($_POST['address'] ?? '');
-
-    // Validasi
-    if ($old['student_name'] === '') $errors[] = 'Nama calon siswa wajib diisi.';
-    if ($old['parent_name'] === '') $errors[] = 'Nama orang tua wajib diisi.';
-    if ($old['whatsapp'] === '') $errors[] = 'Nomor WhatsApp wajib diisi.';
-    if ($old['level'] === '' || !isset($spmbLevels[$old['level']])) $errors[] = 'Jenjang yang dipilih tidak valid.';
-    if (!isset($academicYears[$old['academic_year']])) $errors[] = 'Tahun ajaran yang dipilih tidak valid.';
-
-    if (empty($errors)) {
-        $admissionTrack = $academicYears[$old['academic_year']] === 'Waiting List' ? 'waiting_list' : 'reguler';
-        $stmt = $pdo->prepare("INSERT INTO spmb_registrations (student_name,student_nik,gender,birth_place,birth_date,parent_name,parent_nik,family_card_number,whatsapp,level,academic_year,admission_track,previous_school,address) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-        $stmt->execute([
-            $old['student_name'],
-            $old['student_nik']?:null,$old['gender']?:null,$old['birth_place']?:null,$old['birth_date']?:null,
-            $old['parent_name'],
-            $old['parent_nik']?:null,$old['family_card_number']?:null,
-            $old['whatsapp'],
-            $old['level'],
-            $old['academic_year'],
-            $admissionTrack,
-            $old['previous_school'] ?: null,
-            $old['address'] ?: null,
-        ]);
-        $newId=(int)$pdo->lastInsertId();
-        $pdo->prepare('UPDATE spmb_registrations SET registration_number=? WHERE id=?')->execute(['SPMB-'.substr($old['academic_year'],0,4).'-'.str_pad((string)$newId,4,'0',STR_PAD_LEFT),$newId]);
-        $success = true;
-        $old = ['student_name'=>'','student_nik'=>'','gender'=>'','birth_place'=>'','birth_date'=>'','parent_name'=>'','parent_nik'=>'','family_card_number'=>'','whatsapp'=>'','level'=>'','academic_year'=>array_key_first($academicYears),'previous_school'=>'','address'=>''];
+    try {
+        public_verify_csrf($_POST['_token'] ?? null);
+        $result = spmb_validate_and_save($pdo, $_POST, null, $spmbLevels);
+        $success = $result['success'];
+        $errors = $result['errors'];
+        $old = $result['old'];
+    } catch (Throwable $e) {
+        $errors[] = $e->getMessage();
+        $old = spmb_fields_from_post($_POST);
     }
 }
 

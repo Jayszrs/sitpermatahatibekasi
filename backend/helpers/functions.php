@@ -45,7 +45,7 @@ define('SITE_DAYCARE_YOUTUBE', SITE_YOUTUBE);
 define('SITE_TKIT_YOUTUBE', SITE_YOUTUBE);
 
 // Helper untuk output aman (mencegah XSS)
-function esc($string) {
+function esc(?string $string) {
     return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
 }
 
@@ -252,7 +252,7 @@ function upload_career_document(array $file): array {
 }
 
 // Helper untuk format tanggal Indonesia
-function tanggal_indo($tanggal) {
+function tanggal_indo(string $tanggal) {
     $bulan = [
         1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
         5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',

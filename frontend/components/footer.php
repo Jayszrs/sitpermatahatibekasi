@@ -1,9 +1,3 @@
-<?php
-$footerUnits = [];
-if (isset($pdo) && $pdo instanceof PDO) {
-    $footerUnits = fetch_school_units($pdo);
-}
-?>
 <footer class="site-footer">
     <div class="container footer-grid">
         <div class="footer-col footer-brand">
@@ -54,10 +48,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
         <div class="footer-col">
             <h4>Unit Sekolah</h4>
             <ul>
-                <?php foreach ($footerUnits as $footerUnit): ?>
-                <?php $footerUnitAnchor = $footerUnit['slug']; ?>
-                <li><a href="<?php echo SITE_URL; ?>/unit.php#<?php echo esc($footerUnitAnchor); ?>"><?php echo esc($footerUnit['title']); ?></a></li>
-                <?php endforeach; ?>
+                <li><a href="<?php echo SITE_URL; ?>/unit.php">Lihat Semua Unit Sekolah</a></li>
                 <li><a href="<?php echo SITE_URL; ?>/spmb.php">Penerimaan Siswa Baru</a></li>
             </ul>
         </div>
@@ -65,14 +56,6 @@ if (isset($pdo) && $pdo instanceof PDO) {
         <div class="footer-col">
             <h3>Kontak</h3>
             <ul class="footer-contact-list">
-                <li>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    <span><strong><?php echo esc(SITE_MAIN_CAMPUS_LABEL); ?></strong><?php echo esc(SITE_MAIN_CAMPUS_ADDRESS); ?></span>
-                </li>
-                <li>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    <span><strong><?php echo esc(SITE_SMPIT_CAMPUS_LABEL); ?></strong><?php echo esc(SITE_SMPIT_CAMPUS_ADDRESS); ?></span>
-                </li>
                 <li>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.98.36 1.92.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.89.34 1.83.57 2.81.7A2 2 0 0 1 22 16.92Z"></path></svg>
                     <span><?php echo esc(SITE_PHONE); ?></span>
@@ -82,7 +65,7 @@ if (isset($pdo) && $pdo instanceof PDO) {
                     <span><?php echo esc(SITE_EMAIL); ?></span>
                 </li>
             </ul>
-            <a href="<?php echo SITE_URL; ?>/kontak.php" class="footer-location-link">Lihat Lokasi Sekolah</a>
+            <a href="<?php echo SITE_URL; ?>/kontak.php" class="footer-location-link">Lihat Lokasi &amp; Alamat Sekolah</a>
         </div>
     </div>
 

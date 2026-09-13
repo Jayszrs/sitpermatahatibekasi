@@ -97,7 +97,7 @@ body:has(.login)::after {
 .login {
   grid-column:2;
   width:min(520px,78%) !important;
-  min-height:auto!important;
+  min-height:0!important;
   margin:0!important;
   padding:56px!important;
   border:1px solid var(--portal-line)!important;
@@ -107,6 +107,16 @@ body:has(.login)::after {
 }
 .login h1 { font-size:clamp(2.3rem,3.2vw,3.1rem)!important; }
 .login-logo { width:68px; height:68px; margin-bottom:20px; }
+
+/* Dashboard stat cards: icon + label hierarchy, muted empty state. */
+.stat { transition: transform .18s ease, box-shadow .18s ease; }
+.stat:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(28,42,33,.12) !important; }
+.stat-icon { display: inline-block; margin-right: 7px; font-size: 1rem; color: var(--portal-primary); opacity: .82; }
+.stat-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--portal-muted); font-weight: 800; }
+.stat-empty-hint { display: block; margin-top: 3px; font-size: .68rem; color: var(--portal-muted); font-style: italic; }
+.stat-zero { opacity: .78; }
+.stat-zero b { color: var(--portal-muted) !important; }
+.stat-zero:before { background: color-mix(in srgb, var(--portal-muted) 55%, transparent) !important; }
 
 @media(max-width:980px) {
   .top{width:236px!important}.tabs{left:16px!important;width:204px!important}.wrap{margin-left:236px!important;width:min(100% - 270px,1180px)!important}.wrap::before{left:236px}.wrap::after{left:calc(236px + 4vw)} body:has(.login){grid-template-columns:43% 57%} body:has(.login)::before{inset:0 57% 0 0;padding-inline:5vw}body:has(.login)::after{left:5vw;width:33vw}.login{width:min(460px,84%)!important;padding:44px!important}
