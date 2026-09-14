@@ -12,13 +12,8 @@ body {
 
 .site-header {
     background: rgba(255,255,255,.96);
-    /* Plain rgba() fallback declared first for browsers without color-mix()
-       (Chrome < 111 / older Safari) - the color-mix() line right after it
-       simply overrides it in every browser that understands color-mix(). */
     border-bottom: 1px solid rgba(20,26,22,.11);
-    border-bottom: 1px solid color-mix(in srgb, var(--ink) 11%, transparent);
     box-shadow: 0 8px 24px rgba(20,26,22,.08);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 8%, transparent);
 }
 .nav-shell { min-height: 94px; }
 .brand strong,
@@ -34,15 +29,15 @@ body {
 .nav-dropdown-trigger { font-size: .82rem; letter-spacing: 0; }
 .main-nav > a.nav-cta {
     border-radius: 8px;
-    box-shadow: 0 10px 22px color-mix(in srgb, var(--primary) 22%, transparent);
+    box-shadow: 0 10px 22px rgba(0,0,0,.22);
 }
 
 .hero { min-height: min(560px, calc(100svh - 94px)); background: var(--primary-dark); }
 .hero-image { opacity: 1; transform: scale(1.02); }
 .hero-shade {
     background:
-        linear-gradient(90deg, color-mix(in srgb, var(--primary-dark) 93%, #06150f) 0%, color-mix(in srgb, var(--primary-dark) 76%, transparent) 49%, color-mix(in srgb, var(--primary-dark) 18%, transparent) 100%),
-        linear-gradient(0deg, color-mix(in srgb, var(--primary-dark) 55%, transparent), transparent 58%);
+        linear-gradient(90deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.6) 49%, rgba(0,0,0,.12) 100%),
+        linear-gradient(0deg, rgba(0,0,0,.5), transparent 58%);
 }
 .hero::before,
 .hero::after { display: none; }
@@ -57,7 +52,6 @@ body {
     max-width: 680px;
     font-size: clamp(2.7rem, 4.6vw, 4.35rem);
     letter-spacing: 0;
-    text-wrap: balance;
 }
 .hero p { max-width: 610px; line-height: 1.75; color: rgba(255,255,255,.86); }
 .hero-actions { gap: 12px; }
@@ -71,7 +65,7 @@ body {
     background-attachment: fixed;
 }
 .section-soft {
-    background-color: color-mix(in srgb, var(--soft) 80%, white) !important;
+    background-color: var(--soft) !important;
     background-image: url('../images/ornament.svg') !important;
     background-size: 132px 132px !important;
     background-attachment: fixed !important;
@@ -94,7 +88,7 @@ body {
 .intro-grid h2 { font-size: clamp(2.25rem, 3.6vw, 3.55rem); line-height: 1.08; }
 .section-head > .eyebrow { color: var(--primary-dark); }
 .light-head > .eyebrow { color: rgba(255,255,255,.78); }
-.intro-section { border-top: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); }
+.intro-section { border-top: 1px solid rgba(0,0,0,.08); }
 
 .feature-card,
 .content-card,
@@ -103,8 +97,8 @@ body {
 .public-form,
 .map-card {
     border-radius: 10px;
-    border-color: color-mix(in srgb, var(--ink) 12%, transparent);
-    box-shadow: 0 14px 34px color-mix(in srgb, var(--ink) 9%, transparent);
+    border-color: rgba(0,0,0,.12);
+    box-shadow: 0 14px 34px rgba(0,0,0,.09);
 }
 .feature-card { position: relative; overflow: hidden; padding: 30px; border-top: 3px solid var(--accent); }
 .feature-card::after {
@@ -114,13 +108,14 @@ body {
     height: 92px;
     right: -42px;
     top: -42px;
-    border: 1px solid color-mix(in srgb, var(--accent) 58%, transparent);
+    border: 1px solid var(--accent);
+    opacity: .58;
     border-radius: 50%;
 }
-.feature-icon { border-radius: 9px; background: color-mix(in srgb, var(--soft) 78%, white); }
+.feature-icon { border-radius: 9px; background: var(--soft); }
 .content-card { transition: transform .25s ease, box-shadow .25s ease; }
 .content-card:hover,
-.album-card:hover { transform: translateY(-7px); box-shadow: 0 22px 44px color-mix(in srgb, var(--ink) 16%, transparent); }
+.album-card:hover { transform: translateY(-7px); box-shadow: 0 22px 44px rgba(0,0,0,.16); }
 .card-image { aspect-ratio: 16 / 10; }
 .card-copy { padding: 22px; }
 .card-copy h2 { font-size: 1.45rem; }
@@ -133,7 +128,7 @@ body {
     color: #fff;
     border: 0;
     background-color: var(--primary-dark);
-    background-image: linear-gradient(105deg, color-mix(in srgb, var(--primary-dark) 94%, #06150f), color-mix(in srgb, var(--primary) 66%, transparent)), url('../images/hero.jpeg');
+    background-image: linear-gradient(105deg, rgba(0,0,0,.85), rgba(0,0,0,.5)), url('../images/hero.jpeg');
     background-position: center;
     background-size: cover;
 }
@@ -141,7 +136,7 @@ body {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(130deg, transparent 0 68%, color-mix(in srgb, var(--accent) 22%, transparent) 68% 68.2%, transparent 68.2%);
+    background: linear-gradient(130deg, transparent 0 68%, rgba(255,255,255,.22) 68% 68.2%, transparent 68.2%);
 }
 .page-banner .shell { position: relative; z-index: 1; }
 .page-banner h1 { font-size: clamp(2.8rem, 5vw, 4.75rem); }
@@ -159,7 +154,7 @@ body {
        stays tuned for this dark footer while still letting the school photo
        show through underneath. */
     background-color: var(--ink);
-    background-image: linear-gradient(125deg, color-mix(in srgb, var(--ink) 80%, transparent), color-mix(in srgb, var(--primary-dark) 82%, transparent)), var(--footer-photo, none);
+    background-image: linear-gradient(125deg, rgba(0,0,0,.8), rgba(0,0,0,.82)), var(--footer-photo, none);
     background-size: cover, cover;
     background-position: center, center;
     background-repeat: no-repeat, no-repeat;
@@ -175,7 +170,7 @@ body {
     .hero-content { padding-left: 32px; }
 }
 @media (max-width: 620px) {
-    .hero-content { width: auto; margin: 0 14px; padding: 28px 22px; border: 1px solid rgba(255,255,255,.17); border-radius: 14px; background: rgba(10,20,15,.5); background: color-mix(in srgb, var(--primary-dark) 50%, transparent); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+    .hero-content { width: auto; margin: 0 14px; padding: 28px 22px; border: 1px solid rgba(255,255,255,.17); border-radius: 14px; background: rgba(0,0,0,.5); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
     .hero h1 { font-size: clamp(2.5rem, 11vw, 3.5rem); }
     .page-banner { min-height: 250px; }
     .page-banner h1 { font-size: clamp(2.35rem, 10vw, 3.35rem); }
@@ -256,7 +251,7 @@ body {
 .unit-notice-window { min-width: 0; overflow: hidden; display: flex; align-items: center; }
 .unit-notice-track { width: max-content; display: flex; align-items: center; animation: unit-ticker 33s linear infinite; }
 .unit-notice-track span { display: inline-flex; align-items: center; gap: 13px; padding: 0 28px; white-space: nowrap; color: rgba(255,255,255,.9); font-size: .78rem; font-weight: 750; }
-.unit-notice-track i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent); }
+.unit-notice-track i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(255,255,255,.15); }
 .unit-notice-bar:hover .unit-notice-track { animation-play-state: paused; }
 
 @keyframes hero-image-drift { from { transform: scale(1.02) translate3d(0,0,0); } to { transform: scale(1.1) translate3d(-1.3%,-.8%,0); } }

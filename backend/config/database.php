@@ -33,9 +33,15 @@ if (!ctype_digit((string) $database['port']) || (int) $database['port'] < 1 || (
 }
 if (!preg_match('/^[a-zA-Z0-9_]+$/', (string) $database['name'])) app_database_unavailable('Invalid database name.');
 
-foreach (['DB_HOST' => 'host', 'DB_PORT' => 'port', 'DB_USER' => 'user', 'DB_PASS' => 'pass', 'DB_NAME' => 'name'] as $constant => $key) {
-    if (!defined($constant)) define($constant, (string) $database[$key]);
-}
+// Defined with literal names (instead of a dynamic-key loop) so static analysis
+// tools such as intelephense can actually see these constants get declared -
+// a computed define($variable, ...) call is invisible to them and was showing
+// up as "Undefined constant" everywhere DB_NAME/DB_HOST/etc. are used.
+if (!defined('DB_HOST')) define('DB_HOST', (string) $database['host']);
+if (!defined('DB_PORT')) define('DB_PORT', (string) $database['port']);
+if (!defined('DB_USER')) define('DB_USER', (string) $database['user']);
+if (!defined('DB_PASS')) define('DB_PASS', (string) $database['pass']);
+if (!defined('DB_NAME')) define('DB_NAME', (string) $database['name']);
 
 if (!defined('APP_BASE_PATH')) {
     $projectRoot = realpath(dirname(__DIR__, 2)) ?: dirname(__DIR__, 2);

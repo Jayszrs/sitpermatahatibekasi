@@ -79,7 +79,7 @@ if (isset($_GET['edit'])) {
 $paymentRegistration = null;
 if (isset($_GET['pay'])) { $stmt=$pdo->prepare('SELECT * FROM spmb_registrations WHERE id=?'); $stmt->execute([(int)$_GET['pay']]); $paymentRegistration=$stmt->fetch() ?: null; }
 $transactions=$pdo->query('SELECT p.*,r.student_name,u.name recorder FROM spmb_payments p JOIN spmb_registrations r ON r.id=p.registration_id LEFT JOIN portal_users u ON u.id=p.recorded_by ORDER BY p.created_at DESC LIMIT 100')->fetchAll();
-function portal_rupiah($amount): string { return 'Rp ' . number_format((float)$amount, 0, ',', '.'); }
+function portal_rupiah(int|float|string|null $amount): string { return 'Rp ' . number_format((float)$amount, 0, ',', '.'); }
 
 $portalTitle = 'Pembayaran SPMB';
 $portalActive = 'payments';
