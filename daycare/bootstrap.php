@@ -103,6 +103,18 @@ function unit_seed_supplemental(PDO $pdo): void {
         $insert = $pdo->prepare('INSERT INTO unit_content (unit_slug,content_type,title,summary,body,image,meta,published_at,sort_order) VALUES (?,?,?,?,?,?,?,?,?)');
         foreach ($news as $index => $item) $insert->execute([UNIT_SLUG,'news',$item[0],$item[1],$item[2],$unit_config['gallery'][$index % count($unit_config['gallery'])]['image'],'Informasi Unit',$item[3],$index]);
     }
+    $achievementTarget = max(3, count($unit_config['achievements'] ?? []));
+    $achievementCount = (int) $pdo->query("SELECT COUNT(*) FROM unit_content WHERE unit_slug='".UNIT_SLUG."' AND content_type='achievement'")->fetchColumn();
+    if ($achievementCount < $achievementTarget && !empty($unit_config['achievements'])) {
+        $existsAchievement = $pdo->prepare('SELECT COUNT(*) FROM unit_content WHERE unit_slug=? AND content_type=? AND title=?');
+        $insertAchievement = $pdo->prepare('INSERT INTO unit_content (unit_slug,content_type,title,summary,body,image,meta,published_at,sort_order) VALUES (?,?,?,?,?,?,?,?,?)');
+        foreach ($unit_config['achievements'] as $index => $item) {
+            $existsAchievement->execute([UNIT_SLUG, 'achievement', $item['title']]);
+            if ((int) $existsAchievement->fetchColumn() > 0) continue;
+            $year = (string) ($item['year'] ?? date('Y'));
+            $insertAchievement->execute([UNIT_SLUG, 'achievement', $item['title'], $item['summary'] ?? '', $item['summary'] ?? '', $item['image'] ?? '', $item['level'] ?? 'Sekolah', $year . '-01-01', $index]);
+        }
+    }
     $albumCount = (int) $pdo->query("SELECT COUNT(*) FROM unit_gallery_albums WHERE unit_slug='".UNIT_SLUG."'")->fetchColumn();
     if ($albumCount < 3) {
         $insertAlbum = $pdo->prepare('INSERT INTO unit_gallery_albums (unit_slug,title,description,cover_image,sort_order) VALUES (?,?,?,?,?)');

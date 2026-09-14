@@ -26,6 +26,7 @@ return [
         'address' => 'Kp. Buwek Jaya Gg. Buser No. 23-24, Sumberjaya, Tambun Selatan, Bekasi, Jawa Barat 17510',
         'maps' => 'https://www.google.com/maps/place/TKIT+PERMATA+HATI/@-6.2388771,107.0793613,17z',
         'instagram' => 'https://www.instagram.com/daycarepermatahati.bekasi/',
+        'facebook' => 'https://www.facebook.com/tkitpermatahatibekasi/posts/day-care-permata-hati-tambun-bekasiday-care-adalah-lembaga-penitipan-anak-yang-d/227697477972901/',
         'youtube' => 'https://youtube.com/@sitpermatahatibekasi',
     ],
     'hero_image' => 'assets/images/hero.jpeg',
@@ -47,6 +48,8 @@ return [
     ],
     'achievements' => [
         ['title' => 'Apresiasi Kemandirian Anak', 'summary' => 'Penghargaan perkembangan anak melalui aktivitas bermain terarah.', 'level' => 'Sekolah', 'year' => '2026', 'image' => 'assets/images/gallery-01.jpeg'],
+        ['title' => 'Apresiasi Sensorik Ceria', 'summary' => 'Merayakan keberanian anak mencoba tekstur, warna, dan aktivitas motorik baru.', 'level' => 'Sekolah', 'year' => '2026', 'image' => 'assets/images/activity.jpeg'],
+        ['title' => 'Apresiasi Pembiasaan Adab', 'summary' => 'Penghargaan untuk rutinitas doa, salam, berbagi, dan kemandirian harian anak.', 'level' => 'Sekolah', 'year' => '2026', 'image' => 'assets/images/gallery-03.jpeg'],
     ],
     'brochures' => [
         ['title' => 'Brosur Daycare Permata Hati', 'summary' => 'Informasi layanan, program, dan pendaftaran.', 'file' => 'assets/brochures/brosur-daycare.pdf'],

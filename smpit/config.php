@@ -21,6 +21,8 @@ return [
         'address' => 'Jl. Astana No.98, Simpang Lima, Tridaya Sakti, Kec. Tambun Selatan, Kabupaten Bekasi, Jawa Barat 17510',
         'maps' => 'https://www.google.com/maps/place/SMPIT+Permata+Hati/@-6.2494549,107.0781991,17z',
         'instagram' => 'https://www.instagram.com/smpit_permatahati/?hl=id',
+        'facebook' => 'https://www.facebook.com/pembangungenerasirobani/photos/',
+        'tiktok' => 'https://www.tiktok.com/@smpit_permatahati',
         'youtube' => 'https://www.youtube.com/@smpit_permatahati',
     ],
     'hero_image' => 'assets/images/hero.jpeg',
@@ -42,6 +44,8 @@ return [
     ],
     'achievements' => [
         ['title' => 'Prestasi Siswa SMPIT', 'summary' => 'Apresiasi siswa yang aktif berkompetisi dan terus bertumbuh.', 'level' => 'Kota', 'year' => '2026', 'image' => 'assets/images/gallery-01.jpeg'],
+        ['title' => 'Apresiasi Leadership Project', 'summary' => 'Penghargaan untuk kolaborasi, kepemimpinan, dan tanggung jawab siswa dalam proyek sekolah.', 'level' => 'Sekolah', 'year' => '2026', 'image' => 'assets/images/gallery-03.jpeg'],
+        ['title' => 'Apresiasi Sains dan Digital', 'summary' => 'Merayakan rasa ingin tahu, riset sederhana, dan karya digital siswa SMPIT.', 'level' => 'Sekolah', 'year' => '2026', 'image' => 'assets/images/activity.jpeg'],
     ],
     'brochures' => [
         ['title' => 'Brosur SMPIT Permata Hati', 'summary' => 'Informasi pendidikan SMP Islam terpadu dan pendaftaran.', 'file' => 'assets/brochures/brosur-smpit.pdf'],

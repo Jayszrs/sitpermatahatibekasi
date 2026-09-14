@@ -21,6 +21,7 @@ return [
         'address' => 'Kp. Buwek Jaya Gg. Buser No. 23-24, Sumberjaya, Tambun Selatan, Bekasi, Jawa Barat 17510',
         'maps' => 'https://www.google.com/maps/place/SDIT+Permata+Hati/@-6.2391594,107.0796598,17z',
         'instagram' => 'https://www.instagram.com/sditphbekasi/',
+        'facebook' => 'https://www.facebook.com/sditpermatahatibekasi/?locale=id_ID',
         'youtube' => 'https://www.youtube.com/@sditpermatahatibekasi99',
     ],
     'hero_image' => 'assets/images/hero.jpeg',
@@ -42,6 +43,8 @@ return [
     ],
     'achievements' => [
         ['title' => 'Prestasi Siswa SDIT', 'summary' => 'Apresiasi untuk siswa yang menunjukkan usaha dan capaian terbaik.', 'level' => 'Kabupaten', 'year' => '2026', 'image' => 'assets/images/gallery-01.jpeg'],
+        ['title' => 'Apresiasi Tahfidz SDIT', 'summary' => 'Penghargaan untuk konsistensi siswa dalam tilawah, hafalan, dan adab bersama Al-Quran.', 'level' => 'Sekolah', 'year' => '2026', 'image' => 'assets/images/gallery-02.jpeg'],
+        ['title' => 'Apresiasi Karya dan Literasi', 'summary' => 'Merayakan karya, literasi, dan keberanian siswa menampilkan ide terbaiknya.', 'level' => 'Sekolah', 'year' => '2026', 'image' => 'assets/images/activity.jpeg'],
     ],
     'brochures' => [
         ['title' => 'Brosur SDIT Permata Hati', 'summary' => 'Informasi pendidikan dasar terpadu dan pendaftaran.', 'file' => 'assets/brochures/brosur-sdit.pdf'],
