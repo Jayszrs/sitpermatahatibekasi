@@ -19,6 +19,8 @@ body:has(.wrap)::before {
 .top > div { padding: 8px 8px 24px !important; }
 .top strong { font-size: 1.18rem !important; }
 .portal-logo { width: 58px; height: 58px; margin-bottom: 9px; }
+/* Per-unit color filter here was reverted - admin logo stays the real crest
+   color. Only the browser-tab favicon keeps a per-unit tint (favicon.png). */
 /* "Portal Unit SIT Permata Hati" wraps to two lines in the 220px-wide sidebar column,
    so the tab nav (a separately fixed-position element, not a real DOM sibling of the
    header text) needs enough top clearance to never overlap it regardless of how the

@@ -102,6 +102,26 @@ function ensure_public_schema(PDO $pdo): void
         INDEX idx_content_type (type,is_active,sort_order)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    // Galeri konten sosial media: admin mengunggah foto/video yang memang sudah
+    // diposting ke Instagram, lalu menautkannya kembali ke post aslinya. Ini
+    // BUKAN sinkronisasi otomatis dari API Instagram (butuh akun developer
+    // Meta + token yang tidak tersedia di sini) - murni kurasi manual lewat
+    // admin. `scope` = 'yayasan' untuk web utama, atau slug unit untuk 4
+    // sekolah (daycare/tkit/sdit/smpit), dibaca lewat koneksi DB utama yang
+    // sama yang sudah dipakai untuk SPMB & Karir unit.
+    $pdo->exec("CREATE TABLE IF NOT EXISTS instagram_gallery (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        scope VARCHAR(20) NOT NULL,
+        media_path VARCHAR(255) NOT NULL,
+        media_type ENUM('image','video') NOT NULL DEFAULT 'image',
+        caption VARCHAR(180) NULL,
+        instagram_url VARCHAR(255) NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_instagram_scope (scope,is_active,sort_order,id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS site_profile (
         id TINYINT PRIMARY KEY,
         history_title VARCHAR(180) NOT NULL,
@@ -126,6 +146,25 @@ function ensure_public_schema(PDO $pdo): void
         $stmt = $pdo->prepare('INSERT IGNORE INTO schema_migrations (version,description) VALUES (?,?)');
         $stmt->execute([$version, $description]);
     };
+
+    // Instagram gallery, take 2: besides the manual upload-and-link-back flow,
+    // also support media_type='embed' - Instagram's own official post embed
+    // (instagram_url holds the post link, media_path stays empty), so a real
+    // public post can be shown live straight from Instagram's own servers
+    // without needing API/OAuth access to the account at all.
+    if ($tableExists('instagram_gallery')) {
+        $mediaTypeColumn = $pdo->prepare("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME='instagram_gallery' AND COLUMN_NAME='media_type'");
+        $mediaTypeColumn->execute([DB_NAME]);
+        $mediaTypeColumnType = (string) $mediaTypeColumn->fetchColumn();
+        if ($mediaTypeColumnType !== '' && !str_contains($mediaTypeColumnType, "'embed'")) {
+            $pdo->exec("ALTER TABLE instagram_gallery MODIFY COLUMN media_type ENUM('image','video','embed') NOT NULL DEFAULT 'image'");
+        }
+        $mediaPathNullable = $pdo->prepare("SELECT IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME='instagram_gallery' AND COLUMN_NAME='media_path'");
+        $mediaPathNullable->execute([DB_NAME]);
+        if ($mediaPathNullable->fetchColumn() === 'NO') {
+            $pdo->exec("ALTER TABLE instagram_gallery MODIFY COLUMN media_path VARCHAR(255) NULL");
+        }
+    }
 
     if ($tableExists('news') && !$columnExists('news', 'unit')) {
         $pdo->exec("ALTER TABLE news ADD COLUMN unit VARCHAR(20) NOT NULL DEFAULT 'SDIT' AFTER slug, ADD INDEX idx_news_unit_date (unit,published_at,id)");
