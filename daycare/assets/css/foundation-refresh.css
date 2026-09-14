@@ -398,7 +398,7 @@ body {
    corners instead of sitting bare with zero chrome. Fixed height keeps the
    grid compact and every row even (crops the very bottom of taller posts). */
 .ig-gallery-embed { position: relative; overflow: hidden; height: 420px; }
-.ig-gallery-embed iframe { width: 100% !important; border-radius: inherit; }
+.ig-gallery-embed iframe { display: block; width: 100%; height: 100%; border: 0; border-radius: inherit; }
 .ig-gallery-loading {
     position: absolute;
     inset: 0;

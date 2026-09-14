@@ -142,43 +142,7 @@ if ($page === 'home') {
 <section class="section section-primary"><div class="shell"><div class="section-head light-head"><div><span class="eyebrow light">POTRET SEKOLAH</span><h2>Setiap momen adalah proses bertumbuh</h2></div><a class="text-link light-link" href="gallery.php">Buka galeri</a></div><div class="album-strip"><?php foreach(array_slice($albums,0,3) as $album): ?><a href="gallery.php?album=<?php echo (int)$album['id']; ?>" class="album-tile" style="background-image:url('<?php echo unit_e(unit_media($album['cover_image'])); ?>')"><span><?php echo unit_e($album['title']); ?></span></a><?php endforeach; ?></div></div></section>
 <section class="section"><div class="shell"><div class="section-head line-head"><div><span class="eyebrow">APRESIASI</span><h2>Pencapaian yang dirayakan</h2></div><a class="text-link" href="achievements.php">Semua prestasi</a></div><?php unit_cards($achievements,'achievement-grid','Prestasi akan segera ditampilkan.','achievements.php'); ?></div></section>
 <?php if ($socialItems): ?>
-<section class="section section-soft"><div class="shell"><div class="section-head"><span class="eyebrow">INSTAGRAM</span><h2>Galeri Instagram <?php echo unit_e($unit_config['short_name']); ?></h2></div><div class="ig-gallery-grid"><?php foreach ($socialItems as $socialItem): ?><?php if ($socialItem['media_type']==='embed' && !empty($socialItem['instagram_url'])): ?><div class="ig-gallery-card ig-gallery-embed" data-ig-lazy="<?php echo unit_e($socialItem['instagram_url']); ?>"><div class="ig-gallery-loading">Memuat postingan Instagram&hellip;</div></div><?php else: ?><div class="ig-gallery-card"><div class="ig-gallery-media"><?php if ($socialItem['media_type']==='video'): ?><video src="<?php echo unit_e($socialItem['media_path']); ?>" controls preload="metadata"></video><?php else: ?><img src="<?php echo unit_e($socialItem['media_path']); ?>" alt="<?php echo unit_e($socialItem['caption'] ?: 'Postingan Instagram'); ?>" loading="lazy"><?php endif; ?></div><?php if (!empty($socialItem['caption']) || !empty($socialItem['instagram_url'])): ?><div class="ig-gallery-foot"><?php if (!empty($socialItem['caption'])): ?><p><?php echo unit_e($socialItem['caption']); ?></p><?php endif; ?><?php if (!empty($socialItem['instagram_url'])): ?><a href="<?php echo unit_e($socialItem['instagram_url']); ?>" target="_blank" rel="noopener">Lihat di Instagram &rarr;</a><?php endif; ?></div><?php endif; ?></div><?php endif; ?><?php endforeach; ?></div></div></section>
-<?php if (in_array('embed', array_column($socialItems, 'media_type'), true)): ?><script>
-(function () {
-    var cards = document.querySelectorAll('[data-ig-lazy]');
-    if (!cards.length) return;
-    var scriptLoading = false;
-    function loadIgEmbedScript(done) {
-        if (window.instgrm && window.instgrm.Embeds) { done(); return; }
-        if (scriptLoading) { window.addEventListener('ig-embed-ready', done, { once: true }); return; }
-        scriptLoading = true;
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.instagram.com/embed.js';
-        s.onload = function () { window.dispatchEvent(new Event('ig-embed-ready')); done(); };
-        document.body.appendChild(s);
-    }
-    var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            var card = entry.target;
-            io.unobserve(card);
-            var url = card.getAttribute('data-ig-lazy');
-            var bq = document.createElement('blockquote');
-            bq.className = 'instagram-media';
-            bq.setAttribute('data-instgrm-permalink', url);
-            bq.setAttribute('data-instgrm-version', '14');
-            var loading = card.querySelector('.ig-gallery-loading');
-            if (loading) loading.remove();
-            card.appendChild(bq);
-            loadIgEmbedScript(function () {
-                if (window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
-            });
-        });
-    }, { rootMargin: '500px 0px' });
-    cards.forEach(function (card) { io.observe(card); });
-})();
-</script><?php endif; ?>
+<section class="section section-soft"><div class="shell"><div class="section-head"><span class="eyebrow">INSTAGRAM</span><h2>Galeri Instagram <?php echo unit_e($unit_config['short_name']); ?></h2></div><div class="ig-gallery-grid"><?php foreach ($socialItems as $socialItem): ?><?php $igEmbedSrc = $socialItem['media_type']==='embed' ? instagram_embed_url($socialItem['instagram_url']) : null; ?><?php if ($igEmbedSrc): ?><div class="ig-gallery-card ig-gallery-embed"><iframe src="<?php echo unit_e($igEmbedSrc); ?>" loading="lazy" allowtransparency="true" title="<?php echo unit_e($socialItem['caption'] ?: 'Postingan Instagram'); ?>"></iframe></div><?php else: ?><div class="ig-gallery-card"><div class="ig-gallery-media"><?php if ($socialItem['media_type']==='video'): ?><video src="<?php echo unit_e($socialItem['media_path']); ?>" controls preload="metadata"></video><?php else: ?><img src="<?php echo unit_e($socialItem['media_path']); ?>" alt="<?php echo unit_e($socialItem['caption'] ?: 'Postingan Instagram'); ?>" loading="lazy"><?php endif; ?></div><?php if (!empty($socialItem['caption']) || !empty($socialItem['instagram_url'])): ?><div class="ig-gallery-foot"><?php if (!empty($socialItem['caption'])): ?><p><?php echo unit_e($socialItem['caption']); ?></p><?php endif; ?><?php if (!empty($socialItem['instagram_url'])): ?><a href="<?php echo unit_e($socialItem['instagram_url']); ?>" target="_blank" rel="noopener">Lihat di Instagram &rarr;</a><?php endif; ?></div><?php endif; ?></div><?php endif; ?><?php endforeach; ?></div></div></section>
 <?php endif; ?>
 <?php unit_page_end(); return; }
 

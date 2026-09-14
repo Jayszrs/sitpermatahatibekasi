@@ -311,10 +311,11 @@ require_once __DIR__ . '/../components/header.php';
         <div class="ig-gallery-grid">
             <?php foreach ($instagram_gallery_items as $igItem): ?>
             <?php $igUnitLabel = $igItem['scope'] === 'yayasan' ? 'Yayasan' : ($unitCatalog[$igItem['scope']]['subtitle'] ?? ucfirst($igItem['scope'])); ?>
-            <?php if ($igItem['media_type'] === 'embed' && !empty($igItem['instagram_url'])): ?>
-            <div class="ig-gallery-card ig-gallery-embed" data-ig-lazy="<?php echo esc($igItem['instagram_url']); ?>">
+            <?php $igEmbedSrc = $igItem['media_type'] === 'embed' ? instagram_embed_url($igItem['instagram_url']) : null; ?>
+            <?php if ($igEmbedSrc): ?>
+            <div class="ig-gallery-card ig-gallery-embed">
                 <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
-                <div class="ig-gallery-loading">Memuat postingan Instagram&hellip;</div>
+                <iframe src="<?php echo esc($igEmbedSrc); ?>" loading="lazy" allowtransparency="true" title="<?php echo esc($igItem['caption'] ?: 'Postingan Instagram'); ?>"></iframe>
             </div>
             <?php else: ?>
             <div class="ig-gallery-card">
@@ -338,50 +339,6 @@ require_once __DIR__ . '/../components/header.php';
         </div>
     </div>
 </section>
-<?php if (in_array('embed', array_column($instagram_gallery_items, 'media_type'), true)): ?>
-<script>
-// Lazy-load Instagram embeds: only build the real <blockquote> (and only load
-// Instagram's own embed.js, once) when a card actually scrolls near the
-// viewport, instead of initializing every single embed on page load. With
-// many cards on one page this cuts the initial number of Instagram iframes
-// (and the third-party network/analytics calls each one makes) way down and
-// makes the page load noticeably faster.
-(function () {
-    var cards = document.querySelectorAll('[data-ig-lazy]');
-    if (!cards.length) return;
-    var scriptLoading = false;
-    function loadIgEmbedScript(done) {
-        if (window.instgrm && window.instgrm.Embeds) { done(); return; }
-        if (scriptLoading) { window.addEventListener('ig-embed-ready', done, { once: true }); return; }
-        scriptLoading = true;
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.instagram.com/embed.js';
-        s.onload = function () { window.dispatchEvent(new Event('ig-embed-ready')); done(); };
-        document.body.appendChild(s);
-    }
-    var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            var card = entry.target;
-            io.unobserve(card);
-            var url = card.getAttribute('data-ig-lazy');
-            var bq = document.createElement('blockquote');
-            bq.className = 'instagram-media';
-            bq.setAttribute('data-instgrm-permalink', url);
-            bq.setAttribute('data-instgrm-version', '14');
-            var loading = card.querySelector('.ig-gallery-loading');
-            if (loading) loading.remove();
-            card.appendChild(bq);
-            loadIgEmbedScript(function () {
-                if (window.instgrm && window.instgrm.Embeds) window.instgrm.Embeds.process();
-            });
-        });
-    }, { rootMargin: '500px 0px' });
-    cards.forEach(function (card) { io.observe(card); });
-})();
-</script>
-<?php endif; ?>
 <?php endif; ?>
 
 <?php require_once __DIR__ . '/../components/footer.php'; ?>
