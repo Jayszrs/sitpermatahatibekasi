@@ -12,7 +12,7 @@
             <div class="school-socials" aria-label="Sosial media sekolah">
                 <strong class="footer-social-title">Sosial Media</strong>
                 <div class="school-social-row">
-                    <span class="school-social-icon">
+                    <span class="school-social-icon social-instagram">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><path d="M17.5 6.5h.01"></path></svg>
                     </span>
                     <div class="school-social-links">
@@ -23,7 +23,26 @@
                     </div>
                 </div>
                 <div class="school-social-row">
-                    <span class="school-social-icon">
+                    <span class="school-social-icon social-facebook">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8.2V6.9c0-.7.3-1.1 1.2-1.1h1.4V3.2c-.7-.1-1.5-.2-2.2-.2-2.2 0-3.8 1.4-3.8 3.9v1.3H8.1V11h2.5v7.8H14V11h2.4l.4-2.8H14Z"></path></svg>
+                    </span>
+                    <div class="school-social-links">
+                        <a href="https://www.facebook.com/tkitpermatahatibekasi/posts/day-care-permata-hati-tambun-bekasiday-care-adalah-lembaga-penitipan-anak-yang-d/227697477972901/" target="_blank" rel="noopener">Daycare</a>
+                        <a href="https://www.facebook.com/tkitpermatahatibekasi/?locale=id_ID" target="_blank" rel="noopener">TKIT</a>
+                        <a href="https://www.facebook.com/sditpermatahatibekasi/?locale=id_ID" target="_blank" rel="noopener">SDIT</a>
+                        <a href="https://www.facebook.com/pembangungenerasirobani/photos/" target="_blank" rel="noopener">SMPIT</a>
+                    </div>
+                </div>
+                <div class="school-social-row">
+                    <span class="school-social-icon social-tiktok">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3c.4 2.5 1.8 4 4.3 4.2v3.1c-1.6 0-3-.5-4.2-1.4v5.9c0 3-2.1 5.2-5.2 5.2-2.8 0-5-2-5-4.7 0-3 2.5-5.1 5.7-4.7v3.2c-1.3-.4-2.4.2-2.4 1.4 0 .9.7 1.6 1.7 1.6 1.2 0 1.9-.8 1.9-2.1V3h3.2Z"></path></svg>
+                    </span>
+                    <div class="school-social-links">
+                        <a href="https://www.tiktok.com/@smpit_permatahati" target="_blank" rel="noopener">SMPIT</a>
+                    </div>
+                </div>
+                <div class="school-social-row">
+                    <span class="school-social-icon social-youtube">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.5 12s0-3.2-.4-4.7a2.8 2.8 0 0 0-2-2C18.5 5 12 5 12 5s-6.5 0-8.1.3a2.8 2.8 0 0 0-2 2C1.5 8.8 1.5 12 1.5 12s0 3.2.4 4.7a2.8 2.8 0 0 0 2 2C5.5 19 12 19 12 19s6.5 0 8.1-.3a2.8 2.8 0 0 0 2-2c.4-1.5.4-4.7.4-4.7Z"></path><path d="m10 15 5-3-5-3v6Z"></path></svg>
                     </span>
                     <div class="school-social-links">

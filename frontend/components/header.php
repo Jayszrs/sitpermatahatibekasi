@@ -4,6 +4,50 @@ $metaDescription = $meta_description ?? SITE_TAGLINE;
 $metaImage = public_media_url($meta_image ?? null);
 $metaUrl = $canonical_url ?? SITE_URL . '/' . ltrim((string)($current_page ?? 'index.php'), '/');
 $metaType = $meta_type ?? 'website';
+$schoolSocialLinks = [
+    'daycare' => [
+        'label' => 'Daycare',
+        'links' => [
+            'instagram' => ['label' => 'Instagram', 'url' => 'https://www.instagram.com/daycarepermatahati.bekasi/'],
+            'facebook' => ['label' => 'Facebook', 'url' => 'https://www.facebook.com/tkitpermatahatibekasi/posts/day-care-permata-hati-tambun-bekasiday-care-adalah-lembaga-penitipan-anak-yang-d/227697477972901/'],
+        ],
+    ],
+    'tkit' => [
+        'label' => 'TKIT',
+        'links' => [
+            'instagram' => ['label' => 'Instagram', 'url' => 'https://www.instagram.com/tkitpermatahatibekasi/'],
+            'facebook' => ['label' => 'Facebook', 'url' => 'https://www.facebook.com/tkitpermatahatibekasi/?locale=id_ID'],
+        ],
+    ],
+    'sdit' => [
+        'label' => 'SDIT',
+        'links' => [
+            'instagram' => ['label' => 'Instagram', 'url' => 'https://www.instagram.com/sditphbekasi/'],
+            'facebook' => ['label' => 'Facebook', 'url' => 'https://www.facebook.com/sditpermatahatibekasi/?locale=id_ID'],
+            'youtube' => ['label' => 'YouTube', 'url' => 'http://www.youtube.com/@sditpermatahatibekasi99'],
+        ],
+    ],
+    'smpit' => [
+        'label' => 'SMPIT',
+        'links' => [
+            'instagram' => ['label' => 'Instagram', 'url' => 'https://www.instagram.com/smpit_permatahati/?hl=id'],
+            'facebook' => ['label' => 'Facebook', 'url' => 'https://www.facebook.com/pembangungenerasirobani/photos/'],
+            'tiktok' => ['label' => 'TikTok', 'url' => 'https://www.tiktok.com/@smpit_permatahati'],
+            'youtube' => ['label' => 'YouTube', 'url' => 'http://www.youtube.com/@smpit_permatahati'],
+        ],
+    ],
+];
+$renderSocialIcon = static function (string $key): void {
+    if ($key === 'facebook') {
+        echo '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8.2h2.2V4.6c-.38-.05-1.7-.16-3.23-.16-3.2 0-5.39 1.95-5.39 5.52v3.11H4v4.02h3.58V24h4.39v-6.91h3.45l.55-4.02h-4V10.36c0-1.16.32-2.16 2.03-2.16Z"/></svg>';
+    } elseif ($key === 'instagram') {
+        echo '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"></rect><circle cx="12" cy="12" r="3.4"></circle><path d="M17.4 6.7h.01"></path></svg>';
+    } elseif ($key === 'tiktok') {
+        echo '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.2 4v10.4a4.6 4.6 0 1 1-4-4.56v3.35a1.55 1.55 0 1 0 1.12 1.49V4h2.88c.42 2.02 1.74 3.57 3.8 4.18v3.26a7.5 7.5 0 0 1-3.8-1.47Z"/></svg>';
+    } else {
+        echo '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6.5" width="18" height="11" rx="3.2"></rect><path d="m10.4 9.3 4.7 2.7-4.7 2.7V9.3Z"></path></svg>';
+    }
+};
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -95,6 +139,27 @@ $isNavActive = static function (string $target) use ($current_page): bool {
                     </li>
                     <?php endif; ?>
                 <?php endforeach; ?>
+                <li class="has-dropdown social-dropdown">
+                    <button type="button" class="dropdown-trigger social-dropdown-trigger" aria-expanded="false">
+                        Sosial Media
+                        <svg class="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <ul class="dropdown-menu social-dropdown-menu" aria-label="Media sosial SIT Permata Hati Bekasi">
+                        <?php foreach ($schoolSocialLinks as $unit): ?>
+                            <li class="social-unit-row">
+                                <span class="social-unit-label"><?php echo esc($unit['label']); ?></span>
+                                <span class="social-unit-links">
+                                    <?php foreach ($unit['links'] as $key => $social): ?>
+                                        <a class="nav-social-link social-<?php echo esc($key); ?>" href="<?php echo esc($social['url']); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc($unit['label'] . ' ' . $social['label']); ?>" title="<?php echo esc($unit['label'] . ' - ' . $social['label']); ?>">
+                                            <?php $renderSocialIcon($key); ?>
+                                            <span><?php echo esc($social['label']); ?></span>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </li>
             </ul>
         </nav>
     </div>
