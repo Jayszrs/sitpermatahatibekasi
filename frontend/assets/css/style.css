@@ -1746,6 +1746,9 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .hero-copy h1 { font-family: 'El Messiri',Inter,sans-serif; font-size: clamp(2.7rem,5vw,5rem); }
 .hero-copy p { margin-left: 0; max-width: 590px; }
 .hero-copy .hero-actions { justify-content: flex-start; }
+.hero-copy[data-awaits-video="1"] { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+.hero-copy[data-awaits-video="1"].video-revealed { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .hero-copy[data-awaits-video="1"] { opacity: 1; transform: none; transition: none; } }
 .hero-pagination { position: absolute; z-index: 3; right: max(24px,calc((100vw - var(--max-width))/2)); bottom: 28px; display: flex; gap: 9px; }
 .hero-pagination button { width: 34px; height: 4px; padding: 0; border: 0; border-radius: 99px; background: rgba(255,255,255,.4); cursor: pointer; transition: width .25s,background .25s; }
 .hero-pagination button.active { width: 62px; background: var(--secondary); }
@@ -2054,7 +2057,27 @@ table.schedule th { background: var(--primary); color: #fff; }
 }
 
 /* ===== FOOTER ===== */
-.site-footer { background: var(--primary-dark); color: rgba(255,255,255,0.85); padding: 34px 0 0; margin-top: 40px; }
+/* Footer background: a 4-way photo collage, one real building photo from each
+   of the 4 units (--footer-b1..b4, set inline in footer.php via SITE_URL), laid
+   out as equal side-by-side quadrants under a dark tint for text contrast. */
+.site-footer {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--primary-dark);
+    background-image:
+        linear-gradient(rgba(6,26,16,.82), rgba(6,26,16,.82)),
+        var(--footer-b1, none),
+        var(--footer-b2, none),
+        var(--footer-b3, none),
+        var(--footer-b4, none);
+    background-position: center, 0% center, 33.333% center, 66.667% center, 100% center;
+    background-size: cover, 25% 100%, 25% 100%, 25% 100%, 25% 100%;
+    background-repeat: no-repeat;
+    color: rgba(255,255,255,0.85);
+    padding: 34px 0 0;
+    margin-top: 40px;
+}
+.site-footer > * { position: relative; z-index: 1; }
 .footer-grid { display: grid; grid-template-columns: 1.1fr 0.72fr 0.95fr 1.42fr; gap: 28px; padding-bottom: 24px; align-items: start; }
 .footer-col h3,
 .footer-col h4 { color: #fff; font-size: 1rem; margin-bottom: 14px; }

@@ -19,7 +19,12 @@ body:has(.wrap)::before {
 .top > div { padding: 8px 8px 24px !important; }
 .top strong { font-size: 1.18rem !important; }
 .portal-logo { width: 58px; height: 58px; margin-bottom: 9px; }
-.tabs { left: 22px !important; top: 172px !important; width: 244px !important; }
+/* "Portal Unit SIT Permata Hati" wraps to two lines in the 220px-wide sidebar column,
+   so the tab nav (a separately fixed-position element, not a real DOM sibling of the
+   header text) needs enough top clearance to never overlap it regardless of how the
+   title wraps across browsers/fonts. */
+.top > div strong { font-size: 1.18rem !important; line-height: 1.25 !important; }
+.tabs { left: 22px !important; top: 260px !important; width: 244px !important; }
 .tabs a { padding: 12px 14px !important; }
 .wrap {
   position: relative;
@@ -122,5 +127,13 @@ body:has(.login)::after {
   .top{width:236px!important}.tabs{left:16px!important;width:204px!important}.wrap{margin-left:236px!important;width:min(100% - 270px,1180px)!important}.wrap::before{left:236px}.wrap::after{left:calc(236px + 4vw)} body:has(.login){grid-template-columns:43% 57%} body:has(.login)::before{inset:0 57% 0 0;padding-inline:5vw}body:has(.login)::after{left:5vw;width:33vw}.login{width:min(460px,84%)!important;padding:44px!important}
 }
 @media(max-width:720px) {
-  .wrap{padding-top:24px!important}.wrap::before,.wrap::after{display:none}.top{width:auto!important;background-image:linear-gradient(135deg,var(--portal-dark),var(--portal-primary))!important}.tabs{background:var(--portal-dark)!important}body:has(.login){display:block!important;background:var(--portal-paper)!important}body:has(.login)::before,body:has(.login)::after{display:none}.login{width:min(100% - 36px,480px)!important;margin:0 auto!important;padding:44px 28px!important;box-shadow:none!important;border:0!important;background:transparent!important}
+  /* The 980px rules above (margin-left/width on .wrap, left/width on .tabs) still
+     match down to 0px since nothing here resets them — that's what was pinning the
+     content column ~236px to the right and squeezing the tab bar into a 204px box
+     that then wrapped into a cramped grid instead of a full-width scroll strip. */
+  .wrap{margin-left:0!important;width:100%!important;padding-inline:14px!important;padding-top:24px!important;box-sizing:border-box}
+  .wrap::before,.wrap::after{display:none}
+  .top{width:auto!important;background-image:linear-gradient(135deg,var(--portal-dark),var(--portal-primary))!important}
+  .tabs{position:static!important;left:0!important;top:auto!important;width:100%!important;flex-wrap:nowrap!important;background:var(--portal-dark)!important}
+  body:has(.login){display:block!important;background:var(--portal-paper)!important}body:has(.login)::before,body:has(.login)::after{display:none}.login{width:min(100% - 36px,480px)!important;margin:0 auto!important;padding:44px 28px!important;box-shadow:none!important;border:0!important;background:transparent!important}
 }

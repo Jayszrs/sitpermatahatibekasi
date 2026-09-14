@@ -449,9 +449,12 @@ function ensure_public_schema(PDO $pdo): void
 
     if ((int) $pdo->query('SELECT COUNT(*) FROM hero_media')->fetchColumn() === 0) {
         $seedHero = $pdo->prepare('INSERT INTO hero_media (title,eyebrow,description,media_type,media_url,cta_label,cta_url,sort_order,is_active) VALUES (?,?,?,?,?,?,?,?,1)');
-        $seedHero->execute(['Sekolah Islam Terpadu Permata Hati Bekasi','SPMB '.date('Y').'/'.(date('Y') + 1),'Membentuk generasi sholeh, cerdas, mandiri, dan berwawasan global.','image',$siteBase.'/frontend/assets/images/school/gedung-sekolah.jpeg','Daftar SPMB',$siteBase.'/spmb.php',1]);
-        $seedHero->execute(['Belajar, Bertumbuh, dan Berakhlak','Lingkungan Pendidikan Islami','Pembelajaran akademik, Al-Quran, dan pembinaan karakter dalam lingkungan yang hangat.','image',$siteBase.'/frontend/assets/images/school/hero-school.png','Kenali Sekolah Kami',$siteBase.'/tentang.php',2]);
-        $seedHero->execute(['Empat Unit, Satu Visi Pendidikan','Daycare · TKIT · SDIT · SMPIT','Pendampingan pendidikan berkelanjutan sesuai tahap tumbuh kembang anak.','image',$siteBase.'/frontend/assets/images/school/gedung-smpit.jpeg','Lihat Unit Sekolah',$siteBase.'/unit.php',3]);
+        // cta_url disimpan relatif (bukan $siteBase.'/...') karena ini tautan halaman
+        // internal, bukan aset media — path relatif otomatis benar di base folder apa
+        // pun (lokal, subfolder, atau domain root Railway) tanpa perlu migrasi lanjutan.
+        $seedHero->execute(['Sekolah Islam Terpadu Permata Hati Bekasi','SPMB '.date('Y').'/'.(date('Y') + 1),'Membentuk generasi sholeh, cerdas, mandiri, dan berwawasan global.','image',$siteBase.'/frontend/assets/images/school/gedung-sekolah.jpeg','Daftar SPMB','spmb.php',1]);
+        $seedHero->execute(['Belajar, Bertumbuh, dan Berakhlak','Lingkungan Pendidikan Islami','Pembelajaran akademik, Al-Quran, dan pembinaan karakter dalam lingkungan yang hangat.','image',$siteBase.'/frontend/assets/images/school/hero-school.png','Kenali Sekolah Kami','tentang.php',2]);
+        $seedHero->execute(['Empat Unit, Satu Visi Pendidikan','Daycare · TKIT · SDIT · SMPIT','Pendampingan pendidikan berkelanjutan sesuai tahap tumbuh kembang anak.','image',$siteBase.'/frontend/assets/images/school/gedung-smpit.jpeg','Lihat Unit Sekolah','unit.php',3]);
     }
 
     if ((int) $pdo->query('SELECT COUNT(*) FROM brochures')->fetchColumn() === 0) {

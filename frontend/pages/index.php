@@ -108,7 +108,7 @@ require_once __DIR__ . '/../components/header.php';
             // Avoid a secondary button that duplicates the slide's own CTA destination (e.g. both pointing to "Tentang Kami").
             $ctaFile = $slide['cta_url'] ? basename(parse_url($slide['cta_url'], PHP_URL_PATH) ?: '') : '';
             $secondary = $ctaFile === 'tentang.php' ? ['kontak.php', 'Hubungi Kami'] : ['tentang.php', 'Tentang Kami'];
-        ?><div class="hero-copy<?php echo $index===0?' active':''; ?>" data-hero-copy="<?php echo $index; ?>"><span class="hero-eyebrow"><?php echo esc($slide['eyebrow'] ?: 'SIT Permata Hati Bekasi'); ?></span><h1><?php echo esc($slide['title']); ?></h1><p><?php echo esc($slide['description']); ?></p><div class="hero-actions"><?php if($slide['cta_label'] && $slide['cta_url']): ?><a href="<?php echo esc($slide['cta_url']); ?>" class="btn btn-gold"><?php echo esc($slide['cta_label']); ?></a><?php endif; ?><a href="<?php echo esc($secondary[0]); ?>" class="btn btn-outline-light"><?php echo esc($secondary[1]); ?></a></div></div><?php endforeach; ?></div>
+        ?><div class="hero-copy<?php echo $index===0?' active':''; ?>" data-hero-copy="<?php echo $index; ?>" <?php echo $slide['media_type']==='video'?'data-awaits-video="1"':''; ?>><span class="hero-eyebrow"><?php echo esc($slide['eyebrow'] ?: 'SIT Permata Hati Bekasi'); ?></span><h1><?php echo esc($slide['title']); ?></h1><p><?php echo esc($slide['description']); ?></p><div class="hero-actions"><?php if($slide['cta_label'] && $slide['cta_url']): ?><a href="<?php echo esc($slide['cta_url']); ?>" class="btn btn-gold"><?php echo esc($slide['cta_label']); ?></a><?php endif; ?><a href="<?php echo esc($secondary[0]); ?>" class="btn btn-outline-light"><?php echo esc($secondary[1]); ?></a></div></div><?php endforeach; ?></div>
         <div class="hero-side-note"><span>SIT PHB</span><p>Pendidikan terpadu dari usia dini sampai remaja.</p></div>
     </div></div>
     <div class="container hero-bottom"><div class="hero-trust"><span><strong>4</strong> Unit Pendidikan</span><span><strong>Islamic</strong> Learning Culture</span><span><strong>Bekasi</strong> Tambun Selatan</span></div></div>
@@ -307,6 +307,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let current = 0;
     let timer = null;
 
+    // Slide dengan video: konten (badge/judul/deskripsi/tombol) disembunyikan dan
+    // baru muncul (fade-in) setelah video selesai diputar sekali, bukan langsung
+    // tampil bareng video seperti slide gambar biasa.
+    const revealCopy = (index) => { const copy = copies[index]; if (copy) copy.classList.add('video-revealed'); };
     const schedule = () => {
         window.clearTimeout(timer);
         const slide = slides[current];
@@ -314,23 +318,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const video = slide.querySelector('video');
         if (video) {
             video.currentTime = 0;
+            const onEnded = () => { revealCopy(current); timer = window.setTimeout(next, 3500); };
+            video.addEventListener('ended', onEnded, { once: true });
+            const safetyReveal = window.setTimeout(() => revealCopy(current), 6000);
             const playPromise = video.play();
-            if (playPromise) playPromise.catch(() => { timer = window.setTimeout(next, 3000); });
+            if (playPromise) playPromise.catch(() => { window.clearTimeout(safetyReveal); revealCopy(current); timer = window.setTimeout(next, 3000); });
         } else {
+            revealCopy(current);
             timer = window.setTimeout(next, 3000);
         }
     };
     const show = (index) => {
         current = (index + slides.length) % slides.length;
         slides.forEach((slide, i) => { slide.classList.toggle('active', i === current); const video=slide.querySelector('video'); if(video && i!==current) video.pause(); });
-        copies.forEach((copy, i) => copy.classList.toggle('active', i === current));
+        copies.forEach((copy, i) => { copy.classList.toggle('active', i === current); if (i !== current) copy.classList.remove('video-revealed'); });
         dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
         schedule();
     };
     const next = () => show(current + 1);
-    slides.forEach((slide) => { const video=slide.querySelector('video'); if(video) video.addEventListener('ended', next); });
     dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.heroGo))));
-    if (slides.length > 1) schedule();
+    if (slides.length > 1 || slides[0]?.querySelector('video')) schedule(); else revealCopy(0);
 
     // Parallax ringan hanya pada media hero; navbar tetap utuh saat sticky.
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');

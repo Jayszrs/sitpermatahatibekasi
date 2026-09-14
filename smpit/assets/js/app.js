@@ -20,4 +20,18 @@ document.addEventListener('DOMContentLoaded', function () {
   buttons.forEach(function (button, index) { button.addEventListener('click', function () { show(index); }); });
   if (dialog) { dialog.querySelector('[data-lightbox-close]').addEventListener('click', close); dialog.querySelector('[data-lightbox-prev]').addEventListener('click', function () { show(current - 1); }); dialog.querySelector('[data-lightbox-next]').addEventListener('click', function () { show(current + 1); }); dialog.addEventListener('click', function (event) { if (event.target === dialog) close(); }); }
   document.addEventListener('keydown', function (event) { if (event.key === 'Escape') { document.querySelectorAll('.nav-dropdown.open').forEach(function (item) { item.classList.remove('open'); }); if (dialog && !dialog.hidden) close(); } if (!dialog || dialog.hidden) return; if (event.key === 'ArrowLeft') show(current - 1); if (event.key === 'ArrowRight') show(current + 1); });
+
+  // Hero video: konten (badge/judul/deskripsi/tombol) baru muncul setelah video
+  // selesai diputar sekali. Punya batas waktu aman kalau video gagal/di-block
+  // autoplay-nya, biar kontennya tidak pernah tersembunyi selamanya.
+  var heroVideo = document.querySelector('[data-hero-video]');
+  var heroContent = document.querySelector('[data-hero-unit] .hero-content[data-awaits-video="1"]');
+  if (heroVideo && heroContent) {
+    var revealed = false;
+    var reveal = function () { if (revealed) return; revealed = true; heroContent.classList.add('video-revealed'); };
+    heroVideo.addEventListener('ended', reveal, { once: true });
+    var safety = window.setTimeout(reveal, 8000);
+    var playPromise = heroVideo.play();
+    if (playPromise && playPromise.catch) playPromise.catch(function () { window.clearTimeout(safety); reveal(); });
+  }
 });
