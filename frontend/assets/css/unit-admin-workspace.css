@@ -1,0 +1,323 @@
+/* Shared workspace UI for the four education-unit portals. */
+body:has(.wrap) {
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    color: var(--portal-ink) !important;
+    background: var(--portal-paper) !important;
+}
+
+body:has(.wrap)::before {
+    background:
+        linear-gradient(color-mix(in srgb, var(--portal-paper) 92%, #fff), color-mix(in srgb, var(--portal-paper) 92%, #fff)),
+        url('../../../daycare/assets/images/ornament.svg') !important;
+    background-size: auto, 150px 150px !important;
+}
+
+.top {
+    width: 286px !important;
+    padding: 24px 18px !important;
+    background:
+        linear-gradient(160deg, color-mix(in srgb, var(--portal-dark) 97%, #07150f), var(--portal-primary)),
+        url('../../../daycare/assets/images/ornament.svg') !important;
+    box-shadow: 14px 0 36px rgba(38, 28, 13, .08) !important;
+}
+
+.top > div {
+    display: grid !important;
+    grid-template-columns: 58px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+    column-gap: 14px !important;
+    row-gap: 5px !important;
+    padding: 10px 6px 24px !important;
+    border-bottom-color: rgba(255,255,255,.14) !important;
+}
+
+.top > div br { display: none !important; }
+
+.top strong {
+    display: block !important;
+    grid-column: 2 !important;
+    padding-top: 0 !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: 1.08rem !important;
+    letter-spacing: -.035em !important;
+    line-height: 1.18 !important;
+}
+
+.top small {
+    display: block !important;
+    grid-column: 2 !important;
+    margin-top: 0 !important;
+    color: rgba(255,255,255,.65) !important;
+    font-size: .7rem !important;
+    line-height: 1.35 !important;
+}
+
+.portal-logo {
+    float: none !important;
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
+    width: 58px !important;
+    height: 58px !important;
+    padding: 4px !important;
+    border-radius: 17px !important;
+    margin: 0 !important;
+}
+
+.tabs {
+    left: 18px !important;
+    top: 188px !important;
+    width: 250px !important;
+    gap: 4px !important;
+}
+
+.tabs a {
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+    min-height: 42px !important;
+    padding: 10px 13px !important;
+    padding-right: 34px !important;
+    border-radius: 10px !important;
+    color: rgba(255,255,255,.66) !important;
+    font-size: .76rem !important;
+}
+
+.tabs a::before {
+    content: '' !important;
+    width: 7px !important;
+    height: 7px !important;
+    margin-right: 11px !important;
+    border: 1px solid currentColor !important;
+    border-radius: 3px !important;
+    opacity: .7 !important;
+}
+
+.tabs a:hover { padding-left: 16px !important; background: rgba(255,255,255,.08) !important; transform: none !important; }
+.tabs a.active { background: rgba(255,255,255,.14) !important; color: #fff !important; box-shadow: inset 3px 0 var(--portal-accent) !important; }
+.tabs a.active::before { background: var(--portal-accent) !important; border-color: var(--portal-accent) !important; }
+.tabs a.active::after {
+    content: '' !important;
+    position: absolute !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    right: 14px !important;
+    top: 50% !important;
+    margin: 0 !important;
+    transform: translateY(-50%) !important;
+    background: var(--portal-accent) !important;
+}
+.tabs a:last-child { margin-top: 12px !important; border-color: rgba(255,255,255,.16) !important; }
+
+.wrap {
+    width: min(1240px, calc(100% - 350px)) !important;
+    margin-left: 286px !important;
+    padding: 122px 34px 64px !important;
+}
+
+.wrap::before {
+    left: 286px !important;
+    height: 82px !important;
+    padding-inline: 34px !important;
+    content: 'Ruang Kerja Unit' !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: 1rem !important;
+    letter-spacing: -.02em !important;
+}
+
+.wrap::after {
+    left: 320px !important;
+    top: 50px !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: .66rem !important;
+}
+
+.grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 14px !important; margin-bottom: 22px !important; }
+.stat {
+    min-height: 142px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 11px !important;
+    padding: 19px !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,.86) !important;
+    box-shadow: 0 12px 28px rgba(56, 35, 27, .06) !important;
+}
+.stat:hover { transform: translateY(-2px) !important; box-shadow: 0 18px 32px rgba(56, 35, 27, .1) !important; }
+.stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+    background: color-mix(in srgb, var(--portal-primary) 10%, #fff) !important;
+    color: var(--portal-primary) !important;
+}
+.stat-label { font-size: .66rem !important; letter-spacing: .08em !important; }
+.stat b { margin: 0 !important; font-family: Manrope, Segoe UI, sans-serif !important; font-size: 2rem !important; line-height: 1 !important; color: var(--portal-ink) !important; }
+.stat-empty-hint { margin: 0 !important; font-size: .66rem !important; }
+
+.panel {
+    padding: 23px !important;
+    margin-bottom: 18px !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,.9) !important;
+    box-shadow: 0 12px 30px rgba(56, 35, 27, .055) !important;
+}
+.panel h2 { margin-bottom: 18px !important; font-family: Manrope, Segoe UI, sans-serif !important; font-size: 1.02rem !important; letter-spacing: -.025em !important; }
+.panel h2::before { width: 26px !important; height: 3px !important; margin-right: 9px !important; background: var(--portal-accent) !important; }
+.form-grid { gap: 15px !important; }
+.form-grid label, label { gap: 7px !important; color: var(--portal-muted) !important; font-family: Manrope, Segoe UI, sans-serif !important; font-size: .68rem !important; letter-spacing: .06em !important; }
+input, textarea, select { min-height: 44px !important; padding: 10px 12px !important; border-radius: 9px !important; background: #fff !important; font-family: Manrope, Segoe UI, sans-serif !important; font-size: .84rem !important; }
+textarea { min-height: 104px !important; line-height: 1.55 !important; }
+button, .actions a { min-height: 40px !important; border-radius: 9px !important; font-family: Manrope, Segoe UI, sans-serif !important; font-size: .75rem !important; }
+button { padding: 10px 15px !important; }
+.form-grid > button {
+    grid-column: 1 / -1 !important;
+    justify-self: flex-start !important;
+    min-width: 158px !important;
+    margin-top: 2px !important;
+    padding-inline: 18px !important;
+}
+.form-grid input[type="file"] {
+    padding: 9px 12px !important;
+    line-height: 1.6 !important;
+}
+.form-grid input[type="file"]::file-selector-button {
+    min-height: 30px !important;
+    margin-right: 10px !important;
+    padding: 6px 10px !important;
+    border: 1px solid var(--portal-line) !important;
+    border-radius: 7px !important;
+    background: color-mix(in srgb, var(--portal-paper) 72%, #fff) !important;
+    color: var(--portal-ink) !important;
+    font: inherit !important;
+    font-weight: 750 !important;
+    cursor: pointer !important;
+}
+.actions { align-items: center !important; gap: 8px !important; }
+.actions a { display: inline-flex !important; align-items: center !important; padding: 8px 11px !important; background: color-mix(in srgb, var(--portal-primary) 7%, #fff) !important; }
+
+table { border-collapse: separate !important; border-spacing: 0 !important; overflow: hidden !important; border: 1px solid var(--portal-line) !important; border-radius: 11px !important; }
+th { padding: 12px 13px !important; background: color-mix(in srgb, var(--portal-paper) 72%, #fff) !important; color: var(--portal-muted) !important; font-family: Manrope, Segoe UI, sans-serif !important; }
+td { padding: 13px !important; background: rgba(255,255,255,.76) !important; font-family: Manrope, Segoe UI, sans-serif !important; line-height: 1.45 !important; }
+tr:last-child td { border-bottom: 0 !important; }
+.notice, .error { padding: 12px 14px !important; border-radius: 10px !important; font-size: .78rem !important; }
+
+.unit-menu-toggle {
+    display: none;
+    width: 42px;
+    height: 42px;
+    padding: 0 !important;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(255,255,255,.12) !important;
+    color: #fff;
+    font-size: 1.2rem !important;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.top > .unit-menu-toggle {
+    order: 3;
+}
+
+.unit-menu-toggle:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--portal-accent) 70%, #fff);
+    outline-offset: 2px;
+}
+
+.unit-menu-toggle::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 16px;
+    border-radius: 2px;
+    background:
+        linear-gradient(currentColor, currentColor) 0 1px / 20px 2px no-repeat,
+        linear-gradient(currentColor, currentColor) 0 7px / 20px 2px no-repeat,
+        linear-gradient(currentColor, currentColor) 0 13px / 20px 2px no-repeat;
+}
+
+.unit-menu-backdrop { display: none; }
+
+@media (max-width: 980px) {
+    .wrap { width: calc(100% - 270px) !important; padding-inline: 24px !important; }
+    .wrap::before { left: 236px !important; padding-inline: 24px !important; }
+    .wrap::after { left: 260px !important; }
+}
+
+@media (max-width: 720px) {
+    body:has(.wrap) { overflow-x: hidden !important; }
+    .top { position: sticky !important; top: 0 !important; width: 100% !important; min-height: 76px !important; padding: 12px 18px !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 14px !important; background: linear-gradient(135deg, var(--portal-dark), var(--portal-primary)) !important; z-index: 50 !important; }
+    .top > div { display: grid !important; grid-template-columns: 48px minmax(0, 1fr) !important; grid-template-rows: 48px !important; column-gap: 12px !important; align-items: center !important; width: min(100%, 360px) !important; padding: 0 !important; border: 0 !important; }
+    .top > div strong { font-size: clamp(.9rem, 3.7vw, 1.05rem) !important; }
+    .top > div small { display: none !important; }
+    .top .portal-logo { display: block !important; width: 48px !important; height: 48px !important; border-radius: 14px !important; margin: 0 !important; }
+    .top > div strong { display: flex !important; min-width: 0 !important; max-width: none !important; min-height: 48px !important; padding-top: 0 !important; align-items: center !important; line-height: 1.18 !important; align-self: center !important; }
+    .unit-menu-toggle { display: grid !important; place-items: center !important; flex: 0 0 48px !important; width: 48px !important; height: 48px !important; border-radius: 12px !important; align-self: center !important; margin: 0 !important; }
+    .top > a {
+        position: fixed !important;
+        left: 14px !important;
+        bottom: 18px !important;
+        z-index: 41 !important;
+        width: calc(min(84vw, 310px) - 28px) !important;
+        margin: 0 !important;
+        padding: 11px 13px !important;
+        display: none !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+        background: rgba(255,255,255,.12) !important;
+        border-color: rgba(255,255,255,.18) !important;
+        font-size: .76rem !important;
+    }
+    body.unit-menu-open .top > a { display: flex !important; }
+    .tabs { position: fixed !important; inset: 0 auto 0 0 !important; z-index: 40 !important; width: min(84vw, 310px) !important; height: 100svh !important; padding: 86px 14px 18px !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 5px !important; overflow-y: auto !important; overflow-x: hidden !important; background: linear-gradient(180deg, var(--portal-dark), color-mix(in srgb, var(--portal-dark) 86%, #000)) !important; transform: translateX(-105%) !important; transition: transform .22s ease !important; scrollbar-width: thin !important; }
+    body.unit-menu-open .tabs { transform: translateX(0) !important; }
+    .tabs::-webkit-scrollbar { display: none !important; }
+    .tabs a { flex: 0 0 auto !important; min-height: 42px !important; padding: 10px 34px 10px 12px !important; font-size: .72rem !important; }
+    .tabs a::before { display: block !important; }
+    .tabs a.active::after { display: block !important; right: 16px !important; }
+    .tabs a:last-child { margin-top: 0 !important; }
+    .wrap { width: 100% !important; margin: 0 !important; padding: 24px 14px 44px !important; }
+    .wrap::before, .wrap::after { display: none !important; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+    .stat { min-height: 124px !important; padding: 15px !important; border-radius: 12px !important; }
+    .stat b { font-size: 1.65rem !important; }
+    .panel { padding: 16px !important; border-radius: 12px !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+    .form-grid > button { width: 100% !important; justify-self: stretch !important; }
+    .full { grid-column: auto !important; }
+    .portal-table-wrap, .panel:has(table) { width: 100% !important; max-width: 100% !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+    table { min-width: 560px !important; }
+    .actions { flex-wrap: wrap !important; }
+
+    .unit-menu-backdrop {
+        display: block !important;
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 35 !important;
+        background: rgba(8, 20, 15, .48) !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity .22s ease !important;
+    }
+
+    body.unit-menu-open .unit-menu-backdrop {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+}
+
+@media (min-width: 721px) {
+    .top > .unit-menu-toggle { display: none !important; }
+}
+
+@media (max-width: 430px) {
+    .grid { grid-template-columns: 1fr !important; }
+    .stat { min-height: 112px !important; }
+    .panel { padding: 14px !important; }
+}

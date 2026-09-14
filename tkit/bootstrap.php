@@ -23,6 +23,12 @@ if (!defined('UNIT_SLUG')) define('UNIT_SLUG', $unit_config['slug']);
 
 function unit_e(?string $value): string { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
 function unit_url(string $path = 'index.php'): string { return UNIT_BASE_URL . '/' . ltrim($path, '/'); }
+function unit_portal_url(string $unitSlug, string $path = 'admin/index.php'): string {
+    $unitSlug = strtolower(trim($unitSlug));
+    if (!in_array($unitSlug, ['daycare', 'tkit', 'sdit', 'smpit'], true)) $unitSlug = UNIT_SLUG;
+    $root = preg_replace('~/' . preg_quote(UNIT_SLUG, '~') . '$~', '', UNIT_BASE_URL);
+    return rtrim($root, '/') . '/' . $unitSlug . '/' . ltrim($path, '/');
+}
 function unit_asset(string $path): string { return unit_url($path) . '?v=' . rawurlencode((string) (@filemtime(__DIR__ . '/' . ltrim($path, '/')) ?: 1)); }
 function unit_media(?string $path, string $fallback = 'assets/images/hero.jpeg'): string {
     $path = trim((string) $path);
@@ -81,6 +87,31 @@ function unit_seed_defaults(PDO $pdo): void {
         $album->execute([UNIT_SLUG, 'Kegiatan ' . $unit_config['short_name'], 'Potret kegiatan belajar, bermain, dan bertumbuh bersama.', $unit_config['gallery'][0]['image']]);
         $albumId = (int) $pdo->lastInsertId(); $photo = $pdo->prepare('INSERT INTO unit_gallery_photos (album_id,title,description,image,sort_order) VALUES (?,?,?,?,?)');
         foreach ($unit_config['gallery'] as $index => $item) $photo->execute([$albumId, $item['title'], $item['description'], $item['image'], $index]);
+    }
+    unit_seed_supplemental($pdo);
+}
+
+function unit_seed_supplemental(PDO $pdo): void {
+    global $unit_config;
+    $newsCount = (int) $pdo->query("SELECT COUNT(*) FROM unit_content WHERE unit_slug='".UNIT_SLUG."' AND content_type='news'")->fetchColumn();
+    if ($newsCount === 0) {
+        $news = [
+            ['Kegiatan Belajar dan Bertumbuh', 'Dokumentasi pembelajaran dan pembiasaan positif peserta didik.', 'Informasi kegiatan unit pendidikan yang berlangsung secara terarah dan menyenangkan.', '2026-09-10'],
+            ['Pekan Kreativitas Peserta Didik', 'Ruang untuk berkarya, berkolaborasi, dan berani tampil.', 'Peserta didik mengembangkan minat dan bakat melalui pengalaman belajar yang aktif.', '2026-09-05'],
+            ['Pembiasaan Karakter dan Al-Quran', 'Program penguatan adab, kemandirian, dan kecintaan kepada Al-Quran.', 'Pembiasaan harian menjadi bagian penting dari proses pendidikan di unit.', '2026-08-28'],
+        ];
+        $insert = $pdo->prepare('INSERT INTO unit_content (unit_slug,content_type,title,summary,body,image,meta,published_at,sort_order) VALUES (?,?,?,?,?,?,?,?,?)');
+        foreach ($news as $index => $item) $insert->execute([UNIT_SLUG,'news',$item[0],$item[1],$item[2],$unit_config['gallery'][$index % count($unit_config['gallery'])]['image'],'Informasi Unit',$item[3],$index]);
+    }
+    $albumCount = (int) $pdo->query("SELECT COUNT(*) FROM unit_gallery_albums WHERE unit_slug='".UNIT_SLUG."'")->fetchColumn();
+    if ($albumCount < 3) {
+        $insertAlbum = $pdo->prepare('INSERT INTO unit_gallery_albums (unit_slug,title,description,cover_image,sort_order) VALUES (?,?,?,?,?)');
+        $insertPhoto = $pdo->prepare('INSERT INTO unit_gallery_photos (album_id,title,description,image,sort_order) VALUES (?,?,?,?,?)');
+        foreach (array_slice($unit_config['gallery'], 1, 2) as $index => $item) {
+            $insertAlbum->execute([UNIT_SLUG, 'Dokumentasi ' . $item['title'], $item['description'], $item['image'], $index + 1]);
+            $albumId = (int) $pdo->lastInsertId();
+            $insertPhoto->execute([$albumId, $item['title'], $item['description'], $item['image'], 0]);
+        }
     }
 }
 

@@ -181,10 +181,12 @@ function portal_bootstrap_database(PDO $pdo): void
         ['Tim Humas', 'humas', 'HumasPHB#2026', 'humas'],
         ['Kasir SPMB', 'kasir', 'KasirPHB#2026', 'kasir'],
     ];
-    if ((int)$pdo->query('SELECT COUNT(*) FROM portal_users')->fetchColumn() === 0) {
-        $insert = $pdo->prepare('INSERT INTO portal_users (name, username, password, role) VALUES (?, ?, ?, ?)');
-        foreach ($defaults as [$name, $username, $password, $role]) {
-            $insert->execute([$name, $username, password_hash($password, PASSWORD_DEFAULT), $role]);
+    $findDefaultUser = $pdo->prepare('SELECT id FROM portal_users WHERE username=? LIMIT 1');
+    $insertDefaultUser = $pdo->prepare('INSERT INTO portal_users (name, username, password, role) VALUES (?, ?, ?, ?)');
+    foreach ($defaults as [$name, $username, $password, $role]) {
+        $findDefaultUser->execute([$username]);
+        if (!$findDefaultUser->fetchColumn()) {
+            $insertDefaultUser->execute([$name, $username, password_hash($password, PASSWORD_DEFAULT), $role]);
         }
     }
 

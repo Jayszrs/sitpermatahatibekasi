@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                 </div>
-                <button class="login-submit" type="submit">Masuk <span>&rarr;</span></button>
+                <button class="login-submit" type="submit">Masuk</button>
             </form>
             <p class="login-help">Akun portal dikelola oleh Administrator SIT Permata Hati Bekasi.</p>
         </div>
@@ -98,7 +98,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <script>
     document.getElementById('passwordToggle').addEventListener('click', function () {
       const input = document.getElementById('password');
-      input.type = input.type === 'password' ? 'text' : 'password';
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      this.setAttribute('aria-label', visible ? 'Sembunyikan kata sandi' : 'Lihat kata sandi');
     });
   </script>
 </body>

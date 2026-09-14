@@ -1,3 +1,4 @@
+@import url('../../../frontend/assets/css/unit-admin-workspace.css');
 /* Foundation portal composition, using only the active unit's local palette. */
 body:has(.wrap) {
   background: var(--portal-paper) !important;
@@ -136,4 +137,1238 @@ body:has(.login)::after {
   .top{width:auto!important;background-image:linear-gradient(135deg,var(--portal-dark),var(--portal-primary))!important}
   .tabs{position:static!important;left:0!important;top:auto!important;width:100%!important;flex-wrap:nowrap!important;background:var(--portal-dark)!important}
   body:has(.login){display:block!important;background:var(--portal-paper)!important}body:has(.login)::before,body:has(.login)::after{display:none}.login{width:min(100% - 36px,480px)!important;margin:0 auto!important;padding:44px 28px!important;box-shadow:none!important;border:0!important;background:transparent!important}
+}
+
+/* Final portal login polish: lighter image overlay + visible password control. */
+body:has(.login) {
+  background: linear-gradient(90deg,color-mix(in srgb,var(--portal-dark) 82%,#fff) 0 52%,var(--portal-surface) 52% 100%) !important;
+}
+body:has(.login)::before {
+  background:
+    linear-gradient(135deg,color-mix(in srgb,var(--portal-dark) 68%,transparent),color-mix(in srgb,var(--portal-primary) 48%,transparent)),
+    linear-gradient(0deg,rgba(12,20,16,.18),rgba(12,20,16,.04)),
+    url('../images/hero.jpeg') center/cover !important;
+  box-shadow: inset -1px 0 rgba(255,255,255,.18);
+}
+body:has(.login)::after {
+  color: rgba(255,255,255,.9) !important;
+}
+.login {
+  background: rgba(255,255,255,.94) !important;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.login > p:first-of-type {
+  color: var(--portal-primary) !important;
+  font-size: .75rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase;
+}
+.login-logo {
+  box-shadow: 0 12px 28px color-mix(in srgb,var(--portal-primary) 16%,transparent);
+}
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field input {
+  width: 100%;
+  padding-right: 56px !important;
+}
+button.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 40px !important;
+  min-height: 40px !important;
+  height: 40px;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--portal-line) !important;
+  border-radius: 10px !important;
+  background: color-mix(in srgb,var(--portal-primary) 10%,#fff) !important;
+  box-shadow: none !important;
+  color: var(--portal-primary) !important;
+  transform: translateY(-50%) !important;
+}
+button.password-toggle:hover,
+button.password-toggle.is-visible {
+  background: var(--portal-primary) !important;
+  color: #fff !important;
+}
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.login-submit {
+  min-height: 54px;
+  border-radius: 12px !important;
+}
+@media(max-width:720px) {
+  body:has(.login) { background: var(--portal-paper) !important; }
+  body:has(.login)::before,
+  body:has(.login)::after { display: none !important; }
+  .login {
+    background: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Portal login brand header polish. */
+.login {
+    position: relative !important;
+    overflow: hidden !important;
+    padding: 38px 48px 48px !important;
+}
+
+.login::before {
+    display: block !important;
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 0 auto 0 !important;
+    height: 132px !important;
+    background:
+        radial-gradient(circle at 88% 16%, color-mix(in srgb, var(--portal-accent) 35%, transparent), transparent 42%),
+        linear-gradient(135deg, color-mix(in srgb, var(--portal-primary) 14%, #ffffff), rgba(255, 255, 255, 0) 72%) !important;
+    opacity: .95 !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+}
+
+.login > * {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.login-card-top {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    width: 100% !important;
+    margin: 0 0 28px !important;
+    padding: 14px !important;
+    border: 1px solid color-mix(in srgb, var(--portal-primary) 14%, var(--portal-line)) !important;
+    border-radius: 18px !important;
+    background: rgba(255, 255, 255, .78) !important;
+    box-shadow: 0 14px 34px rgba(24, 36, 28, .08) !important;
+    backdrop-filter: blur(14px) !important;
+}
+
+.login-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 13px !important;
+    min-width: 0 !important;
+}
+
+.login-brand .login-logo {
+    flex: 0 0 58px !important;
+    width: 58px !important;
+    height: 58px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+    background: #fff !important;
+    border-radius: 15px !important;
+    padding: 5px !important;
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--portal-primary) 15%, transparent) !important;
+}
+
+.login-brand strong {
+    display: block !important;
+    color: var(--portal-ink) !important;
+    font-family: 'El Messiri', 'Segoe UI', sans-serif !important;
+    font-size: 1.02rem !important;
+    font-weight: 800 !important;
+    line-height: 1.06 !important;
+    letter-spacing: 0 !important;
+}
+
+.login-brand small {
+    display: block !important;
+    max-width: 260px !important;
+    margin-top: 4px !important;
+    color: var(--portal-muted) !important;
+    font-size: .72rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+}
+
+.login-unit-pill {
+    flex: 0 0 auto !important;
+    padding: 8px 11px !important;
+    border-radius: 999px !important;
+    background: color-mix(in srgb, var(--portal-primary) 12%, #ffffff) !important;
+    color: var(--portal-primary) !important;
+    font-size: .66rem !important;
+    font-weight: 900 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+}
+
+.login > p:first-of-type {
+    margin-top: 0 !important;
+}
+
+@media (max-width: 720px) {
+    .login {
+        width: min(100% - 28px, 480px) !important;
+        padding: 22px 18px 32px !important;
+        border: 1px solid var(--portal-line) !important;
+        border-radius: 22px !important;
+        background: rgba(255, 255, 255, .94) !important;
+        box-shadow: 0 20px 45px rgba(24, 36, 28, .1) !important;
+    }
+
+    .login::before {
+        display: block !important;
+        height: 102px !important;
+    }
+
+    .login-card-top {
+        align-items: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 24px !important;
+        padding: 12px !important;
+        border-radius: 18px !important;
+    }
+
+    .login-brand {
+        gap: 11px !important;
+    }
+
+    .login-brand .login-logo {
+        flex-basis: 48px !important;
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 13px !important;
+    }
+
+    .login-brand strong {
+        font-size: .96rem !important;
+        line-height: 1.08 !important;
+    }
+
+    .login-brand small {
+        max-width: 210px !important;
+        font-size: .68rem !important;
+    }
+
+    .login-unit-pill {
+        display: none !important;
+    }
+
+    .login h1 {
+        font-size: clamp(2rem, 12vw, 2.7rem) !important;
+    }
+}
+
+/* Unit portal workspace refresh. */
+body:has(.wrap) {
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    color: var(--portal-ink) !important;
+    background: var(--portal-paper) !important;
+}
+
+body:has(.wrap)::before {
+    background:
+        linear-gradient(color-mix(in srgb, var(--portal-paper) 92%, #fff), color-mix(in srgb, var(--portal-paper) 92%, #fff)),
+        url('../images/ornament.svg') !important;
+    background-size: auto, 150px 150px !important;
+}
+
+.top {
+    width: 286px !important;
+    padding: 24px 18px !important;
+    background:
+        linear-gradient(160deg, color-mix(in srgb, var(--portal-dark) 97%, #07150f), var(--portal-primary)),
+        url('../images/ornament.svg') !important;
+    box-shadow: 14px 0 36px rgba(38, 28, 13, .08) !important;
+}
+
+.top > div {
+    padding: 8px 10px 22px !important;
+    gap: 8px !important;
+    border-bottom-color: rgba(255,255,255,.14) !important;
+}
+
+.top strong {
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: 1.12rem !important;
+    letter-spacing: -.03em !important;
+}
+
+.top small {
+    font-size: .7rem !important;
+    color: rgba(255,255,255,.65) !important;
+}
+
+.portal-logo {
+    width: 52px !important;
+    height: 52px !important;
+    padding: 4px !important;
+    border-radius: 15px !important;
+    margin-bottom: 4px !important;
+}
+
+.tabs {
+    left: 18px !important;
+    top: 188px !important;
+    width: 250px !important;
+    gap: 4px !important;
+}
+
+.tabs a {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 42px !important;
+    padding: 10px 13px !important;
+    border-radius: 10px !important;
+    color: rgba(255,255,255,.66) !important;
+    font-size: .76rem !important;
+    letter-spacing: -.01em !important;
+}
+
+.tabs a::before {
+    content: '' !important;
+    width: 7px !important;
+    height: 7px !important;
+    margin-right: 11px !important;
+    border: 1px solid currentColor !important;
+    border-radius: 3px !important;
+    opacity: .7 !important;
+}
+
+.tabs a:hover {
+    padding-left: 16px !important;
+    background: rgba(255,255,255,.08) !important;
+    transform: none !important;
+}
+
+.tabs a.active {
+    background: rgba(255,255,255,.14) !important;
+    color: #fff !important;
+    box-shadow: inset 3px 0 var(--portal-accent) !important;
+}
+
+.tabs a.active::before {
+    background: var(--portal-accent) !important;
+    border-color: var(--portal-accent) !important;
+}
+
+.tabs a.active::after {
+    right: 13px !important;
+    background: var(--portal-accent) !important;
+}
+
+.tabs a:last-child {
+    margin-top: 12px !important;
+    border-color: rgba(255,255,255,.16) !important;
+}
+
+.wrap {
+    width: min(1240px, calc(100% - 350px)) !important;
+    margin-left: 286px !important;
+    padding: 122px 34px 64px !important;
+}
+
+.wrap::before {
+    left: 286px !important;
+    height: 82px !important;
+    padding-inline: 34px !important;
+    content: 'Ruang Kerja Unit' !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: 1rem !important;
+    letter-spacing: -.02em !important;
+}
+
+.wrap::after {
+    left: 320px !important;
+    top: 50px !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: .66rem !important;
+}
+
+.grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    margin-bottom: 22px !important;
+}
+
+.stat {
+    min-height: 142px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 11px !important;
+    padding: 19px !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,.86) !important;
+    box-shadow: 0 12px 28px rgba(56, 35, 27, .06) !important;
+}
+
+.stat:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 18px 32px rgba(56, 35, 27, .1) !important;
+}
+
+.stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+    background: color-mix(in srgb, var(--portal-primary) 10%, #fff) !important;
+    color: var(--portal-primary) !important;
+}
+
+.stat-label {
+    font-size: .66rem !important;
+    letter-spacing: .08em !important;
+}
+
+.stat b {
+    margin: 0 !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: 2rem !important;
+    line-height: 1 !important;
+    color: var(--portal-ink) !important;
+}
+
+.stat-empty-hint {
+    margin: 0 !important;
+    font-size: .66rem !important;
+}
+
+.panel {
+    padding: 23px !important;
+    margin-bottom: 18px !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,.9) !important;
+    box-shadow: 0 12px 30px rgba(56, 35, 27, .055) !important;
+}
+
+.panel h2 {
+    margin-bottom: 18px !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: 1.02rem !important;
+    letter-spacing: -.025em !important;
+}
+
+.panel h2::before {
+    width: 26px !important;
+    height: 3px !important;
+    margin-right: 9px !important;
+    background: var(--portal-accent) !important;
+}
+
+.form-grid {
+    gap: 15px !important;
+}
+
+.form-grid label,
+label {
+    gap: 7px !important;
+    color: var(--portal-muted) !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: .68rem !important;
+    letter-spacing: .06em !important;
+}
+
+input, textarea, select {
+    min-height: 44px !important;
+    padding: 10px 12px !important;
+    border-radius: 9px !important;
+    background: #fff !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: .84rem !important;
+}
+
+textarea {
+    min-height: 104px !important;
+    line-height: 1.55 !important;
+}
+
+button, .actions a {
+    min-height: 40px !important;
+    border-radius: 9px !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    font-size: .75rem !important;
+}
+
+button {
+    padding: 10px 15px !important;
+}
+
+.actions {
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.actions a {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 8px 11px !important;
+    background: color-mix(in srgb, var(--portal-primary) 7%, #fff) !important;
+}
+
+table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--portal-line) !important;
+    border-radius: 11px !important;
+}
+
+th {
+    padding: 12px 13px !important;
+    background: color-mix(in srgb, var(--portal-paper) 72%, #fff) !important;
+    color: var(--portal-muted) !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+}
+
+td {
+    padding: 13px !important;
+    background: rgba(255,255,255,.76) !important;
+    font-family: Manrope, Segoe UI, sans-serif !important;
+    line-height: 1.45 !important;
+}
+
+tr:last-child td {
+    border-bottom: 0 !important;
+}
+
+.notice, .error {
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+    font-size: .78rem !important;
+}
+
+@media (max-width: 980px) {
+    .wrap {
+        width: calc(100% - 270px) !important;
+        padding-inline: 24px !important;
+    }
+
+    .wrap::before {
+        left: 236px !important;
+        padding-inline: 24px !important;
+    }
+
+    .wrap::after {
+        left: 260px !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .top {
+        position: relative !important;
+        width: 100% !important;
+        padding: 16px !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        background: linear-gradient(135deg, var(--portal-dark), var(--portal-primary)) !important;
+    }
+
+    .top > div {
+        flex-direction: row !important;
+        align-items: center !important;
+        width: auto !important;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    .top > div strong {
+        font-size: .9rem !important;
+    }
+
+    .top > div small,
+    .top .portal-logo {
+        display: none !important;
+    }
+
+    .top > a {
+        width: auto !important;
+        margin: 0 !important;
+        padding: 8px 11px !important;
+        font-size: .68rem !important;
+    }
+
+    .tabs {
+        position: static !important;
+        width: 100% !important;
+        padding: 10px 14px !important;
+        gap: 7px !important;
+        overflow-x: auto !important;
+        background: var(--portal-dark) !important;
+        scrollbar-width: none !important;
+    }
+
+    .tabs::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .tabs a {
+        flex: 0 0 auto !important;
+        min-height: 38px !important;
+        padding: 8px 11px !important;
+        font-size: .7rem !important;
+    }
+
+    .tabs a::before,
+    .tabs a::after {
+        display: none !important;
+    }
+
+    .tabs a:last-child {
+        margin-top: 0 !important;
+    }
+
+    .wrap {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 24px 14px 44px !important;
+    }
+
+    .wrap::before,
+    .wrap::after {
+        display: none !important;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .stat {
+        min-height: 124px !important;
+        padding: 15px !important;
+        border-radius: 12px !important;
+    }
+
+    .stat b {
+        font-size: 1.65rem !important;
+    }
+
+    .panel {
+        padding: 16px !important;
+        border-radius: 12px !important;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .full {
+        grid-column: auto !important;
+    }
+
+    .portal-table-wrap,
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .portal-table-wrap {
+        overflow-x: auto !important;
+    }
+
+    table {
+        min-width: 620px !important;
+    }
+
+    .panel > table {
+        display: table !important;
+    }
+
+    .actions {
+        flex-wrap: wrap !important;
+    }
+}
+
+@media (max-width: 430px) {
+    .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .stat {
+        min-height: 112px !important;
+    }
+
+    .panel {
+        padding: 14px !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .login-brand small {
+        font-size: .64rem !important;
+    }
+}
+
+/* Clean portal login concept: simple brand header, no nested card. */
+.login {
+    width: min(500px, calc(100% - 36px)) !important;
+    padding: 44px 48px 46px !important;
+    border-radius: 18px !important;
+    overflow: visible !important;
+}
+
+.login::before {
+    display: none !important;
+}
+
+.login-card-top {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 14px !important;
+    margin: 0 0 28px !important;
+    padding: 0 0 22px !important;
+    border: 0 !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--portal-primary) 18%, var(--portal-line)) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+.login-card-top::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    bottom: -1px !important;
+    width: 72px !important;
+    height: 3px !important;
+    border-radius: 999px !important;
+    background: var(--portal-primary) !important;
+}
+
+.login-brand {
+    flex: 1 1 260px !important;
+    width: auto !important;
+    align-items: center !important;
+    gap: 14px !important;
+    min-width: 0 !important;
+}
+
+.login-brand .login-logo {
+    flex: 0 0 56px !important;
+    width: 56px !important;
+    height: 56px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.login-brand span {
+    display: block !important;
+    min-width: 0 !important;
+}
+
+.login-brand strong {
+    max-width: 330px !important;
+    color: var(--portal-ink) !important;
+    font-family: 'El Messiri', 'Segoe UI', sans-serif !important;
+    font-size: 1.2rem !important;
+    font-weight: 800 !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0 !important;
+}
+
+.login-brand small {
+    max-width: 330px !important;
+    margin-top: 5px !important;
+    color: var(--portal-muted) !important;
+    font-size: .78rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+}
+
+.login-unit-pill {
+    display: none !important;
+}
+
+.login > p:first-of-type {
+    margin: 0 0 10px !important;
+    color: var(--portal-primary) !important;
+}
+
+.login h1 {
+    margin-bottom: 14px !important;
+    letter-spacing: 0 !important;
+}
+
+.password-field {
+    background: transparent !important;
+}
+
+.password-field input {
+    padding-right: 46px !important;
+}
+
+.password-toggle {
+    right: 10px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    color: var(--portal-primary) !important;
+    box-shadow: none !important;
+    transform: translateY(-50%) !important;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible,
+.password-toggle.is-visible {
+    background: transparent !important;
+    color: var(--portal-primary) !important;
+    box-shadow: none !important;
+}
+
+@media (max-width: 720px) {
+    .login {
+        width: min(100% - 28px, 460px) !important;
+        padding: 28px 22px 34px !important;
+        border-radius: 18px !important;
+        background: rgba(255, 255, 255, .96) !important;
+    }
+
+    .login-card-top {
+        gap: 12px !important;
+        margin-bottom: 24px !important;
+        padding-bottom: 18px !important;
+    }
+
+    .login-card-top::after {
+        width: 56px !important;
+    }
+
+    .login-brand .login-logo {
+        flex-basis: 48px !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .login-brand strong {
+        max-width: min(240px, 100%) !important;
+        font-size: 1.03rem !important;
+        line-height: 1.08 !important;
+    }
+
+    .login-brand small {
+        max-width: min(240px, 100%) !important;
+        font-size: .7rem !important;
+    }
+
+    .login h1 {
+        font-size: clamp(2rem, 10vw, 2.45rem) !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .login {
+        width: calc(100% - 22px) !important;
+        padding-inline: 18px !important;
+    }
+
+    .login-brand strong {
+        max-width: 205px !important;
+        font-size: .96rem !important;
+    }
+
+    .login-brand small {
+        max-width: 205px !important;
+        font-size: .66rem !important;
+    }
+}
+
+/* Final compact login card and transparent password toggle. */
+body:has(.login) .login,
+body:has(.login) .login:has(input) {
+    min-height: 0 !important;
+    padding: 34px 48px 44px !important;
+}
+
+body:has(.login) .login-card-top {
+    margin-top: 0 !important;
+    margin-bottom: 26px !important;
+    padding-bottom: 18px !important;
+}
+
+body:has(.login) .login > p:first-of-type {
+    margin-top: 0 !important;
+}
+
+body:has(.login) .login h1 {
+    margin-top: 4px !important;
+    margin-bottom: 14px !important;
+}
+
+body:has(.login) .login label:first-of-type {
+    margin-top: 18px !important;
+}
+
+body:has(.login) .password-field {
+    background: transparent !important;
+    border-radius: 7px !important;
+}
+
+body:has(.login) button.password-toggle,
+body:has(.login) button.password-toggle:hover,
+body:has(.login) button.password-toggle:focus,
+body:has(.login) button.password-toggle:focus-visible,
+body:has(.login) button.password-toggle.is-visible {
+    right: 10px !important;
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    outline: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: translateY(-50%) !important;
+    color: var(--portal-primary) !important;
+}
+
+body:has(.login) button.password-toggle:hover,
+body:has(.login) button.password-toggle:focus-visible,
+body:has(.login) button.password-toggle.is-visible {
+    background: transparent !important;
+    color: var(--portal-primary) !important;
+}
+
+body:has(.login) button.password-toggle svg {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+body:has(.login) .password-field {
+    min-height: 45px !important;
+}
+
+body:has(.login) .password-field input {
+    display: block !important;
+    min-height: 45px !important;
+}
+
+@media (max-width: 720px) {
+    body:has(.login) {
+        min-height: 100vh !important;
+        display: grid !important;
+        place-items: center !important;
+        padding: 18px 0 !important;
+    }
+
+    body:has(.login) .login,
+    body:has(.login) .login:has(input) {
+        width: min(100% - 26px, 450px) !important;
+        padding: 24px 20px 30px !important;
+        border-radius: 20px !important;
+        background: rgba(255, 255, 255, .96) !important;
+        box-shadow: 0 18px 38px rgba(24, 36, 28, .09) !important;
+    }
+
+    body:has(.login) .login-card-top {
+        align-items: flex-start !important;
+        flex-wrap: wrap !important;
+        margin-bottom: 22px !important;
+        padding-bottom: 16px !important;
+    }
+
+    body:has(.login) .login-brand {
+        flex-basis: 100% !important;
+    }
+
+    body:has(.login) .login-brand strong,
+    body:has(.login) .login-brand small {
+        max-width: 100% !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    body:has(.login) .login h1 {
+        font-size: clamp(1.95rem, 10vw, 2.35rem) !important;
+        line-height: 1.06 !important;
+    }
+
+    body:has(.login) .login p:not(:first-of-type) {
+        font-size: .95rem !important;
+        line-height: 1.55 !important;
+    }
+
+    body:has(.login) label {
+        margin: 15px 0 !important;
+    }
+
+    body:has(.login) .login > p {
+        margin-bottom: 12px !important;
+    }
+
+    body:has(.login) .login-submit {
+        margin-top: 10px !important;
+    }
+}
+
+@media (max-width: 390px) {
+    body:has(.login) .login,
+    body:has(.login) .login:has(input) {
+        width: calc(100% - 20px) !important;
+        padding: 22px 16px 28px !important;
+    }
+
+    body:has(.login) .login-card-top {
+        gap: 10px !important;
+    }
+}
+
+/* Final mobile alignment for unit login forms. */
+@media (max-width: 720px) {
+    body:has(.login) {
+        overflow-x: hidden !important;
+    }
+
+    body:has(.login) .login,
+    body:has(.login) .login:has(input) {
+        width: min(100%, 450px) !important;
+        max-width: 450px !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+    }
+
+    body:has(.login) .login-card-top,
+    body:has(.login) .login-brand,
+    body:has(.login) .password-field {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    body:has(.login) .login-brand {
+        flex: 1 1 100% !important;
+    }
+
+    body:has(.login) .login-brand strong,
+    body:has(.login) .login-brand small {
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+    }
+
+    body:has(.login) .password-field input,
+    body:has(.login) .login-submit {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media (max-width: 390px) {
+    body:has(.login) .login,
+    body:has(.login) .login:has(input) {
+        width: min(100%, 450px) !important;
+        padding-inline: 16px !important;
+    }
+}
+
+/* Match the main foundation portal login on mobile. */
+@media (max-width: 720px) {
+    body:has(.login) {
+        display: block !important;
+        min-height: 100svh !important;
+        padding: 0 !important;
+        background: var(--portal-surface) !important;
+        font-family: Manrope, Segoe UI, sans-serif !important;
+        overflow-x: hidden !important;
+    }
+
+    body:has(.login)::before {
+        content: '' !important;
+        display: block !important;
+        position: fixed !important;
+        inset: -170px -170px auto auto !important;
+        width: 340px !important;
+        height: 340px !important;
+        border: 1px solid color-mix(in srgb, var(--portal-primary) 8%, transparent) !important;
+        border-radius: 50% !important;
+        box-shadow:
+            0 0 0 55px color-mix(in srgb, var(--portal-primary) 3%, transparent),
+            0 0 0 110px color-mix(in srgb, var(--portal-primary) 2%, transparent) !important;
+        background: transparent !important;
+        pointer-events: none !important;
+        z-index: 0 !important;
+    }
+
+    body:has(.login)::after {
+        display: none !important;
+    }
+
+    body:has(.login) .login,
+    body:has(.login) .login:has(input) {
+        width: calc(100% - 32px) !important;
+        max-width: 520px !important;
+        min-height: 100svh !important;
+        margin: 0 auto !important;
+        padding: 112px 0 28px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-family: Manrope, Segoe UI, sans-serif !important;
+    }
+
+    body:has(.login) .login-card-top {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 0 30px !important;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    body:has(.login) .login-card-top::after {
+        content: '' !important;
+        display: block !important;
+        width: 42px !important;
+        height: 3px !important;
+        margin-top: 28px !important;
+        border-radius: 99px !important;
+        background: var(--portal-accent) !important;
+    }
+
+    body:has(.login) .login-brand {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    body:has(.login) .login-brand .login-logo,
+    body:has(.login) .login-unit-pill {
+        display: none !important;
+    }
+
+    body:has(.login) .login-brand strong {
+        display: block !important;
+        color: var(--portal-primary) !important;
+        font: 900 1.04rem/1.2 Inter, Segoe UI, sans-serif !important;
+        letter-spacing: -.02em !important;
+    }
+
+    body:has(.login) .login-brand small {
+        display: none !important;
+    }
+
+    body:has(.login) .login > p:first-of-type {
+        margin: 0 0 20px !important;
+        color: var(--portal-primary) !important;
+        font-size: .68rem !important;
+        font-weight: 800 !important;
+        letter-spacing: .14em !important;
+    }
+
+    body:has(.login) .login h1 {
+        margin: 0 0 14px !important;
+        font-size: 2rem !important;
+        line-height: 1.16 !important;
+        letter-spacing: -.045em !important;
+        font-family: Manrope, Segoe UI, sans-serif !important;
+    }
+
+    body:has(.login) .login p:not(:first-of-type) {
+        margin: 0 0 38px !important;
+        color: var(--portal-muted) !important;
+        font-size: .93rem !important;
+        line-height: 1.55 !important;
+    }
+
+    body:has(.login) label {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 0 22px !important;
+        gap: 9px !important;
+        color: var(--portal-muted) !important;
+        font-size: .68rem !important;
+        letter-spacing: .055em !important;
+    }
+
+    body:has(.login) input,
+    body:has(.login) .password-field {
+        display: block !important;
+        width: 100% !important;
+        min-height: 59px !important;
+        border-radius: 11px !important;
+        border: 1px solid var(--portal-line) !important;
+        background: #fff !important;
+        box-shadow: none !important;
+    }
+
+    body:has(.login) input {
+        padding: 0 18px 0 52px !important;
+        font-size: 16px !important;
+        font-family: Manrope, Segoe UI, sans-serif !important;
+    }
+
+    body:has(.login) input:focus {
+        border-color: var(--portal-primary) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--portal-primary) 12%, transparent) !important;
+    }
+
+    body:has(.login) .password-field input {
+        height: 57px !important;
+        min-height: 57px !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    body:has(.login) .password-field input {
+        padding-right: 58px !important;
+    }
+
+    body:has(.login) label {
+        position: relative !important;
+    }
+
+    body:has(.login) label::before {
+        content: '' !important;
+        position: absolute !important;
+        left: 17px !important;
+        top: 34px !important;
+        width: 20px !important;
+        height: 20px !important;
+        background: center / contain no-repeat !important;
+        opacity: .78 !important;
+        pointer-events: none !important;
+        z-index: 2 !important;
+    }
+
+    body:has(.login) label:first-of-type::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa2b6' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c0-4 3-7 8-7s8 3 8 7'/%3E%3C/svg%3E") !important;
+    }
+
+    body:has(.login) label:nth-of-type(2)::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa2b6' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='10' width='14' height='10' rx='2'/%3E%3Cpath d='M8 10V7a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E") !important;
+    }
+
+    body:has(.login) .login-submit {
+        min-height: 59px !important;
+        margin-top: 2px !important;
+        border-radius: 11px !important;
+        font-size: 1rem !important;
+        font-family: Manrope, Segoe UI, sans-serif !important;
+    }
 }
