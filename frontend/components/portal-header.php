@@ -6,6 +6,7 @@ $portalNav = [
     ['key' => 'dashboard', 'label' => 'Dashboard', 'url' => '/portal/dashboard', 'roles' => ['admin', 'humas', 'kasir']],
     ['key' => 'content', 'label' => 'Berita & Galeri', 'url' => '/portal/content', 'roles' => ['admin', 'humas']],
     ['key' => 'hero-media', 'label' => 'Hero Image & Video', 'url' => '/portal/hero-media', 'roles' => ['admin', 'humas']],
+    ['key' => 'social-gallery', 'label' => 'Galeri Instagram', 'url' => '/portal/social-gallery', 'roles' => ['admin', 'humas']],
     ['key' => 'brochures', 'label' => 'Brosur Unit', 'url' => '/portal/brochures', 'roles' => ['admin', 'humas']],
     ['key' => 'site-unit', 'label' => 'Unit Sekolah', 'url' => '/portal/site-content?type=unit', 'roles' => ['admin', 'humas']],
     ['key' => 'unit-gallery', 'label' => 'Galeri Unit', 'url' => '/portal/unit-gallery', 'roles' => ['admin', 'humas']],

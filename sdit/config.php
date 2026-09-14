@@ -12,6 +12,7 @@ return [
         'accent' => '#efb23b',
         'soft' => '#fff0ef',
         'ink' => '#431b22',
+        'logo_hue' => '327deg',
     ],
     'contact' => [
         'phone' => '(021) 1234-5678',

@@ -62,6 +62,10 @@ foreach ($home_activities as &$activityItem) $activityItem['image'] = public_med
 unset($activityItem);
 $school_advantages = school_advantages();
 $unitCatalog = school_unit_catalog();
+// Beranda yayasan menampilkan gabungan postingan dari yayasan sendiri (kalau
+// ada) plus semua 4 unit sekolah, supaya "semua institusi kelihatan" di satu
+// tempat, bukan cuma galeri khusus yayasan.
+$instagram_gallery_items = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 ORDER BY FIELD(scope,'yayasan','daycare','tkit','sdit','smpit'), sort_order, id LIMIT 24")->fetchAll();
 $unit_image_map = array_combine(array_keys($unitCatalog), array_column($unitCatalog, 'image'));
 $unit_site_links = [
     'daycare' => SITE_URL . '/daycare/',
@@ -294,6 +298,48 @@ require_once __DIR__ . '/../components/header.php';
         </div>
     </div>
 </section>
+
+<?php if ($instagram_gallery_items): ?>
+<!-- GALERI INSTAGRAM -->
+<section class="section section-alt ig-gallery-section">
+    <div class="container">
+        <div class="section-head">
+            <span class="section-eyebrow">Instagram</span>
+            <h2>Galeri Instagram</h2>
+            <p>Postingan terbaru dari Instagram yayasan dan keempat unit sekolah.</p>
+        </div>
+        <div class="ig-gallery-grid">
+            <?php foreach ($instagram_gallery_items as $igItem): ?>
+            <?php $igUnitLabel = $igItem['scope'] === 'yayasan' ? 'Yayasan' : ($unitCatalog[$igItem['scope']]['subtitle'] ?? ucfirst($igItem['scope'])); ?>
+            <?php $igEmbedSrc = $igItem['media_type'] === 'embed' ? instagram_embed_url($igItem['instagram_url']) : null; ?>
+            <?php if ($igEmbedSrc): ?>
+            <div class="ig-gallery-card ig-gallery-embed">
+                <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
+                <iframe src="<?php echo esc($igEmbedSrc); ?>" loading="lazy" allowtransparency="true" title="<?php echo esc($igItem['caption'] ?: 'Postingan Instagram'); ?>"></iframe>
+            </div>
+            <?php else: ?>
+            <div class="ig-gallery-card">
+                <div class="ig-gallery-media">
+                    <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
+                    <?php if ($igItem['media_type'] === 'video'): ?>
+                    <video src="<?php echo esc($igItem['media_path']); ?>" controls preload="metadata"></video>
+                    <?php else: ?>
+                    <img src="<?php echo esc($igItem['media_path']); ?>" alt="<?php echo esc($igItem['caption'] ?: 'Postingan Instagram'); ?>" loading="lazy">
+                    <?php endif; ?>
+                </div>
+                <?php if (!empty($igItem['caption']) || !empty($igItem['instagram_url'])): ?>
+                <div class="ig-gallery-foot">
+                    <?php if (!empty($igItem['caption'])): ?><p><?php echo esc($igItem['caption']); ?></p><?php endif; ?>
+                    <?php if (!empty($igItem['instagram_url'])): ?><a href="<?php echo esc($igItem['instagram_url']); ?>" target="_blank" rel="noopener">Lihat di Instagram &rarr;</a><?php endif; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../components/footer.php'; ?>
 

@@ -12,6 +12,12 @@ return [
         'accent' => '#fbbf24',
         'soft' => '#fff7dd',
         'ink' => '#3c2b17',
+        // Used to re-tint the official green/yellow/red school crest (logo.png)
+        // toward this unit's own theme color via CSS filter, since the crest
+        // artwork itself is the same real seal for every unit and stays put -
+        // only its on-screen tint shifts. See .brand-mark / .portal-logo filter
+        // in foundation-refresh.css / admin-foundation-refresh.css.
+        'logo_hue' => '2deg',
     ],
     'contact' => [
         'phone' => '(021) 1234-5678',

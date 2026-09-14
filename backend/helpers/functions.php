@@ -49,6 +49,18 @@ function esc(?string $string) {
     return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
 }
 
+// Instagram punya endpoint iframe embed langsung (.../p/{kode}/embed/ atau
+// .../reel/{kode}/embed/) yang bisa dipakai tanpa perlu memuat embed.js sama
+// sekali - browser cukup <iframe src="..."> biasa. Ini menyederhanakan galeri
+// Instagram: tidak perlu lagi script blockquote + lazy-load kustom, cukup
+// pakai loading="lazy" bawaan browser di tag iframe-nya.
+function instagram_embed_url(?string $postUrl): ?string {
+    $postUrl = trim((string) $postUrl);
+    if ($postUrl === '') return null;
+    if (!preg_match('~instagram\.com/(p|reel|tv)/([A-Za-z0-9_-]+)~i', $postUrl, $match)) return null;
+    return 'https://www.instagram.com/' . $match[1] . '/' . $match[2] . '/embed/';
+}
+
 // Tambahkan versi berdasarkan waktu perubahan file agar browser tidak memakai
 // CSS/JS lama setelah source code diperbarui dari Git.
 function asset_url(string $relativePath): string {

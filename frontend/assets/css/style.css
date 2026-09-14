@@ -893,6 +893,86 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
     border-color: rgba(212,175,55,0.55);
     box-shadow: var(--shadow-lg);
 }
+
+/* Instagram gallery: real photos/videos an admin has manually uploaded and
+   linked back to their original Instagram post (backend/pages/portal/
+   social-gallery.php) - not a live API sync. */
+.ig-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 340px));
+    justify-content: center;
+    gap: 28px;
+}
+.ig-gallery-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(15,81,50,0.12);
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.ig-gallery-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(212,175,55,0.55);
+    box-shadow: var(--shadow-lg);
+}
+.ig-gallery-media {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+}
+.ig-gallery-media img,
+.ig-gallery-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.ig-gallery-foot { padding: 14px 16px; }
+.ig-gallery-foot p { margin: 0 0 6px; font-size: 0.86rem; color: var(--ink); line-height: 1.4; }
+.ig-gallery-foot a { font-size: 0.8rem; font-weight: 700; color: var(--primary-dark); }
+/* Keep the same card frame (radius/shadow/white bg) as photo & video cards -
+   only clip overflow so Instagram's own iframe respects the rounded corners
+   instead of sitting bare with zero chrome. Fixed height (smaller than
+   Instagram's natural ~700-750px) keeps the grid compact and every row even,
+   at the cost of cropping the very bottom of taller posts. */
+.ig-gallery-embed { position: relative; overflow: hidden; height: 440px; }
+.ig-gallery-embed iframe { display: block; width: 100%; height: 100%; border: 0; border-radius: inherit; }
+.ig-gallery-loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: .85rem;
+    text-align: center;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 6%, #fff), color-mix(in srgb, var(--primary) 12%, #fff));
+}
+@media (max-width: 620px) {
+    .ig-gallery-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .ig-gallery-embed { height: 400px; }
+}
+.ig-gallery-unit-badge {
+    position: absolute;
+    z-index: 2;
+    top: 10px;
+    left: 10px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(10,25,17,.72);
+    color: #fff;
+    font-size: .68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+.ig-gallery-embed .ig-gallery-unit-badge { top: 8px; left: 8px; }
 .album-carousel {
     position: relative;
     overflow: hidden;
@@ -2076,6 +2156,24 @@ table.schedule th { background: var(--primary); color: #fff; }
     color: rgba(255,255,255,0.85);
     padding: 34px 0 0;
     margin-top: 40px;
+}
+/* On narrow screens the footer column is much narrower than it is tall, so
+   4 SIDE-BY-SIDE quarters (25% width each) squeeze each building photo into a
+   very thin vertical sliver - it reads as noisy streaks, not a building (this
+   is what showed up looking "jelek"/smeared in the mobile screenshot). Stacking
+   the same 4 photos as horizontal bands instead keeps each one close to its
+   natural wide/landscape shape, so it still reads as a real photo. */
+@media (max-width: 640px) {
+    .site-footer {
+        background-position: center, center 0%, center 33.333%, center 66.667%, center 100%;
+        background-size: cover, 100% 25%, 100% 25%, 100% 25%, 100% 25%;
+        background-image:
+            linear-gradient(rgba(6,26,16,.88), rgba(6,26,16,.88)),
+            var(--footer-b1, none),
+            var(--footer-b2, none),
+            var(--footer-b3, none),
+            var(--footer-b4, none);
+    }
 }
 .site-footer > * { position: relative; z-index: 1; }
 .footer-grid { display: grid; grid-template-columns: 1.1fr 0.72fr 0.95fr 1.42fr; gap: 28px; padding-bottom: 24px; align-items: start; }
