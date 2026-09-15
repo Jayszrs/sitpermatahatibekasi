@@ -1,4 +1,4 @@
-<footer class="site-footer" style="--footer-b1:url('<?php echo SITE_URL; ?>/daycare/assets/images/building.webp');--footer-b2:url('<?php echo SITE_URL; ?>/tkit/assets/images/building.webp');--footer-b3:url('<?php echo SITE_URL; ?>/sdit/assets/images/building.webp');--footer-b4:url('<?php echo SITE_URL; ?>/smpit/assets/images/building.webp')">
+<footer class="site-footer" style="--footer-building:url('<?php echo esc(asset_url('frontend/assets/images/school/gedung-sekolah.optimized.webp')); ?>')">
     <div class="container footer-grid">
         <div class="footer-col footer-brand">
             <div class="brand">

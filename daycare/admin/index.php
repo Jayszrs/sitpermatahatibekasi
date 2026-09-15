@@ -3,16 +3,52 @@ require_once dirname(__DIR__) . '/bootstrap.php';
 $pdo = unit_db();
 require_once dirname(__DIR__, 2) . '/backend/helpers/unit_shared.php';
 $mainPdo = unit_connect_main_site_pdo();
-session_name('unit_admin_portal'); session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_name('unit_admin_portal');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => defined('APP_COOKIE_PATH') ? APP_COOKIE_PATH : '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure' => app_request_is_secure(),
+    ]);
+    session_start();
+}
+header('Cache-Control: private, no-store, max-age=0');
+header('Pragma: no-cache');
 if (empty($_SESSION['unit_admin_csrf'])) $_SESSION['unit_admin_csrf'] = bin2hex(random_bytes(24));
 $csrf = $_SESSION['unit_admin_csrf'];
 $allUnits = ['daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'];
 $error=''; $notice='';
-if (isset($_GET['logout'])) { session_destroy(); header('Location: ' . unit_portal_url(UNIT_SLUG)); exit; }
+if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='logout') {
+    if (!hash_equals($csrf, (string)($_POST['csrf']??''))) { http_response_code(419); exit('Sesi admin tidak valid.'); }
+    $_SESSION=[];
+    if (ini_get('session.use_cookies')) {
+        $params=session_get_cookie_params();
+        setcookie(session_name(), '', time()-42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    }
+    session_destroy();
+    header('Location: ' . unit_portal_url(UNIT_SLUG)); exit;
+}
 if (empty($_SESSION['unit_admin']) && $_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='login') {
-    $stmt=$pdo->prepare('SELECT * FROM unit_users WHERE username=? AND is_active=1');$stmt->execute([trim($_POST['username']??'')]);$user=$stmt->fetch();
-    if($user && password_verify($_POST['password']??'', $user['password_hash'])) { $_SESSION['unit_admin']=['id'=>$user['id'],'username'=>$user['username'],'role'=>$user['role'],'unit_slug'=>$user['unit_slug']]; header('Location: index.php');exit; }
-    $error='Username atau password tidak sesuai.';
+    if (!hash_equals($csrf, (string)($_POST['csrf']??''))) { http_response_code(419); exit('Sesi login tidak valid. Muat ulang halaman.'); }
+    $now=time();
+    $_SESSION['unit_login_failures']=array_values(array_filter($_SESSION['unit_login_failures']??[], static fn($time)=>is_int($time)&&$time>$now-900));
+    if (count($_SESSION['unit_login_failures'])>=5) {
+        $error='Terlalu banyak percobaan masuk. Coba lagi dalam 15 menit.';
+    } else {
+        $stmt=$pdo->prepare('SELECT * FROM unit_users WHERE username=? AND is_active=1');$stmt->execute([strtolower(trim($_POST['username']??''))]);$user=$stmt->fetch();
+        if($user && password_verify($_POST['password']??'', $user['password_hash'])) {
+            session_regenerate_id(true);
+            unset($_SESSION['unit_login_failures']);
+            $_SESSION['unit_admin_csrf']=bin2hex(random_bytes(24));
+            $_SESSION['unit_admin']=['id'=>$user['id'],'username'=>$user['username'],'role'=>$user['role'],'unit_slug'=>$user['unit_slug']];
+            if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) $pdo->prepare('UPDATE unit_users SET password_hash=? WHERE id=?')->execute([password_hash($_POST['password'],PASSWORD_DEFAULT),$user['id']]);
+            header('Location: index.php');exit;
+        }
+        $_SESSION['unit_login_failures'][]=$now;
+        $error='Username atau password tidak sesuai.';
+    }
 }
 if (empty($_SESSION['unit_admin'])) { ?>
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login Admin Unit</title><link rel="icon" type="image/png" href="<?php echo unit_asset('assets/images/logo.png'); ?>"><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f6f3;font-family:Inter,Segoe UI,sans-serif;color:#173d2a}.login{width:min(420px,calc(100% - 32px));background:#fff;padding:34px;border:1px solid #dfe6df;border-radius:10px;box-shadow:0 18px 45px #18352217}h1{font-size:1.6rem;margin:0 0 8px}p{color:#637067}label{display:grid;gap:6px;font-size:.85rem;font-weight:700;margin:16px 0}input{padding:12px;border:1px solid #dfe6df;border-radius:6px;font:inherit}button{width:100%;padding:13px;border:0;border-radius:6px;background:#145c39;color:#fff;font-weight:800;cursor:pointer}.error{padding:10px;background:#fff2f2;color:#a12121;border-radius:6px;font-size:.86rem}</style><link rel="stylesheet" href="<?php echo unit_asset('assets/css/admin.css'); ?>"><link rel="stylesheet" href="<?php echo unit_asset('assets/css/admin-foundation-refresh.css'); ?>"><link rel="stylesheet" href="<?php echo unit_url('../frontend/assets/css/unit-admin-workspace.css'); ?>"></head><body><form class="login" method="post"><div class="login-card-top"><div class="login-brand"><img class="login-logo" src="<?php echo unit_asset('assets/images/logo.png'); ?>" alt="Logo unit"><span><strong><?php echo unit_e($unit_config['name']); ?></strong><small><?php echo unit_e($unit_config['tagline']); ?></small></span></div><span class="login-unit-pill"><?php echo unit_e($unit_config['short_name']); ?></span></div><p>PORTAL UNIT</p><h1>Masuk ke Admin</h1><p>Kelola publikasi dan administrasi <?php echo unit_e($unit_config['short_name']); ?>.</p><?php if($error): ?><div class="error"><?php echo unit_e($error); ?></div><?php endif; ?><input type="hidden" name="action" value="login"><label>Username<input name="username" required autofocus></label><label>Password<span class="password-field"><input id="unitPassword" type="password" name="password" autocomplete="current-password" required><button class="password-toggle" type="button" id="unitPasswordToggle" aria-label="Lihat kata sandi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></span></label><button class="login-submit" type="submit">Masuk</button></form><script>(function(){var button=document.getElementById("unitPasswordToggle");var input=document.getElementById("unitPassword");if(!button||!input){return;}button.addEventListener("click",function(){var show=input.type==="password";input.type=show?"text":"password";button.setAttribute("aria-label",show?"Sembunyikan kata sandi":"Lihat kata sandi");button.classList.toggle("is-visible",show);});})();</script><script>document.addEventListener("DOMContentLoaded",function(){var b=document.querySelector(".top"),m=document.querySelector(".tabs");if(!b||!m)return;var t=document.createElement("button");t.className="unit-menu-toggle";t.type="button";t.setAttribute("aria-label","Buka menu");t.setAttribute("aria-expanded","false");t.textContent="";b.appendChild(t);var x=document.createElement("div");x.className="unit-menu-backdrop";document.body.appendChild(x);function c(){document.body.classList.remove("unit-menu-open");t.setAttribute("aria-expanded","false");t.setAttribute("aria-label","Buka menu")}t.addEventListener("click",function(){var o=document.body.classList.toggle("unit-menu-open");t.setAttribute("aria-expanded",o?"true":"false");t.setAttribute("aria-label",o?"Tutup menu":"Buka menu")});x.addEventListener("click",c);m.querySelectorAll("a").forEach(function(a){a.addEventListener("click",c)});window.addEventListener("resize",function(){if(innerWidth>720)c()})});</script></body></html><?php exit; }

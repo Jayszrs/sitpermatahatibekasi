@@ -78,12 +78,16 @@ function instagram_public_media(?string $postUrl): ?array {
 
     $cacheDirectory = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'instagram-media';
     $cacheFile = $cacheDirectory . DIRECTORY_SEPARATOR . sha1($embedUrl) . '.json';
-    $cacheTtl = 2 * 60 * 60;
-    if (is_file($cacheFile) && filemtime($cacheFile) >= time() - $cacheTtl) {
+    $cacheTtl = 6 * 60 * 60;
+    $staleCached = null;
+    if (is_file($cacheFile)) {
         $cached = json_decode((string) file_get_contents($cacheFile), true);
         // Cache lama belum menyimpan avatar akun; refresh satu kali agar ikon
         // generik dapat diganti foto profil Instagram yang sebenarnya.
-        if (is_array($cached) && !empty($cached['image']) && ($cached['cache_version'] ?? 0) >= 2) return $cached;
+        if (is_array($cached) && !empty($cached['image']) && ($cached['cache_version'] ?? 0) >= 2) {
+            $staleCached = $cached;
+            if (filemtime($cacheFile) >= time() - $cacheTtl) return $cached;
+        }
     }
 
     $curl = curl_init($embedUrl);
@@ -132,6 +136,10 @@ function instagram_public_media(?string $postUrl): ?array {
             }
         }
     }
+
+    // Gangguan Instagram tidak boleh membuat galeri yang sebelumnya valid
+    // tiba-tiba hilang. Pakai data terakhir yang berhasil sebagai fallback.
+    if (!$result && $staleCached) return $staleCached;
 
     if (!is_dir($cacheDirectory)) @mkdir($cacheDirectory, 0775, true);
     if (is_dir($cacheDirectory)) {
@@ -391,6 +399,24 @@ function school_unit_catalog(): array {
             'whatsapp' => SITE_SMPIT_WHATSAPP,
         ],
     ];
+}
+
+/** URL embed peta ringan tanpa memuat Google Maps JavaScript atau API key. */
+function openstreetmap_embed_url(string $latitude, string $longitude): string {
+    $lat = filter_var($latitude, FILTER_VALIDATE_FLOAT);
+    $lon = filter_var($longitude, FILTER_VALIDATE_FLOAT);
+    if ($lat === false || $lon === false) return 'https://www.openstreetmap.org/export/embed.html?layer=mapnik';
+
+    $lat = (float) $lat;
+    $lon = (float) $lon;
+    $bbox = implode(',', [
+        number_format($lon - 0.006, 6, '.', ''),
+        number_format($lat - 0.004, 6, '.', ''),
+        number_format($lon + 0.006, 6, '.', ''),
+        number_format($lat + 0.004, 6, '.', ''),
+    ]);
+    return 'https://www.openstreetmap.org/export/embed.html?bbox=' . rawurlencode($bbox)
+        . '&layer=mapnik&marker=' . rawurlencode(number_format($lat, 7, '.', '') . ',' . number_format($lon, 7, '.', ''));
 }
 
 function fetch_school_units(PDO $pdo): array {

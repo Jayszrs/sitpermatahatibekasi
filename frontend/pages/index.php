@@ -72,6 +72,7 @@ unset($activityItem);
 $school_advantages = school_advantages();
 $unitCatalog = school_unit_catalog();
 $instagramAccountNames = [
+    'yayasan' => instagram_profile_username(SITE_INSTAGRAM) ?: '',
     'daycare' => instagram_profile_username(SITE_DAYCARE_INSTAGRAM) ?: '',
     'tkit' => instagram_profile_username(SITE_TKIT_INSTAGRAM) ?: '',
     'sdit' => instagram_profile_username(SITE_SDIT_INSTAGRAM) ?: '',
@@ -80,7 +81,7 @@ $instagramAccountNames = [
 // Beranda yayasan menampilkan gabungan postingan dari yayasan sendiri (kalau
 // ada) plus semua 4 unit sekolah, supaya "semua institusi kelihatan" di satu
 // tempat, bukan cuma galeri khusus yayasan.
-$instagram_gallery_rows = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 AND media_type='embed' AND scope IN ('daycare','tkit','sdit','smpit') ORDER BY FIELD(scope,'daycare','tkit','sdit','smpit'), sort_order, id LIMIT 32")->fetchAll();
+$instagram_gallery_rows = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 AND media_type='embed' AND scope IN ('yayasan','daycare','tkit','sdit','smpit') ORDER BY FIELD(scope,'yayasan','daycare','tkit','sdit','smpit'), sort_order, id LIMIT 40")->fetchAll();
 $instagram_gallery_rows = instagram_verified_gallery($instagram_gallery_rows, $instagramAccountNames, 24);
 // Selang-seling per unit agar empat kartu pertama tidak dikuasai satu unit.
 $instagram_gallery_groups = [];
@@ -340,17 +341,17 @@ require_once __DIR__ . '/../components/header.php';
     </div>
 </section>
 
-<?php if ($instagram_gallery_items): ?>
 <!-- GALERI INSTAGRAM -->
-<section class="section section-alt ig-gallery-section">
+<section class="section section-alt ig-gallery-section" id="instagram-yayasan">
     <div class="container">
         <div class="section-head">
             <span class="section-eyebrow ig-section-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"></circle></svg> Instagram</span>
-            <h2>Galeri Instagram</h2>
-            <p>Momen terbaru dari setiap unit sekolah. Video diputar otomatis tanpa suara saat terlihat di layar.</p>
+            <h2>Instagram SIT Permata Hati</h2>
+            <p>Momen terbaru Yayasan dan setiap unit sekolah. Video diputar otomatis tanpa suara saat terlihat di layar.</p>
         </div>
+        <?php $igVisibleCount = 4; ?>
+        <?php if ($instagram_gallery_items): ?>
         <div class="ig-gallery-grid" id="igGalleryGrid">
-            <?php $igVisibleCount = 4; ?>
             <?php foreach ($instagram_gallery_items as $igIndex => $igItem): ?>
             <?php $igUnitLabel = $igItem['scope'] === 'yayasan' ? 'Yayasan' : ($unitCatalog[$igItem['scope']]['subtitle'] ?? ucfirst($igItem['scope'])); ?>
             <?php $igHidden = $igIndex >= $igVisibleCount; ?>
@@ -380,6 +381,12 @@ require_once __DIR__ . '/../components/header.php';
             <button type="button" class="btn btn-outline" id="igGalleryMoreBtn">Tampilkan Lebih Banyak</button>
         </div>
         <?php endif; ?>
+        <?php else: ?>
+        <div class="ig-gallery-empty">
+            <p>Postingan sedang disegarkan. Ikuti akun resmi Yayasan untuk melihat kabar terbaru.</p>
+            <a class="btn btn-outline" href="<?php echo esc(SITE_INSTAGRAM); ?>" target="_blank" rel="noopener">Buka Instagram Yayasan</a>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
 <?php if (count($instagram_gallery_items) > $igVisibleCount): ?>
@@ -394,7 +401,6 @@ document.getElementById('igGalleryMoreBtn').addEventListener('click', function (
 </script>
 <?php endif; ?>
 <script src="<?php echo esc(asset_url('frontend/assets/js/instagram-gallery.js')); ?>"></script>
-<?php endif; ?>
 
 <?php if ($youtube_gallery_items): ?>
 <section class="section youtube-gallery-section">

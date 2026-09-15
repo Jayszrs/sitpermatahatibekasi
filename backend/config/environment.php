@@ -30,4 +30,35 @@ function app_env(string $name, ?string $default = null): ?string
     return (string) $value;
 }
 
+function app_request_is_secure(): bool
+{
+    return (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+        || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+}
+
+/**
+ * Baseline header keamanan untuk website publik dan portal.
+ *
+ * CSP tetap mengizinkan media Instagram, video YouTube, Google Maps, dan font
+ * yang memang dipakai antarmuka. Fitur browser yang tidak dibutuhkan sekolah
+ * ditutup tanpa memakai directive lama seperti `unload` atau
+ * `attribution-reporting` yang sebelumnya memenuhi console dengan warning.
+ */
+function app_send_security_headers(): void
+{
+    if (PHP_SAPI === 'cli' || headers_sent()) return;
+
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Cross-Origin-Opener-Policy: same-origin-allow-popups');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://www.instagram.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.openstreetmap.org https://www.instagram.com; connect-src 'self' https://www.instagram.com https://graph.instagram.com https://*.cdninstagram.com https://*.fbcdn.net");
+
+    if (app_request_is_secure()) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
 app_load_environment(dirname(__DIR__, 2) . '/.env');
+app_send_security_headers();
