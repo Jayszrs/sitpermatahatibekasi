@@ -22,7 +22,7 @@ return [
         'maps' => 'https://www.google.com/maps/place/TKIT+PERMATA+HATI/@-6.2388771,107.0793613,17z',
         'instagram' => 'https://www.instagram.com/tkitpermatahatibekasi/',
         'facebook' => 'https://www.facebook.com/tkitpermatahatibekasi/?locale=id_ID',
-        'youtube' => 'https://youtube.com/@sitpermatahatibekasi',
+        'youtube' => 'https://www.youtube.com/@sitpermatahatibekasi5399',
     ],
     'hero_image' => 'assets/images/hero.jpeg',
     'building_image' => 'assets/images/building.webp',

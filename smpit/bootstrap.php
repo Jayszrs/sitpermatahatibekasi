@@ -76,6 +76,8 @@ function unit_seed_defaults(PDO $pdo): void {
     $settings = array_merge(['name' => $unit_config['name'], 'tagline' => $unit_config['tagline'], 'description' => $unit_config['description']], $unit_config['contact']);
     $setting = $pdo->prepare('INSERT IGNORE INTO unit_settings (unit_slug,setting_key,setting_value) VALUES (?,?,?)');
     foreach ($settings as $key => $value) $setting->execute([UNIT_SLUG, $key, $value]);
+    $pdo->prepare("UPDATE unit_settings SET setting_value=? WHERE unit_slug=? AND setting_key='youtube' AND setting_value IN ('https://youtube.com/@sitpermatahatibekasi','https://www.youtube.com/@sitpermatahatibekasi')")
+        ->execute([$unit_config['contact']['youtube'], UNIT_SLUG]);
     $check = $pdo->prepare('SELECT COUNT(*) FROM unit_content WHERE unit_slug=?'); $check->execute([UNIT_SLUG]);
     if ((int) $check->fetchColumn() === 0) {
         $insert = $pdo->prepare('INSERT INTO unit_content (unit_slug,content_type,title,summary,image,meta,published_at,sort_order) VALUES (?,?,?,?,?,?,?,?)');
@@ -103,6 +105,18 @@ function unit_seed_supplemental(PDO $pdo): void {
         $insert = $pdo->prepare('INSERT INTO unit_content (unit_slug,content_type,title,summary,body,image,meta,published_at,sort_order) VALUES (?,?,?,?,?,?,?,?,?)');
         foreach ($news as $index => $item) $insert->execute([UNIT_SLUG,'news',$item[0],$item[1],$item[2],$unit_config['gallery'][$index % count($unit_config['gallery'])]['image'],'Informasi Unit',$item[3],$index]);
     }
+    $achievementTarget = max(3, count($unit_config['achievements'] ?? []));
+    $achievementCount = (int) $pdo->query("SELECT COUNT(*) FROM unit_content WHERE unit_slug='".UNIT_SLUG."' AND content_type='achievement'")->fetchColumn();
+    if ($achievementCount < $achievementTarget && !empty($unit_config['achievements'])) {
+        $existsAchievement = $pdo->prepare('SELECT COUNT(*) FROM unit_content WHERE unit_slug=? AND content_type=? AND title=?');
+        $insertAchievement = $pdo->prepare('INSERT INTO unit_content (unit_slug,content_type,title,summary,body,image,meta,published_at,sort_order) VALUES (?,?,?,?,?,?,?,?,?)');
+        foreach ($unit_config['achievements'] as $index => $item) {
+            $existsAchievement->execute([UNIT_SLUG, 'achievement', $item['title']]);
+            if ((int) $existsAchievement->fetchColumn() > 0) continue;
+            $year = (string) ($item['year'] ?? date('Y'));
+            $insertAchievement->execute([UNIT_SLUG, 'achievement', $item['title'], $item['summary'] ?? '', $item['summary'] ?? '', $item['image'] ?? '', $item['level'] ?? 'Sekolah', $year . '-01-01', $index]);
+        }
+    }
     $albumCount = (int) $pdo->query("SELECT COUNT(*) FROM unit_gallery_albums WHERE unit_slug='".UNIT_SLUG."'")->fetchColumn();
     if ($albumCount < 3) {
         $insertAlbum = $pdo->prepare('INSERT INTO unit_gallery_albums (unit_slug,title,description,cover_image,sort_order) VALUES (?,?,?,?,?)');
@@ -111,6 +125,23 @@ function unit_seed_supplemental(PDO $pdo): void {
             $insertAlbum->execute([UNIT_SLUG, 'Dokumentasi ' . $item['title'], $item['description'], $item['image'], $index + 1]);
             $albumId = (int) $pdo->lastInsertId();
             $insertPhoto->execute([$albumId, $item['title'], $item['description'], $item['image'], 0]);
+        }
+    }
+    // Setiap album minimum memiliki tiga foto nyata milik unit. Ini mengisi
+    // instalasi lama yang sempat membuat album tambahan berisi satu foto saja.
+    $albumRows = $pdo->prepare('SELECT id FROM unit_gallery_albums WHERE unit_slug=?');
+    $albumRows->execute([UNIT_SLUG]);
+    $photoCount = $pdo->prepare('SELECT COUNT(*) FROM unit_gallery_photos WHERE album_id=?');
+    $photoExists = $pdo->prepare('SELECT COUNT(*) FROM unit_gallery_photos WHERE album_id=? AND image=?');
+    $insertPhoto = $pdo->prepare('INSERT INTO unit_gallery_photos (album_id,title,description,image,sort_order) VALUES (?,?,?,?,?)');
+    foreach ($albumRows as $albumRow) {
+        $albumId = (int) $albumRow['id'];
+        $photoCount->execute([$albumId]);
+        if ((int) $photoCount->fetchColumn() >= 3) continue;
+        foreach ($unit_config['gallery'] as $index => $item) {
+            $photoExists->execute([$albumId, $item['image']]);
+            if ((int) $photoExists->fetchColumn() > 0) continue;
+            $insertPhoto->execute([$albumId, $item['title'], $item['description'], $item['image'], $index]);
         }
     }
 }

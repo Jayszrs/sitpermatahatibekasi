@@ -34,7 +34,7 @@ define('SITE_SMPIT_CAMPUS_ADDRESS', "Jl. Astana No.98, Simpang Lima, Tridaya Sak
 define('SITE_SMPIT_LATITUDE', '-6.2494549');
 define('SITE_SMPIT_LONGITUDE', '107.0781991');
 define('SITE_INSTAGRAM', 'https://instagram.com/sitpermatahatibekasi');
-define('SITE_YOUTUBE', 'https://youtube.com/@sitpermatahatibekasi');
+define('SITE_YOUTUBE', 'https://www.youtube.com/@sitpermatahatibekasi5399');
 define('SITE_DAYCARE_INSTAGRAM', 'https://www.instagram.com/daycarepermatahati.bekasi/');
 define('SITE_TKIT_INSTAGRAM', 'https://www.instagram.com/tkitpermatahatibekasi/');
 define('SITE_SDIT_INSTAGRAM', 'https://www.instagram.com/sditphbekasi/');
@@ -59,6 +59,216 @@ function instagram_embed_url(?string $postUrl): ?string {
     if ($postUrl === '') return null;
     if (!preg_match('~instagram\.com/(p|reel|tv)/([A-Za-z0-9_-]+)~i', $postUrl, $match)) return null;
     return 'https://www.instagram.com/' . $match[1] . '/' . $match[2] . '/embed/';
+}
+
+/**
+ * Mengambil media publik dari halaman embed Instagram untuk kartu beranda.
+ *
+ * Embed iframe Instagram sengaja tidak dipakai di beranda: response Instagram
+ * menonaktifkan autoplay dan menjalankan banyak request telemetry pihak ketiga.
+ * Metadata ini disimpan singkat di /tmp agar halaman tidak meminta Instagram
+ * pada setiap kunjungan. Jika post sedang dibatasi/tidak tersedia, pemanggil
+ * tetap mendapat fallback card yang menaut ke post aslinya.
+ *
+ * @return array{image:?string,video:?string,profile_image:?string,username:?string,caption:?string,is_video:bool}|null
+ */
+function instagram_public_media(?string $postUrl): ?array {
+    $embedUrl = instagram_embed_url($postUrl);
+    if (!$embedUrl || !function_exists('curl_init')) return null;
+
+    $cacheDirectory = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'instagram-media';
+    $cacheFile = $cacheDirectory . DIRECTORY_SEPARATOR . sha1($embedUrl) . '.json';
+    $cacheTtl = 2 * 60 * 60;
+    if (is_file($cacheFile) && filemtime($cacheFile) >= time() - $cacheTtl) {
+        $cached = json_decode((string) file_get_contents($cacheFile), true);
+        // Cache lama belum menyimpan avatar akun; refresh satu kali agar ikon
+        // generik dapat diganti foto profil Instagram yang sebenarnya.
+        if (is_array($cached) && !empty($cached['image']) && ($cached['cache_version'] ?? 0) >= 2) return $cached;
+    }
+
+    $curl = curl_init($embedUrl);
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_CONNECTTIMEOUT => 3,
+        CURLOPT_TIMEOUT => 7,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; SITPermataHati/1.0; +' . SITE_URL . ')',
+        CURLOPT_HTTPHEADER => ['Accept-Language: id-ID,id;q=0.9,en;q=0.7'],
+    ]);
+    $html = curl_exec($curl);
+    $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    curl_close($curl);
+
+    $result = null;
+    if (is_string($html) && $status === 200
+        && ($contextLiteral = instagram_extract_json_string($html, '"contextJSON":')) !== null) {
+        $contextJson = json_decode($contextLiteral, true);
+        $context = is_string($contextJson) ? json_decode($contextJson, true) : null;
+        $media = $context['gql_data']['shortcode_media'] ?? null;
+        $postOwner = is_array($media) && is_array($media['owner'] ?? null) ? $media['owner'] : [];
+
+        // Carousel post menyimpan media aktual di edge_sidecar_to_children.
+        if (is_array($media) && !empty($media['edge_sidecar_to_children']['edges'][0]['node'])) {
+            $media = $media['edge_sidecar_to_children']['edges'][0]['node'];
+        }
+
+        if (is_array($media)) {
+            $image = instagram_safe_cdn_url($media['display_url'] ?? null);
+            $video = instagram_safe_cdn_url($media['video_url'] ?? null);
+            $mediaOwner = is_array($media['owner'] ?? null) ? $media['owner'] : [];
+            $profileImage = instagram_safe_cdn_url($mediaOwner['profile_pic_url'] ?? ($postOwner['profile_pic_url'] ?? null));
+            $username = trim((string) ($mediaOwner['username'] ?? ($postOwner['username'] ?? '')));
+            $caption = trim((string) ($media['edge_media_to_caption']['edges'][0]['node']['text'] ?? ''));
+            if ($image) {
+                $result = [
+                    'cache_version' => 2,
+                    'image' => $image,
+                    'video' => $video,
+                    'profile_image' => $profileImage,
+                    'username' => $username !== '' ? $username : null,
+                    'caption' => $caption !== '' ? $caption : null,
+                    'is_video' => !empty($media['is_video']),
+                ];
+            }
+        }
+    }
+
+    if (!is_dir($cacheDirectory)) @mkdir($cacheDirectory, 0775, true);
+    if (is_dir($cacheDirectory)) {
+        // Cache hasil kosong lebih singkat supaya post yang sesaat gagal bisa
+        // pulih sendiri tanpa membuat request berulang pada setiap page view.
+        if ($result) {
+            @file_put_contents($cacheFile, json_encode($result, JSON_UNESCAPED_SLASHES), LOCK_EX);
+        } else {
+            @file_put_contents($cacheFile, '{}', LOCK_EX);
+            @touch($cacheFile, time() - $cacheTtl + 15 * 60);
+        }
+    }
+    return $result;
+}
+
+/** Ambil satu JSON string besar tanpa regex/backtracking pada HTML Instagram. */
+function instagram_extract_json_string(string $html, string $key): ?string {
+    $keyPosition = strpos($html, $key);
+    if ($keyPosition === false) return null;
+    $start = $keyPosition + strlen($key);
+    if (($html[$start] ?? '') !== '"') return null;
+
+    $length = strlen($html);
+    for ($index = $start + 1; $index < $length; $index++) {
+        if ($html[$index] === '\\') {
+            $index++;
+            continue;
+        }
+        if ($html[$index] === '"') return substr($html, $start, $index - $start + 1);
+    }
+    return null;
+}
+
+function instagram_safe_cdn_url($url): ?string {
+    $url = is_string($url) ? html_entity_decode($url, ENT_QUOTES, 'UTF-8') : '';
+    if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) return null;
+    $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+    if ($host !== 'cdninstagram.com' && !str_ends_with($host, '.cdninstagram.com')
+        && $host !== 'fbcdn.net' && !str_ends_with($host, '.fbcdn.net')) return null;
+    return $url;
+}
+
+/** Ambil username profil dari URL Instagram resmi. */
+function instagram_profile_username(?string $profileUrl): ?string {
+    $path = trim((string) parse_url(trim((string) $profileUrl), PHP_URL_PATH), '/');
+    $username = explode('/', $path)[0] ?? '';
+    return preg_match('/^[A-Za-z0-9._]+$/', $username) ? strtolower($username) : null;
+}
+
+/**
+ * Sisakan hanya post Instagram yang masih tersedia dan benar-benar berasal
+ * dari akun unit yang sesuai. Media hasil verifikasi disertakan agar halaman
+ * tidak pernah menampilkan foto lokal sebagai pengganti post yang gagal.
+ *
+ * @param array<int,array<string,mixed>> $rows
+ * @param array<string,string> $expectedUsernames username per scope
+ * @return array<int,array<string,mixed>>
+ */
+function instagram_verified_gallery(array $rows, array $expectedUsernames, int $limit = 24): array {
+    $verified = [];
+    foreach ($rows as $row) {
+        if (($row['media_type'] ?? '') !== 'embed' || empty($row['instagram_url'])) continue;
+        $media = instagram_public_media((string) $row['instagram_url']);
+        if (!$media || empty($media['image']) || empty($media['username'])) continue;
+
+        $scope = strtolower((string) ($row['scope'] ?? ''));
+        $expected = strtolower((string) ($expectedUsernames[$scope] ?? ''));
+        if ($expected === '' || strtolower((string) $media['username']) !== $expected) continue;
+
+        // Reel tanpa video_url publik hanya akan terlihat seperti poster diam.
+        // Jangan tampilkan kartu semacam itu sebagai video yang seolah rusak.
+        if (!empty($media['is_video']) && empty($media['video'])) continue;
+
+        $row['public_media'] = $media;
+        $verified[] = $row;
+        if (count($verified) >= $limit) break;
+    }
+    return $verified;
+}
+
+/**
+ * Ambil video terbaru dari halaman channel YouTube publik tanpa API key.
+ * Hasil disimpan singkat agar render halaman tetap cepat dan tahan gangguan.
+ *
+ * @return array<int,array{id:string,title:string,url:string,embed_url:string,thumbnail:string}>
+ */
+function youtube_public_videos(?string $channelUrl, int $limit = 2): array {
+    $channelUrl = rtrim(trim((string) $channelUrl), '/');
+    $host = strtolower((string) parse_url($channelUrl, PHP_URL_HOST));
+    if ($channelUrl === '' || !in_array($host, ['youtube.com', 'www.youtube.com'], true) || !function_exists('curl_init')) return [];
+    $limit = max(1, min($limit, 8));
+    $videosUrl = preg_replace('~/videos$~', '', $channelUrl) . '/videos';
+
+    $cacheDirectory = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'youtube-media';
+    $cacheFile = $cacheDirectory . DIRECTORY_SEPARATOR . sha1($videosUrl) . '.json';
+    $cacheTtl = 60 * 60;
+    if (is_file($cacheFile) && filemtime($cacheFile) >= time() - $cacheTtl) {
+        $cached = json_decode((string) file_get_contents($cacheFile), true);
+        if (is_array($cached)) return array_slice($cached, 0, $limit);
+    }
+
+    $curl = curl_init($videosUrl);
+    curl_setopt_array($curl, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_CONNECTTIMEOUT => 3,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; SITPermataHati/1.0; +' . SITE_URL . ')',
+        CURLOPT_HTTPHEADER => ['Accept-Language: id-ID,id;q=0.9,en;q=0.7'],
+    ]);
+    $html = curl_exec($curl);
+    $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+    curl_close($curl);
+    if (!is_string($html) || $status !== 200) return [];
+
+    preg_match_all('/"videoId":"([A-Za-z0-9_-]{11})"/', $html, $matches);
+    $videoIds = array_values(array_unique($matches[1] ?? []));
+    $videos = [];
+    foreach ($videoIds as $videoId) {
+        $position = strpos($html, '"videoId":"' . $videoId . '"');
+        $fragment = $position === false ? '' : substr($html, $position, 8000);
+        preg_match('/"title":(?:\{"runs":\[\{"text":"|\{"content":")((?:\\\\.|[^"\\\\])*)"/', $fragment, $titleMatch);
+        $title = isset($titleMatch[1]) ? json_decode('"' . $titleMatch[1] . '"') : null;
+        if (!is_string($title) || trim($title) === '') $title = 'Video terbaru SIT Permata Hati';
+        $videos[] = [
+            'id' => $videoId,
+            'title' => trim($title),
+            'url' => 'https://www.youtube.com/watch?v=' . $videoId,
+            'embed_url' => 'https://www.youtube-nocookie.com/embed/' . $videoId . '?autoplay=1&mute=1&loop=1&playlist=' . $videoId . '&playsinline=1&rel=0',
+            'thumbnail' => 'https://i.ytimg.com/vi/' . $videoId . '/hqdefault.jpg',
+        ];
+        if (count($videos) >= 8) break;
+    }
+
+    if (!is_dir($cacheDirectory)) @mkdir($cacheDirectory, 0775, true);
+    if (is_dir($cacheDirectory)) @file_put_contents($cacheFile, json_encode($videos, JSON_UNESCAPED_SLASHES), LOCK_EX);
+    return array_slice($videos, 0, $limit);
 }
 
 // Tambahkan versi berdasarkan waktu perubahan file agar browser tidak memakai

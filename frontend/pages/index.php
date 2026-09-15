@@ -62,11 +62,43 @@ foreach ($home_activities as &$activityItem) $activityItem['image'] = public_med
 unset($activityItem);
 $school_advantages = school_advantages();
 $unitCatalog = school_unit_catalog();
+$instagramAccountNames = [
+    'daycare' => instagram_profile_username(SITE_DAYCARE_INSTAGRAM) ?: '',
+    'tkit' => instagram_profile_username(SITE_TKIT_INSTAGRAM) ?: '',
+    'sdit' => instagram_profile_username(SITE_SDIT_INSTAGRAM) ?: '',
+    'smpit' => instagram_profile_username(SITE_SMPIT_INSTAGRAM) ?: '',
+];
 // Beranda yayasan menampilkan gabungan postingan dari yayasan sendiri (kalau
 // ada) plus semua 4 unit sekolah, supaya "semua institusi kelihatan" di satu
 // tempat, bukan cuma galeri khusus yayasan.
-$instagram_gallery_items = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 ORDER BY FIELD(scope,'yayasan','daycare','tkit','sdit','smpit'), sort_order, id LIMIT 24")->fetchAll();
-$unit_image_map = array_combine(array_keys($unitCatalog), array_column($unitCatalog, 'image'));
+$instagram_gallery_rows = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 AND media_type='embed' AND scope IN ('daycare','tkit','sdit','smpit') ORDER BY FIELD(scope,'daycare','tkit','sdit','smpit'), sort_order, id LIMIT 32")->fetchAll();
+$instagram_gallery_rows = instagram_verified_gallery($instagram_gallery_rows, $instagramAccountNames, 24);
+// Selang-seling per unit agar empat kartu pertama tidak dikuasai satu unit.
+$instagram_gallery_groups = [];
+foreach ($instagram_gallery_rows as $instagramRow) $instagram_gallery_groups[$instagramRow['scope']][] = $instagramRow;
+$instagram_gallery_items = [];
+do {
+    $instagramRowAdded = false;
+    foreach (['yayasan', 'daycare', 'tkit', 'sdit', 'smpit'] as $instagramScope) {
+        if (!empty($instagram_gallery_groups[$instagramScope])) {
+            $instagram_gallery_items[] = array_shift($instagram_gallery_groups[$instagramScope]);
+            $instagramRowAdded = true;
+        }
+    }
+} while ($instagramRowAdded);
+$youtube_gallery_items = [];
+$usedYoutubeIds = [];
+foreach ($unitCatalog as $youtubeUnitSlug => $youtubeUnit) {
+    foreach (youtube_public_videos($youtubeUnit['youtube'], 4) as $youtubeVideo) {
+        if (isset($usedYoutubeIds[$youtubeVideo['id']])) continue;
+        $usedYoutubeIds[$youtubeVideo['id']] = true;
+        $youtubeVideo['scope'] = $youtubeUnitSlug;
+        $youtubeVideo['unit_label'] = $youtubeUnit['subtitle'];
+        $youtubeVideo['channel_url'] = $youtubeUnit['youtube'];
+        $youtube_gallery_items[] = $youtubeVideo;
+        break;
+    }
+}
 $unit_site_links = [
     'daycare' => SITE_URL . '/daycare/',
     'tkit' => SITE_URL . '/tkit/',
@@ -304,42 +336,81 @@ require_once __DIR__ . '/../components/header.php';
 <section class="section section-alt ig-gallery-section">
     <div class="container">
         <div class="section-head">
-            <span class="section-eyebrow">Instagram</span>
+            <span class="section-eyebrow ig-section-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"></circle></svg> Instagram</span>
             <h2>Galeri Instagram</h2>
-            <p>Postingan terbaru dari Instagram yayasan dan keempat unit sekolah.</p>
+            <p>Momen terbaru dari setiap unit sekolah. Video diputar otomatis tanpa suara saat terlihat di layar.</p>
         </div>
-        <div class="ig-gallery-grid">
-            <?php foreach ($instagram_gallery_items as $igItem): ?>
+        <div class="ig-gallery-grid" id="igGalleryGrid">
+            <?php $igVisibleCount = 4; ?>
+            <?php foreach ($instagram_gallery_items as $igIndex => $igItem): ?>
             <?php $igUnitLabel = $igItem['scope'] === 'yayasan' ? 'Yayasan' : ($unitCatalog[$igItem['scope']]['subtitle'] ?? ucfirst($igItem['scope'])); ?>
-            <?php $igEmbedSrc = $igItem['media_type'] === 'embed' ? instagram_embed_url($igItem['instagram_url']) : null; ?>
-            <?php if ($igEmbedSrc): ?>
-            <div class="ig-gallery-card ig-gallery-embed">
-                <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
-                <iframe src="<?php echo esc($igEmbedSrc); ?>" loading="lazy" allowtransparency="true" title="<?php echo esc($igItem['caption'] ?: 'Postingan Instagram'); ?>"></iframe>
-            </div>
-            <?php else: ?>
-            <div class="ig-gallery-card">
+            <?php $igHidden = $igIndex >= $igVisibleCount; ?>
+            <?php $igMedia = $igItem['public_media']; $igIsVideo = !empty($igMedia['video']); $igCaption = ($igMedia['caption'] ?? null) ?: (($igItem['caption'] ?? null) ?: 'Momen terbaru '.$igUnitLabel.' di Instagram.'); ?>
+            <article class="ig-gallery-card ig-native-card" data-ig-card data-ig-state="<?php echo $igIsVideo ? 'video' : 'image'; ?>"<?php echo $igHidden ? ' hidden' : ''; ?>>
+                <header class="ig-card-head">
+                    <span class="ig-card-brand<?php echo !empty($igMedia['profile_image']) ? ' ig-card-avatar' : ''; ?>" aria-hidden="true"><?php if(!empty($igMedia['profile_image'])): ?><img src="<?php echo esc($igMedia['profile_image']); ?>" alt="" loading="lazy"><?php else: ?><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"></circle></svg><?php endif; ?></span>
+                    <span class="ig-card-identity"><strong><?php echo esc($igUnitLabel); ?></strong><small data-ig-username>@<?php echo esc($igMedia['username']); ?></small></span>
+                    <a class="ig-card-open" href="<?php echo esc($igItem['instagram_url']); ?>" target="_blank" rel="noopener" aria-label="Buka postingan <?php echo esc($igUnitLabel); ?> di Instagram">&nearr;</a>
+                </header>
                 <div class="ig-gallery-media">
+                    <img class="ig-media-poster" src="<?php echo esc($igMedia['image']); ?>" alt="<?php echo esc($igCaption); ?>" loading="lazy">
+                    <?php if($igIsVideo): ?><video class="ig-media-video" src="<?php echo esc($igMedia['video']); ?>" poster="<?php echo esc($igMedia['image']); ?>" autoplay muted loop playsinline controls preload="metadata" aria-label="Video Instagram <?php echo esc($igUnitLabel); ?>"></video><?php endif; ?>
+                    <span class="ig-media-shade" aria-hidden="true"></span>
                     <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
-                    <?php if ($igItem['media_type'] === 'video'): ?>
-                    <video src="<?php echo esc($igItem['media_path']); ?>" controls preload="metadata"></video>
-                    <?php else: ?>
-                    <img src="<?php echo esc($igItem['media_path']); ?>" alt="<?php echo esc($igItem['caption'] ?: 'Postingan Instagram'); ?>" loading="lazy">
-                    <?php endif; ?>
+                    <span class="ig-media-kind" data-ig-kind><?php echo $igIsVideo ? 'REEL' : 'POST'; ?></span>
                 </div>
-                <?php if (!empty($igItem['caption']) || !empty($igItem['instagram_url'])): ?>
-                <div class="ig-gallery-foot">
-                    <?php if (!empty($igItem['caption'])): ?><p><?php echo esc($igItem['caption']); ?></p><?php endif; ?>
-                    <?php if (!empty($igItem['instagram_url'])): ?><a href="<?php echo esc($igItem['instagram_url']); ?>" target="_blank" rel="noopener">Lihat di Instagram &rarr;</a><?php endif; ?>
+                <footer class="ig-gallery-foot">
+                    <p><?php echo esc($igCaption); ?></p>
+                    <a href="<?php echo esc($igItem['instagram_url']); ?>" target="_blank" rel="noopener"><span>Lihat di Instagram</span><span aria-hidden="true">&rarr;</span></a>
+                </footer>
+            </article>
+            <?php endforeach; ?>
+        </div>
+        <?php if (count($instagram_gallery_items) > $igVisibleCount): ?>
+        <div style="text-align:center; margin-top:32px;">
+            <button type="button" class="btn btn-outline" id="igGalleryMoreBtn">Tampilkan Lebih Banyak</button>
+        </div>
+        <?php endif; ?>
+    </div>
+</section>
+<?php if (count($instagram_gallery_items) > $igVisibleCount): ?>
+<script>
+document.getElementById('igGalleryMoreBtn').addEventListener('click', function () {
+    document.querySelectorAll('.ig-gallery-grid > [hidden]').forEach(function (card) {
+        card.hidden = false;
+        if (window.observeInstagramCard) window.observeInstagramCard(card);
+    });
+    this.remove();
+});
+</script>
+<?php endif; ?>
+<script src="<?php echo esc(asset_url('frontend/assets/js/instagram-gallery.js')); ?>"></script>
+<?php endif; ?>
+
+<?php if ($youtube_gallery_items): ?>
+<section class="section youtube-gallery-section">
+    <div class="container">
+        <div class="section-head">
+            <span class="eyebrow">VIDEO SEKOLAH</span>
+            <h2>Dari Channel YouTube Resmi</h2>
+            <p>Video pilihan Daycare, TKIT, SDIT, dan SMPIT diputar otomatis tanpa suara saat terlihat di layar.</p>
+        </div>
+        <div class="youtube-gallery-grid">
+            <?php foreach ($youtube_gallery_items as $youtubeItem): ?>
+            <article class="youtube-gallery-card" data-youtube-card>
+                <div class="youtube-gallery-frame" style="background-image:url('<?php echo esc($youtubeItem['thumbnail']); ?>')">
+                    <iframe title="<?php echo esc($youtubeItem['title']); ?>" data-youtube-src="<?php echo esc($youtubeItem['embed_url']); ?>" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                    <span><?php echo esc($youtubeItem['unit_label']); ?> &middot; YOUTUBE</span>
                 </div>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
+                <footer><strong><?php echo esc($youtubeItem['title']); ?></strong><a href="<?php echo esc($youtubeItem['url']); ?>" target="_blank" rel="noopener">Tonton di YouTube &rarr;</a></footer>
+            </article>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
 <?php endif; ?>
+
+<script src="<?php echo esc(asset_url('frontend/assets/js/youtube-gallery.js')); ?>"></script>
 
 <?php require_once __DIR__ . '/../components/footer.php'; ?>
 

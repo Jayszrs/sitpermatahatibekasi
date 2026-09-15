@@ -27,7 +27,7 @@ return [
         'maps' => 'https://www.google.com/maps/place/TKIT+PERMATA+HATI/@-6.2388771,107.0793613,17z',
         'instagram' => 'https://www.instagram.com/daycarepermatahati.bekasi/',
         'facebook' => 'https://www.facebook.com/tkitpermatahatibekasi/posts/day-care-permata-hati-tambun-bekasiday-care-adalah-lembaga-penitipan-anak-yang-d/227697477972901/',
-        'youtube' => 'https://youtube.com/@sitpermatahatibekasi',
+        'youtube' => 'https://www.youtube.com/@sitpermatahatibekasi5399',
     ],
     'hero_image' => 'assets/images/hero.jpeg',
     'building_image' => 'assets/images/building.webp',
