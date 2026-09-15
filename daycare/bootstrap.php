@@ -29,12 +29,21 @@ function unit_portal_url(string $unitSlug, string $path = 'admin/index.php'): st
     $root = preg_replace('~/' . preg_quote(UNIT_SLUG, '~') . '$~', '', UNIT_BASE_URL);
     return rtrim($root, '/') . '/' . $unitSlug . '/' . ltrim($path, '/');
 }
-function unit_asset(string $path): string { return unit_url($path) . '?v=' . rawurlencode((string) (@filemtime(__DIR__ . '/' . ltrim($path, '/')) ?: 1)); }
+function unit_asset(string $path): string {
+    $path = ltrim(str_replace('\\', '/', $path), '/');
+    $optimizedPath = preg_replace('/\.(?:jpe?g|png)$/i', '.optimized.webp', $path);
+    if ($optimizedPath && is_file(__DIR__ . '/' . $optimizedPath)) $path = $optimizedPath;
+    return unit_url($path) . '?v=' . rawurlencode((string) (@filemtime(__DIR__ . '/' . $path) ?: 1));
+}
 function unit_media(?string $path, string $fallback = 'assets/images/hero.jpeg'): string {
     $path = trim((string) $path);
     if ($path === '') $path = $fallback;
     if (preg_match('~^https?://~i', $path)) return $path;
     if (str_starts_with($path, '/')) return $path;
+    $optimizedPath = preg_replace('/\\.(?:jpe?g|png)$/i', '.optimized.webp', $path);
+    if ($optimizedPath && is_file(__DIR__ . '/' . ltrim($optimizedPath, '/'))) {
+        return unit_url($optimizedPath) . '?v=' . rawurlencode((string)filemtime(__DIR__ . '/' . ltrim($optimizedPath, '/')));
+    }
     return unit_url($path);
 }
 
@@ -95,6 +104,23 @@ function unit_seed_defaults(PDO $pdo): void {
 
 function unit_seed_supplemental(PDO $pdo): void {
     global $unit_config;
+    $activityRows = $pdo->prepare("SELECT id,title,summary,body,meta FROM unit_content WHERE unit_slug=? AND content_type='activity'");
+    $activityRows->execute([UNIT_SLUG]);
+    $fillActivity = $pdo->prepare("UPDATE unit_content SET body=?,meta=CASE WHEN meta IS NULL OR TRIM(meta)='' THEN ? ELSE meta END WHERE id=? AND unit_slug=?");
+    foreach ($activityRows as $activityRow) {
+        $existingBody = trim((string)($activityRow['body'] ?? ''));
+        if ($existingBody !== '') {
+            if (str_contains($existingBody, '\n')) {
+                $fillActivity->execute([str_replace('\n', "\n", $existingBody), $unit_config['short_name'], (int)$activityRow['id'], UNIT_SLUG]);
+            }
+            continue;
+        }
+        $summary = trim((string)($activityRow['summary'] ?? ''));
+        $body = $summary
+            . "\n\nKegiatan " . $activityRow['title'] . " merupakan bagian dari pengalaman belajar di " . $unit_config['name'] . ". Peserta didik diajak terlibat aktif, bekerja bersama, dan berani mencoba sesuai tahap perkembangan mereka."
+            . "\n\nGuru mendampingi setiap proses dengan arahan yang aman dan terukur. Hasil kegiatan kemudian direfleksikan agar keterampilan, karakter, dan rasa percaya diri peserta didik terus bertumbuh.";
+        $fillActivity->execute([$body, $unit_config['short_name'], (int)$activityRow['id'], UNIT_SLUG]);
+    }
     $newsCount = (int) $pdo->query("SELECT COUNT(*) FROM unit_content WHERE unit_slug='".UNIT_SLUG."' AND content_type='news'")->fetchColumn();
     if ($newsCount === 0) {
         $news = [

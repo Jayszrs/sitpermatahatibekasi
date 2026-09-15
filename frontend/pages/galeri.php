@@ -27,12 +27,26 @@ foreach ($albums as $album) {
     unset($albumPhoto);
 }
 
-$publications = $pdo->query("SELECT * FROM gallery_photos
-    WHERE unit_slug IN ('daycare','tkit','sdit','smpit')
-      AND instagram_url IS NOT NULL AND instagram_url<>''
-    ORDER BY COALESCE(published_at,DATE(created_at)) DESC, sort_order,id DESC")->fetchAll();
-foreach ($publications as &$publicationItem) $publicationItem['image'] = public_media_url($publicationItem['image'] ?? null);
-unset($publicationItem);
+$instagramAccounts = [
+    'daycare' => instagram_profile_username(SITE_DAYCARE_INSTAGRAM) ?: '',
+    'tkit' => instagram_profile_username(SITE_TKIT_INSTAGRAM) ?: '',
+    'sdit' => instagram_profile_username(SITE_SDIT_INSTAGRAM) ?: '',
+    'smpit' => instagram_profile_username(SITE_SMPIT_INSTAGRAM) ?: '',
+];
+$instagramRows = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 AND media_type='embed' AND scope IN ('daycare','tkit','sdit','smpit') ORDER BY FIELD(scope,'daycare','tkit','sdit','smpit'),sort_order,id LIMIT 32")->fetchAll();
+$verifiedRows = instagram_verified_gallery($instagramRows, $instagramAccounts, 24);
+$instagramGroups = [];
+foreach ($verifiedRows as $row) $instagramGroups[$row['scope']][] = $row;
+$publications = [];
+do {
+    $added = false;
+    foreach (['daycare','tkit','sdit','smpit'] as $scope) {
+        if (!empty($instagramGroups[$scope])) {
+            $publications[] = array_shift($instagramGroups[$scope]);
+            $added = true;
+        }
+    }
+} while ($added);
 $publicationUnits = ['semua'=>'Semua','daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'];
 
 require_once __DIR__ . '/../components/header.php';
@@ -50,17 +64,19 @@ require_once __DIR__ . '/../components/header.php';
         <div class="section-head gallery-publication-head">
             <span class="section-eyebrow">Publikasi Instagram</span>
             <h2>Cerita Terbaru dari Setiap Unit</h2>
-            <p>Pilih jenjang untuk melihat dokumentasi Daycare, TKIT, SDIT, atau SMPIT, lalu buka publikasi aslinya di Instagram.</p>
+            <p>Postingan terbaru dari akun resmi Daycare, TKIT, SDIT, dan SMPIT. Reel berjalan otomatis tanpa suara saat terlihat di layar.</p>
         </div>
         <div class="achievement-tabs gallery-unit-tabs" aria-label="Filter publikasi berdasarkan unit">
             <?php foreach ($publicationUnits as $slug => $label): ?><button type="button" class="achievement-tab<?php echo $slug==='semua'?' active':''; ?>" data-gallery-unit-filter="<?php echo esc($slug); ?>"><?php echo esc($label); ?></button><?php endforeach; ?>
         </div>
-        <div class="gallery-publication-grid">
+        <div class="ig-gallery-grid gallery-instagram-grid">
             <?php foreach ($publications as $publication): ?>
-            <a class="gallery-publication-card" data-gallery-unit="<?php echo esc($publication['unit_slug']); ?>" href="<?php echo esc($publication['instagram_url']); ?>" target="_blank" rel="noopener">
-                <div class="gallery-publication-media"><img src="<?php echo esc($publication['image']); ?>" alt="<?php echo esc($publication['title']); ?>" loading="lazy"><span><?php echo esc(strtoupper($publication['unit_slug'])); ?></span></div>
-                <div class="gallery-publication-copy"><small><?php echo esc(tanggal_indo($publication['published_at'] ?: $publication['created_at'])); ?></small><h3><?php echo esc($publication['title']); ?></h3><p><?php echo esc($publication['description'] ?: 'Lihat dokumentasi kegiatan terbaru unit sekolah.'); ?></p><strong>Buka di Instagram &nearr;</strong></div>
-            </a>
+            <?php $media=$publication['public_media']; $isVideo=!empty($media['video']); $caption=($media['caption']??null)?:($publication['caption']?:'Momen terbaru '.strtoupper($publication['scope']).' di Instagram.'); ?>
+            <article class="ig-gallery-card ig-native-card" data-ig-card data-ig-state="<?php echo $isVideo?'video':'image'; ?>" data-gallery-unit="<?php echo esc($publication['scope']); ?>">
+                <header class="ig-card-head"><span class="ig-card-brand<?php echo !empty($media['profile_image'])?' ig-card-avatar':''; ?>" aria-hidden="true"><?php if(!empty($media['profile_image'])): ?><img src="<?php echo esc($media['profile_image']); ?>" alt="" loading="lazy" decoding="async"><?php else: ?><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"></circle></svg><?php endif; ?></span><span class="ig-card-identity"><strong><?php echo esc($publicationUnits[$publication['scope']]??strtoupper($publication['scope'])); ?></strong><small data-ig-username>@<?php echo esc($media['username']); ?></small></span><a class="ig-card-open" href="<?php echo esc($publication['instagram_url']); ?>" target="_blank" rel="noopener" aria-label="Buka postingan di Instagram">&nearr;</a></header>
+                <div class="ig-gallery-media"><img class="ig-media-poster" src="<?php echo esc($media['image']); ?>" alt="<?php echo esc($caption); ?>" loading="lazy" decoding="async"><?php if($isVideo): ?><video class="ig-media-video" data-ig-video-src="<?php echo esc($media['video']); ?>" poster="<?php echo esc($media['image']); ?>" autoplay muted loop playsinline controls preload="none"></video><?php endif; ?><span class="ig-media-shade" aria-hidden="true"></span><span class="ig-media-kind" data-ig-kind><?php echo $isVideo?'REEL':'POST'; ?></span></div>
+                <footer class="ig-gallery-foot"><p data-ig-caption><?php echo esc($caption); ?></p><a href="<?php echo esc($publication['instagram_url']); ?>" target="_blank" rel="noopener"><span>Lihat postingan</span><span aria-hidden="true">&rarr;</span></a></footer>
+            </article>
             <?php endforeach; ?>
         </div>
 
@@ -95,6 +111,7 @@ require_once __DIR__ . '/../components/header.php';
     </div>
 </section>
 
+<script src="<?php echo esc(asset_url('frontend/assets/js/instagram-gallery.js')); ?>"></script>
 <?php require_once __DIR__ . '/../components/footer.php'; ?>
 
 <script>
@@ -104,7 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
     filterButtons.forEach((button) => button.addEventListener('click', () => {
         const filter = button.dataset.galleryUnitFilter;
         filterButtons.forEach((item) => item.classList.toggle('active', item === button));
-        publicationCards.forEach((card) => card.classList.toggle('is-hidden', filter !== 'semua' && card.dataset.galleryUnit !== filter));
+        publicationCards.forEach((card) => {
+            const shouldHide = filter !== 'semua' && card.dataset.galleryUnit !== filter;
+            card.hidden = shouldHide;
+            card.classList.toggle('is-hidden', shouldHide);
+        });
     }));
 
     document.querySelectorAll('[data-album-carousel]').forEach((carousel) => {

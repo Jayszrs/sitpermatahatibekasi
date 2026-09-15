@@ -80,16 +80,17 @@ function unit_icon(string $name): string { $icons=['spark'=>'✦','heart'=>'♡'
 function unit_cards(array $rows, string $class, string $empty, string $hrefBase = ''): void {
     if (!$rows) { echo '<p class="empty-state">'.unit_e($empty).'</p>'; return; }
     echo '<div class="card-grid '.$class.'">';
+    $ctaLabel = str_contains($class, 'activity') ? 'Lihat detail kegiatan' : 'Baca selengkapnya';
     foreach ($rows as $row) {
         $image = unit_media($row['image'] ?? '');
         $tag = $hrefBase !== '' ? 'a' : 'article';
         $hrefAttr = $hrefBase !== '' ? ' href="'.unit_e($hrefBase.'?id='.(int)$row['id']).'"' : '';
         echo '<'.$tag.' class="content-card"'.$hrefAttr.'>'
-            .($image ? '<div class="card-image"><img src="'.unit_e($image).'" alt="'.unit_e($row['title']).'" loading="lazy"></div>' : '')
+            .($image ? '<div class="card-image"><img src="'.unit_e($image).'" alt="'.unit_e($row['title']).'" loading="lazy" decoding="async"></div>' : '')
             .'<div class="card-copy">'
             .(!empty($row['meta']) ? '<span class="card-meta">'.unit_e($row['meta']).'</span>' : '')
             .'<h2>'.unit_e($row['title']).'</h2><p>'.unit_e($row['summary'] ?? '').'</p>'
-            .($hrefBase !== '' ? '<span class="text-link">Baca selengkapnya &rarr;</span>' : '')
+            .($hrefBase !== '' ? '<span class="text-link">'.unit_e($ctaLabel).' &rarr;</span>' : '')
             .'</div></'.$tag.'>';
     }
     echo '</div>';
@@ -101,15 +102,46 @@ function unit_content_detail(PDO $pdo, string $type, int $id): ?array {
     $stmt->execute([$id, UNIT_SLUG, $type]);
     return $stmt->fetch() ?: null;
 }
-function unit_render_detail(array $item, string $backHref, string $backLabel): void {
+function unit_documentation_photos(PDO $pdo, array $item, int $limit = 6): array {
+    $stmt = $pdo->prepare('SELECT p.* FROM unit_gallery_photos p INNER JOIN unit_gallery_albums a ON a.id=p.album_id WHERE a.unit_slug=? AND a.is_active=1 AND p.image<>? ORDER BY a.sort_order,p.sort_order,p.id DESC LIMIT '.max(1, $limit));
+    $stmt->execute([UNIT_SLUG, (string)($item['image'] ?? '')]);
+    return $stmt->fetchAll();
+}
+function unit_render_detail(array $item, string $backHref, string $backLabel, ?array $documentation = null): void {
     $image = unit_media($item['image'] ?? '');
+    $body = trim((string)($item['body'] ?: $item['summary'] ?? ''));
     echo '<div class="shell detail-content">';
-    echo '<a class="text-link" href="'.unit_e($backHref).'">&larr; '.unit_e($backLabel).'</a>';
+    echo '<a class="text-link detail-back" href="'.unit_e($backHref).'">&larr; '.unit_e($backLabel).'</a>';
+    echo '<article class="detail-article">';
+    echo '<header class="detail-heading">';
     if (!empty($item['meta'])) echo '<span class="eyebrow">'.unit_e($item['meta']).'</span>';
     echo '<h2>'.unit_e($item['title']).'</h2>';
     if (!empty($item['published_at'])) echo '<p class="detail-date">'.unit_e(unit_tanggal($item['published_at'])).'</p>';
-    if ($image) echo '<img class="detail-hero-image" src="'.unit_e($image).'" alt="'.unit_e($item['title']).'">';
-    echo '<div class="detail-body">'.nl2br(unit_e($item['body'] ?: $item['summary'] ?? '')).'</div>';
+    echo '</header>';
+    if ($image) echo '<img class="detail-hero-image" src="'.unit_e($image).'" alt="Dokumentasi '.unit_e($item['title']).'" decoding="async">';
+    echo '<div class="detail-body">';
+    if (!empty($item['summary'])) echo '<p class="detail-lead">'.unit_e($item['summary']).'</p>';
+    if ($body !== '' && $body !== trim((string)($item['summary'] ?? ''))) {
+        foreach (preg_split('/\\R{2,}/', $body) as $paragraph) {
+            $paragraph = trim($paragraph);
+            if ($paragraph !== '' && $paragraph !== trim((string)($item['summary'] ?? ''))) echo '<p>'.nl2br(unit_e($paragraph)).'</p>';
+        }
+    }
+    echo '</div></article>';
+    if ($documentation !== null) {
+        echo '<section class="detail-documentation"><div class="section-head"><span class="eyebrow">DOKUMENTASI</span><h2>Potret Kegiatan</h2><p>Foto kegiatan yang dikelola langsung melalui galeri website '.unit_e($GLOBALS['unit_config']['short_name'] ?? '').'.</p></div>';
+        if ($documentation) {
+            echo '<div class="detail-documentation-grid">';
+            foreach ($documentation as $photo) {
+                $photoUrl = unit_media($photo['image'] ?? '');
+                echo '<button class="detail-documentation-card" type="button" data-lightbox="'.unit_e($photoUrl).'" data-title="'.unit_e($photo['title'] ?: $item['title']).'"><img src="'.unit_e($photoUrl).'" alt="'.unit_e($photo['title'] ?: $item['title']).'" loading="lazy" decoding="async"><span><strong>'.unit_e($photo['title'] ?: 'Dokumentasi kegiatan').'</strong>'.(!empty($photo['description']) ? '<small>'.unit_e($photo['description']).'</small>' : '').'</span></button>';
+            }
+            echo '</div>';
+        } else {
+            echo '<div class="detail-documentation-empty"><strong>Dokumentasi tambahan sedang disiapkan</strong><p>Foto utama di atas merupakan dokumentasi kegiatan. Admin dapat menambah foto lain melalui menu Galeri.</p></div>';
+        }
+        echo '</section>';
+    }
     echo '</div>';
 }
 function unit_page_banner(string $eyebrow, string $title, string $text): void { echo '<section class="page-banner"><div class="shell"><span class="eyebrow">'.unit_e($eyebrow).'</span><h1>'.unit_e($title).'</h1><p>'.unit_e($text).'</p></div></section>'; }
@@ -150,19 +182,25 @@ if ($page === 'home') {
 <?php $igMedia = $socialItem['public_media']; $igIsVideo = !empty($igMedia['video']); $igCaption = ($igMedia['caption'] ?? null) ?: (($socialItem['caption'] ?? null) ?: 'Momen terbaru '.$unit_config['short_name'].' di Instagram.'); ?>
 <article class="ig-gallery-card ig-native-card" data-ig-card data-ig-state="<?php echo $igIsVideo ? 'video' : 'image'; ?>">
 <header class="ig-card-head"><span class="ig-card-brand<?php echo !empty($igMedia['profile_image']) ? ' ig-card-avatar' : ''; ?>" aria-hidden="true"><?php if(!empty($igMedia['profile_image'])): ?><img src="<?php echo unit_e($igMedia['profile_image']); ?>" alt="" loading="lazy"><?php else: ?><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"/></svg><?php endif; ?></span><span class="ig-card-identity"><strong><?php echo unit_e($unit_config['short_name']); ?></strong><small data-ig-username>@<?php echo unit_e($igMedia['username']); ?></small></span><a class="ig-card-open" href="<?php echo unit_e($socialItem['instagram_url']); ?>" target="_blank" rel="noopener" aria-label="Buka postingan di Instagram">&nearr;</a></header>
-<div class="ig-gallery-media"><img class="ig-media-poster" src="<?php echo unit_e($igMedia['image']); ?>" alt="<?php echo unit_e($igCaption); ?>" loading="lazy"><?php if($igIsVideo): ?><video class="ig-media-video" src="<?php echo unit_e($igMedia['video']); ?>" poster="<?php echo unit_e($igMedia['image']); ?>" autoplay muted loop playsinline controls preload="metadata"></video><?php endif; ?><span class="ig-media-shade" aria-hidden="true"></span><span class="ig-media-kind" data-ig-kind><?php echo $igIsVideo ? 'REEL' : 'POST'; ?></span></div>
+<div class="ig-gallery-media"><img class="ig-media-poster" src="<?php echo unit_e($igMedia['image']); ?>" alt="<?php echo unit_e($igCaption); ?>" loading="lazy" decoding="async"><?php if($igIsVideo): ?><video class="ig-media-video" data-ig-video-src="<?php echo unit_e($igMedia['video']); ?>" poster="<?php echo unit_e($igMedia['image']); ?>" autoplay muted loop playsinline controls preload="none"></video><?php endif; ?><span class="ig-media-shade" aria-hidden="true"></span><span class="ig-media-kind" data-ig-kind><?php echo $igIsVideo ? 'REEL' : 'POST'; ?></span></div>
 <footer class="ig-gallery-foot"><p data-ig-caption><?php echo unit_e($igCaption); ?></p><a href="<?php echo unit_e($socialItem['instagram_url']); ?>" target="_blank" rel="noopener"><span>Lihat postingan</span><span aria-hidden="true">&rarr;</span></a></footer>
 </article><?php endforeach; ?></div><div class="ig-gallery-cta"><a class="button button-primary" href="<?php echo unit_e($settings['instagram']); ?>" target="_blank" rel="noopener">Ikuti Instagram Kami</a></div></div></section>
 <?php endif; ?>
-<?php if ($youtubeItems): ?><section class="section unit-youtube-section"><div class="shell"><div class="section-head line-head"><div><span class="eyebrow">VIDEO SEKOLAH</span><h2>YouTube <?php echo unit_e($unit_config['short_name']); ?></h2><p>Video dari channel resmi diputar otomatis tanpa suara saat masuk layar.</p></div><a class="text-link" href="<?php echo unit_e($settings['youtube']); ?>" target="_blank" rel="noopener">Buka channel</a></div><div class="youtube-gallery-grid"><?php foreach($youtubeItems as $youtubeItem): ?><article class="youtube-gallery-card" data-youtube-card><div class="youtube-gallery-frame" style="background-image:url('<?php echo unit_e($youtubeItem['thumbnail']); ?>')"><iframe title="<?php echo unit_e($youtubeItem['title']); ?>" data-youtube-src="<?php echo unit_e($youtubeItem['embed_url']); ?>" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><span>YOUTUBE</span></div><footer><strong><?php echo unit_e($youtubeItem['title']); ?></strong><a href="<?php echo unit_e($youtubeItem['url']); ?>" target="_blank" rel="noopener">Tonton di YouTube &rarr;</a></footer></article><?php endforeach; ?></div></div></section><?php endif; ?>
+<?php if ($youtubeItems): ?><section class="section unit-youtube-section"><div class="shell"><div class="section-head line-head"><div><span class="eyebrow">VIDEO SEKOLAH</span><h2>YouTube <?php echo unit_e($unit_config['short_name']); ?></h2><p>Tekan tombol putar untuk menonton video channel resmi tanpa meninggalkan website.</p></div><a class="text-link" href="<?php echo unit_e($settings['youtube']); ?>" target="_blank" rel="noopener">Buka channel</a></div><div class="youtube-gallery-grid"><?php foreach($youtubeItems as $youtubeItem): ?><article class="youtube-gallery-card" data-youtube-card><div class="youtube-gallery-frame" style="background-image:url('<?php echo unit_e($youtubeItem['thumbnail']); ?>')"><iframe title="<?php echo unit_e($youtubeItem['title']); ?>" data-youtube-src="<?php echo unit_e($youtubeItem['embed_url']); ?>" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><button class="youtube-gallery-play" type="button" data-youtube-play aria-label="Putar <?php echo unit_e($youtubeItem['title']); ?>"><span aria-hidden="true"></span></button><span>YOUTUBE</span></div><footer><strong><?php echo unit_e($youtubeItem['title']); ?></strong><a href="<?php echo unit_e($youtubeItem['url']); ?>" target="_blank" rel="noopener">Tonton di YouTube &rarr;</a></footer></article><?php endforeach; ?></div></div></section><?php endif; ?>
 <?php unit_page_end(); return; }
 
 $pageInfo=['profile'=>['PROFIL UNIT','Mengenal '.$settings['name'],'Komitmen pendidikan dan pengasuhan yang berpihak pada tumbuh kembang siswa.'],'programs'=>['PROGRAM','Program belajar yang bermakna','Rangkaian pembelajaran yang dirancang sesuai usia dan kebutuhan anak.'],'activities'=>['KEGIATAN','Belajar melalui pengalaman','Aktivitas yang memberi ruang bagi anak untuk aktif, berani, dan bahagia.'],'news'=>['BERITA','Kabar terbaru unit','Informasi kegiatan dan cerita terbaru dari lingkungan sekolah.'],'achievements'=>['PRESTASI','Apresiasi untuk setiap proses','Pencapaian siswa yang tumbuh dari usaha, dukungan, dan doa.'],'brochures'=>['BROSUR','Informasi pendaftaran','Unduh informasi layanan dan program '.$settings['name'].'.'],'gallery'=>['GALERI','Potret kegiatan sekolah','Kumpulan momen belajar, bermain, dan bertumbuh bersama.'],'spmb'=>['SPMB','Pendaftaran siswa baru','Lengkapi formulir pendaftaran resmi. Tim admin akan menghubungi Anda melalui WhatsApp.'],'karir'=>['KARIR','Bergabung bersama kami','Lihat lowongan yang tersedia di seluruh unit SIT Permata Hati Bekasi.'],'contact'=>['KONTAK','Mari terhubung dengan kami','Tim kami siap menjawab pertanyaan Anda.']];
 [$eyebrow,$title,$text]=$pageInfo[$page]??$pageInfo['profile']; unit_page_start($title,$page); unit_page_banner($eyebrow,$title,$text);
+if ($page === 'gallery' || $page === 'spmb') {
+    require_once __DIR__ . '/../backend/helpers/unit_shared.php';
+    if ($page === 'gallery') unit_render_gallery_page($pdo, $settings);
+    else unit_render_spmb_page($settings, $unit_config, $spmbOld, $spmbSuccess, $formError, $lockedLevel);
+    $page = '__rendered';
+}
 if($page==='profile'): ?>
 <section class="section"><div class="shell story-grid"><img src="<?php echo unit_e(unit_media($unit_config['building_image'])); ?>" alt="Gedung <?php echo unit_e($settings['name']); ?>"><div><span class="eyebrow">TENTANG KAMI</span><h2><?php echo unit_e($settings['name']); ?></h2><p><?php echo unit_e($settings['description']); ?></p><p>Kami percaya setiap anak perlu didampingi dengan perhatian, keteladanan, dan kesempatan untuk menemukan potensinya.</p><a class="button button-primary" href="contact.php">Hubungi Kami</a></div></div></section>
 <?php elseif($page==='programs'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'program',$id):null; ?><section class="section"><div class="shell"><?php if($detailItem): unit_render_detail($detailItem,'programs.php','Kembali ke semua program'); else: unit_cards(unit_content($pdo,'program'),'program-grid','Program akan segera hadir.','programs.php'); endif; ?></div></section>
-<?php elseif($page==='activities'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'activity',$id):null; ?><section class="section"><div class="shell"><?php if($detailItem): unit_render_detail($detailItem,'activities.php','Kembali ke semua kegiatan'); else: unit_cards(unit_content($pdo,'activity'),'activity-grid','Kegiatan akan segera hadir.','activities.php'); endif; ?></div></section>
+<?php elseif($page==='activities'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'activity',$id):null; ?><section class="section activity-detail-section"><?php if($detailItem): unit_render_detail($detailItem,'activities.php','Kembali ke semua kegiatan',unit_documentation_photos($pdo,$detailItem)); else: ?><div class="shell"><?php unit_cards(unit_content($pdo,'activity'),'activity-grid','Kegiatan akan segera hadir.','activities.php'); ?></div><?php endif; ?></section>
 <?php elseif($page==='news'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'news',$id):null; ?><section class="section"><div class="shell"><?php if($detailItem): unit_render_detail($detailItem,'news.php','Kembali ke semua berita'); else: unit_cards(unit_content($pdo,'news'),'news-grid','Belum ada berita terbaru.','news.php'); endif; ?></div></section>
 <?php elseif($page==='achievements'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'achievement',$id):null; ?><section class="section"><div class="shell"><?php if($detailItem): unit_render_detail($detailItem,'achievements.php','Kembali ke semua prestasi'); else: unit_cards(unit_content($pdo,'achievement'),'achievement-grid','Prestasi akan segera ditampilkan.','achievements.php'); endif; ?></div></section>
 <?php elseif($page==='brochures'): ?><section class="section"><div class="shell brochure-list"><?php foreach(unit_content($pdo,'brochure') as $item): ?><article class="brochure-row"><div><span class="eyebrow">INFORMASI UNIT</span><h2><?php echo unit_e($item['title']); ?></h2><p><?php echo unit_e($item['summary']); ?></p></div><a class="button button-primary" href="<?php echo unit_e(unit_media($item['image'])); ?>" target="_blank" rel="noopener">Unduh Brosur</a></article><?php endforeach; ?></div></section>
@@ -293,4 +331,4 @@ if($page==='profile'): ?>
 </div></section>
 <?php endif; ?>
 <?php elseif($page==='contact'): ?><section class="section"><div class="shell contact-grid"><div><span class="eyebrow">KONTAK ADMINISTRASI</span><h2><?php echo unit_e($settings['name']); ?></h2><dl><dt>Alamat</dt><dd><?php echo nl2br(unit_e($settings['address'])); ?></dd><dt>Telepon</dt><dd><a href="tel:<?php echo unit_e(preg_replace('/[^0-9+]/','',$settings['phone'])); ?>"><?php echo unit_e($settings['phone']); ?></a></dd><dt>Email</dt><dd><a href="mailto:<?php echo unit_e($settings['email']); ?>"><?php echo unit_e($settings['email']); ?></a></dd></dl><div class="social-links"><a href="<?php echo unit_e($settings['instagram']); ?>" target="_blank" rel="noopener">Instagram</a><a href="<?php echo unit_e($settings['youtube']); ?>" target="_blank" rel="noopener">YouTube</a></div></div><div class="map-card"><iframe title="Peta <?php echo unit_e($settings['name']); ?>" src="https://www.google.com/maps?q=<?php echo rawurlencode($settings['address']); ?>&output=embed" loading="lazy"></iframe><a class="button button-primary" href="<?php echo unit_e($settings['maps']); ?>" target="_blank" rel="noopener">Buka Petunjuk Arah</a></div></div></section>
-<?php endif; ?><div class="lightbox" data-lightbox-dialog hidden><button type="button" class="lightbox-close" data-lightbox-close aria-label="Tutup">×</button><button type="button" class="lightbox-nav prev" data-lightbox-prev aria-label="Foto sebelumnya">&#8249;</button><img src="" alt=""><button type="button" class="lightbox-nav next" data-lightbox-next aria-label="Foto berikutnya">&#8250;</button><p data-lightbox-title></p></div><?php unit_page_end();
+<?php endif; ?><div class="lightbox" data-lightbox-dialog hidden><button type="button" class="lightbox-close" data-lightbox-close aria-label="Tutup">×</button><button type="button" class="lightbox-nav prev" data-lightbox-prev aria-label="Foto sebelumnya">&#8249;</button><img alt=""><button type="button" class="lightbox-nav next" data-lightbox-next aria-label="Foto berikutnya">&#8250;</button><p data-lightbox-title></p></div><?php unit_page_end();

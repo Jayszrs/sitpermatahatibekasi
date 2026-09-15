@@ -5,7 +5,14 @@
   if (!cards.length) return;
 
   function play(video) {
-    if (!video || !video.src) return;
+    if (!video) return;
+    if (!video.getAttribute('src')) {
+      var source = video.dataset.igVideoSrc;
+      if (!source) return;
+      video.src = source;
+      video.preload = 'metadata';
+      video.load();
+    }
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
@@ -37,7 +44,7 @@
 
         if (media.video && video) {
           video.poster = media.image;
-          video.src = media.video;
+          video.dataset.igVideoSrc = media.video;
           video.hidden = false;
           kind.textContent = 'REEL';
           card.dataset.igState = 'video';

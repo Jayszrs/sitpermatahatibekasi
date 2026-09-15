@@ -24,7 +24,7 @@ $advantageImages = [
     'fasilitas-lengkap' => SITE_URL.'/frontend/assets/images/gallery/kegiatan-sekolah/kegiatan-03.jpeg',
     'pengembangan-karakter' => SITE_URL.'/frontend/assets/images/brochures/smpit-promo.png',
 ];
-$advantageImage=$advantageImages[$slug];
+$advantageImage=public_media_url($advantageImages[$slug]);
 $page_title = $advantage['title'];
 $meta_description = $advantage['intro'];
 $meta_image = $advantageImage;

@@ -386,6 +386,15 @@ function ensure_public_schema(PDO $pdo): void
         ] as $column => $sql) {
             if (!$columnExists('site_content_items', $column)) $pdo->exec($sql);
         }
+        $activityArticles = [
+            'Taman Main Sensorik' => "Taman Main Sensorik memberi kesempatan kepada anak untuk belajar melalui sentuhan, gerak, warna, dan bentuk. Anak mengeksplorasi balok serta lingkungan taman dengan pendampingan guru dalam suasana yang aman dan hangat.\n\nMelalui kegiatan ini, kemampuan motorik halus, komunikasi, keberanian mencoba, dan kerja sama tumbuh secara alami. Guru mengamati respons setiap anak agar stimulasi tetap sesuai tahap perkembangannya.",
+            'Eksplorasi Ceria' => "Eksplorasi Ceria dirancang sebagai pengalaman bermain aktif yang menggabungkan gerak, pengamatan, dan kreativitas. Anak mencoba permainan gelembung serta aktivitas motorik halus bersama teman-temannya.\n\nKegiatan ini membantu anak membangun rasa ingin tahu, koordinasi tubuh, kemampuan mengikuti arahan, dan kepercayaan diri. Setiap proses didampingi guru dengan pendekatan yang menyenangkan dan menghargai ritme belajar anak.",
+            'Kreasi Seni Angklung' => "Kreasi Seni Angklung mengajak siswa mengenal kekayaan budaya Indonesia melalui pengalaman memainkan alat musik secara langsung. Siswa belajar mengikuti irama, membaca aba-aba, serta menyatukan bunyi menjadi satu pertunjukan yang harmonis.\n\nSelain keterampilan seni, kegiatan ini memperkuat konsentrasi, disiplin, kerja sama, dan keberanian tampil. Proses latihan dibuat bertahap agar setiap siswa dapat berkontribusi dan merasakan kebanggaan terhadap hasil bersama.",
+            'Riset Kebun Sekolah' => "Riset Kebun Sekolah membawa proses belajar ke lingkungan nyata. Siswa mengamati tanaman, mencatat perubahan, mengajukan pertanyaan, dan mendiskusikan hubungan antara perawatan tanaman dengan kondisi lingkungan.\n\nKegiatan ini melatih cara berpikir ilmiah, ketelitian, kepedulian terhadap alam, serta kemampuan menyampaikan hasil pengamatan. Guru mendampingi siswa untuk menghubungkan temuan di kebun dengan materi pembelajaran di kelas.",
+        ];
+        $fillActivityArticle = $pdo->prepare("UPDATE site_content_items SET extra=? WHERE type='activity' AND title=? AND (extra IS NULL OR TRIM(extra)='')");
+        foreach ($activityArticles as $activityTitle => $activityArticle) $fillActivityArticle->execute([$activityArticle, $activityTitle]);
+        $recordMigration('20260915-activity-articles', 'Isi artikel lengkap untuk kegiatan unggulan empat unit');
         $recordMigration('20260902-unit-contacts', 'Kontak WhatsApp dan media sosial berbeda untuk setiap unit sekolah');
         $recordMigration('20260828-content-links', 'Tautan publikasi untuk program, prestasi, dan kegiatan');
         $foundationCount = $pdo->prepare("SELECT COUNT(*) FROM site_content_items WHERE type='foundation'");

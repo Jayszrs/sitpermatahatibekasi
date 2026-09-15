@@ -54,7 +54,16 @@ $home_units = fetch_school_units($pdo);
 $home_programs = $pdo->query("SELECT * FROM site_content_items WHERE type='program' AND is_active=1 ORDER BY sort_order,id LIMIT 8")->fetchAll();
 $home_achievements = $pdo->query("SELECT * FROM site_content_items WHERE type='achievement' AND is_active=1 ORDER BY sort_order,id LIMIT 6")->fetchAll();
 $home_profile = $pdo->query('SELECT * FROM site_profile WHERE id=1')->fetch();
-$home_activities = $pdo->query("SELECT * FROM site_content_items WHERE type='activity' AND is_active=1 ORDER BY sort_order,id LIMIT 4")->fetchAll();
+$home_activities = $pdo->query("SELECT item.*
+    FROM site_content_items item
+    INNER JOIN (
+        SELECT MIN(id) AS id
+        FROM site_content_items
+        WHERE type='activity' AND is_active=1
+        GROUP BY LOWER(TRIM(COALESCE(NULLIF(unit_slug,''),subtitle,'')))
+    ) featured ON featured.id=item.id
+    ORDER BY item.sort_order,item.id
+    LIMIT 4")->fetchAll();
 foreach ($home_achievements as &$achievementItem) $achievementItem['image'] = public_media_url($achievementItem['image'] ?? null);
 unset($achievementItem);
 if ($home_profile) $home_profile['image'] = public_media_url($home_profile['image'] ?? null, SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg');
@@ -173,16 +182,16 @@ require_once __DIR__ . '/../components/header.php';
 <!-- INFORMASI TERBARU LANGSUNG SETELAH ONBOARDING -->
 <section class="section home-pulse-section" id="informasi-terbaru">
     <div class="container home-pulse-grid">
-        <div><div class="pulse-heading"><div><span class="section-eyebrow">Berita Terbaru</span><h2>Kabar dari Sekolah</h2></div><a href="berita.php">Semua berita &rarr;</a></div><div class="pulse-news-list"><?php foreach($latest_news as $news): ?><a href="detail-berita.php?slug=<?php echo urlencode($news['slug']); ?>" class="pulse-news-card"><img src="<?php echo esc($news['image']); ?>" alt="<?php echo esc($news['title']); ?>"><div><span><?php echo esc(($news['unit'] ?? 'SDIT').' · '.tanggal_indo($news['published_at'])); ?></span><h3><?php echo esc($news['title']); ?></h3><p><?php echo esc(mb_strimwidth($news['excerpt'],0,88,'...')); ?></p></div></a><?php endforeach; ?></div></div>
-        <div><div class="pulse-heading"><div><span class="section-eyebrow">Prestasi</span><h2>Siswa Membanggakan</h2></div><a href="prestasi.php">Semua prestasi &rarr;</a></div><div class="pulse-achievement-list"><?php foreach(array_slice($home_achievements,0,3) as $achievement): ?><a href="detail-prestasi.php?id=<?php echo (int)$achievement['id']; ?>" class="pulse-achievement-card"><img src="<?php echo esc($achievement['image'] ?: SITE_URL.'/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" alt="<?php echo esc($achievement['title']); ?>"><div><span><?php echo esc(($achievement['extra']?:'Sekolah').' · '.($achievement['year']?:date('Y'))); ?></span><h3><?php echo esc($achievement['title']); ?></h3><strong>Lihat cerita prestasi &rarr;</strong></div></a><?php endforeach; ?></div></div>
+        <div><div class="pulse-heading"><div><span class="section-eyebrow">Berita Terbaru</span><h2>Kabar dari Sekolah</h2></div><a href="berita.php">Semua berita &rarr;</a></div><div class="pulse-news-list"><?php foreach($latest_news as $news): ?><a href="detail-berita.php?slug=<?php echo urlencode($news['slug']); ?>" class="pulse-news-card"><img src="<?php echo esc($news['image']); ?>" alt="<?php echo esc($news['title']); ?>" loading="lazy" decoding="async"><div><span><?php echo esc(($news['unit'] ?? 'SDIT').' · '.tanggal_indo($news['published_at'])); ?></span><h3><?php echo esc($news['title']); ?></h3><p><?php echo esc(mb_strimwidth($news['excerpt'],0,88,'...')); ?></p></div></a><?php endforeach; ?></div></div>
+        <div><div class="pulse-heading"><div><span class="section-eyebrow">Prestasi</span><h2>Siswa Membanggakan</h2></div><a href="prestasi.php">Semua prestasi &rarr;</a></div><div class="pulse-achievement-list"><?php foreach(array_slice($home_achievements,0,3) as $achievement): ?><a href="detail-prestasi.php?id=<?php echo (int)$achievement['id']; ?>" class="pulse-achievement-card"><img src="<?php echo esc($achievement['image'] ?: SITE_URL.'/frontend/assets/images/school/gedung-sekolah.optimized.webp'); ?>" alt="<?php echo esc($achievement['title']); ?>" loading="lazy" decoding="async"><div><span><?php echo esc(($achievement['extra']?:'Sekolah').' · '.($achievement['year']?:date('Y'))); ?></span><h3><?php echo esc($achievement['title']); ?></h3><strong>Lihat cerita prestasi &rarr;</strong></div></a><?php endforeach; ?></div></div>
     </div>
 </section>
 
 <!-- TENTANG SEKOLAH -->
 <section class="section">
     <div class="container about-grid">
-        <button type="button" class="about-photo-card image-preview-trigger" data-lightbox-src="<?php echo esc($home_profile['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-lightbox-title="Gedung SIT Permata Hati Bekasi">
-            <img src="<?php echo esc($home_profile['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" alt="Gedung <?php echo esc(SITE_NAME); ?>">
+        <button type="button" class="about-photo-card image-preview-trigger" data-lightbox-src="<?php echo esc($home_profile['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.optimized.webp'); ?>" data-lightbox-title="Gedung SIT Permata Hati Bekasi">
+            <img src="<?php echo esc($home_profile['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.optimized.webp'); ?>" alt="Gedung <?php echo esc(SITE_NAME); ?>" loading="lazy" decoding="async">
             <div class="about-photo-badge">
                 <strong>SIT Permata Hati</strong>
                 <span>Bekasi</span>
@@ -206,7 +215,7 @@ require_once __DIR__ . '/../components/header.php';
             <p>Menyediakan jenjang pendidikan berkelanjutan dari usia dini hingga menengah atas.</p>
         </div>
         <div class="grid-4 unit-home-grid">
-            <?php foreach($home_units as $index => $unit): ?><?php $unit_key = strtolower($unit['slug'] ?: $unit['subtitle'] ?: 'unit-'.$unit['id']); $unit_link = $unit_site_links[$unit_key] ?? ('unit.php#' . $unit_key); ?><div class="card unit-card"><div class="unit-card-photo"><img src="<?php echo esc($unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg')); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>"><span><?php echo $unit_icons[$index % count($unit_icons)]; ?><?php echo esc($unit['subtitle'] ?: $unit['title']); ?></span></div><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><div class="unit-card-actions"><a href="unit.php#<?php echo esc($unit_key); ?>" class="btn btn-outline btn-sm">Lihat Detail</a><a href="<?php echo esc($unit_link); ?>" class="btn btn-primary btn-sm">Kunjungi Website Unit</a></div></div></div><?php endforeach; ?>
+            <?php foreach($home_units as $index => $unit): ?><?php $unit_key = strtolower($unit['slug'] ?: $unit['subtitle'] ?: 'unit-'.$unit['id']); $unit_link = $unit_site_links[$unit_key] ?? ('unit.php#' . $unit_key); ?><div class="card unit-card"><div class="unit-card-photo"><img src="<?php echo esc($unit['image'] ?: ($unit_image_map[$unit_key] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.optimized.webp')); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.optimized.webp" alt="<?php echo esc($unit['title']); ?>" loading="lazy" decoding="async"><span><?php echo $unit_icons[$index % count($unit_icons)]; ?><?php echo esc($unit['subtitle'] ?: $unit['title']); ?></span></div><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,145,'...')); ?></p><div class="unit-card-actions"><a href="unit.php#<?php echo esc($unit_key); ?>" class="btn btn-outline btn-sm">Lihat Detail</a><a href="<?php echo esc($unit_link); ?>" class="btn btn-primary btn-sm">Kunjungi Website Unit</a></div></div></div><?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -264,13 +273,13 @@ require_once __DIR__ . '/../components/header.php';
             <?php foreach($home_activities as $index => $activity): ?>
             <div class="card activity-card">
                 <div class="activity-photo">
-                    <img src="<?php echo esc($activity['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($activity['title']); ?>" loading="lazy">
+                    <img src="<?php echo esc($activity['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.optimized.webp'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.optimized.webp" alt="<?php echo esc($activity['title']); ?>" loading="lazy" decoding="async">
                     <?php if($activity['subtitle']): ?><span><?php echo esc($activity['subtitle']); ?></span><?php endif; ?>
                 </div>
                 <div class="card-body">
                     <h3><?php echo esc($activity['title']); ?></h3>
                     <p><?php echo esc(mb_strimwidth($activity['description'],0,115,'...')); ?></p>
-                    <?php if($activity['link_url']): ?><a class="program-link" href="<?php echo esc($activity['link_url']); ?>" target="_blank" rel="noopener"><?php echo esc($activity['link_label'] ?: 'Lihat di media sosial'); ?> &rarr;</a><?php endif; ?>
+                    <a class="program-link" href="<?php echo esc(SITE_URL . '/kegiatan-detail.php?id=' . (int)$activity['id']); ?>">Lihat detail kegiatan &rarr;</a>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -295,7 +304,7 @@ require_once __DIR__ . '/../components/header.php';
                 <div class="album-carousel" data-album-carousel>
                     <?php if ($slides): ?>
                         <?php foreach ($slides as $index => $slide): ?>
-                        <img class="album-slide<?php echo $index === 0 ? ' active' : ''; ?>" src="<?php echo esc($slide['image']); ?>" alt="<?php echo esc($slide['title']); ?>" loading="lazy">
+                        <img class="album-slide<?php echo $index === 0 ? ' active' : ''; ?>" src="<?php echo esc($slide['image']); ?>" alt="<?php echo esc($slide['title']); ?>" loading="lazy" decoding="async">
                         <?php endforeach; ?>
                     <?php else: ?>
                         <div class="album-empty-cover">Belum ada foto</div>
@@ -353,8 +362,8 @@ require_once __DIR__ . '/../components/header.php';
                     <a class="ig-card-open" href="<?php echo esc($igItem['instagram_url']); ?>" target="_blank" rel="noopener" aria-label="Buka postingan <?php echo esc($igUnitLabel); ?> di Instagram">&nearr;</a>
                 </header>
                 <div class="ig-gallery-media">
-                    <img class="ig-media-poster" src="<?php echo esc($igMedia['image']); ?>" alt="<?php echo esc($igCaption); ?>" loading="lazy">
-                    <?php if($igIsVideo): ?><video class="ig-media-video" src="<?php echo esc($igMedia['video']); ?>" poster="<?php echo esc($igMedia['image']); ?>" autoplay muted loop playsinline controls preload="metadata" aria-label="Video Instagram <?php echo esc($igUnitLabel); ?>"></video><?php endif; ?>
+                    <img class="ig-media-poster" src="<?php echo esc($igMedia['image']); ?>" alt="<?php echo esc($igCaption); ?>" loading="lazy" decoding="async">
+                    <?php if($igIsVideo): ?><video class="ig-media-video" data-ig-video-src="<?php echo esc($igMedia['video']); ?>" poster="<?php echo esc($igMedia['image']); ?>" autoplay muted loop playsinline controls preload="none" aria-label="Video Instagram <?php echo esc($igUnitLabel); ?>"></video><?php endif; ?>
                     <span class="ig-media-shade" aria-hidden="true"></span>
                     <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
                     <span class="ig-media-kind" data-ig-kind><?php echo $igIsVideo ? 'REEL' : 'POST'; ?></span>
@@ -393,13 +402,14 @@ document.getElementById('igGalleryMoreBtn').addEventListener('click', function (
         <div class="section-head">
             <span class="eyebrow">VIDEO SEKOLAH</span>
             <h2>Dari Channel YouTube Resmi</h2>
-            <p>Video pilihan Daycare, TKIT, SDIT, dan SMPIT diputar otomatis tanpa suara saat terlihat di layar.</p>
+            <p>Video pilihan Daycare, TKIT, SDIT, dan SMPIT. Tekan tombol putar untuk menonton tanpa meninggalkan website.</p>
         </div>
         <div class="youtube-gallery-grid">
             <?php foreach ($youtube_gallery_items as $youtubeItem): ?>
             <article class="youtube-gallery-card" data-youtube-card>
                 <div class="youtube-gallery-frame" style="background-image:url('<?php echo esc($youtubeItem['thumbnail']); ?>')">
                     <iframe title="<?php echo esc($youtubeItem['title']); ?>" data-youtube-src="<?php echo esc($youtubeItem['embed_url']); ?>" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                    <button class="youtube-gallery-play" type="button" data-youtube-play aria-label="Putar <?php echo esc($youtubeItem['title']); ?>"><span aria-hidden="true"></span></button>
                     <span><?php echo esc($youtubeItem['unit_label']); ?> &middot; YOUTUBE</span>
                 </div>
                 <footer><strong><?php echo esc($youtubeItem['title']); ?></strong><a href="<?php echo esc($youtubeItem['url']); ?>" target="_blank" rel="noopener">Tonton di YouTube &rarr;</a></footer>

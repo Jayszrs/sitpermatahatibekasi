@@ -276,6 +276,14 @@ function youtube_public_videos(?string $channelUrl, int $limit = 2): array {
 function asset_url(string $relativePath): string {
     $relativePath = ltrim(str_replace('\\', '/', $relativePath), '/');
     $absolutePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    $optimizedRelative = preg_replace('/\.(?:jpe?g|png)$/i', '.optimized.webp', $relativePath);
+    $optimizedAbsolute = $optimizedRelative
+        ? dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $optimizedRelative)
+        : '';
+    if ($optimizedAbsolute !== '' && is_file($optimizedAbsolute)) {
+        $relativePath = $optimizedRelative;
+        $absolutePath = $optimizedAbsolute;
+    }
     $version = is_file($absolutePath) ? (string) filemtime($absolutePath) : '1';
     return SITE_URL . '/' . $relativePath . '?v=' . rawurlencode($version);
 }
@@ -289,7 +297,10 @@ function asset_url(string $relativePath): string {
 function public_media_url(?string $url, ?string $fallback = null): string {
     $fallback ??= SITE_URL . '/frontend/assets/images/school/hero-school.png';
     $value = trim((string) $url);
-    if ($value === '') return $fallback;
+    if ($value === '') {
+        $value = $fallback;
+        $fallback = SITE_URL . '/frontend/assets/images/school/hero-school.optimized.webp';
+    }
 
     $normalized = str_replace('\\', '/', $value);
     if (str_starts_with($normalized, '/') && str_contains($normalized, '/media/')) return $normalized;
@@ -299,6 +310,11 @@ function public_media_url(?string $url, ?string $fallback = null): string {
         $assetPath = substr($normalized, $markerPosition);
         $pathOnly = (string) (parse_url($assetPath, PHP_URL_PATH) ?: $assetPath);
         $absolutePath = dirname(__DIR__, 2) . str_replace('/', DIRECTORY_SEPARATOR, $pathOnly);
+        $optimizedPath = preg_replace('/\\.(?:jpe?g|png)$/i', '.optimized.webp', $pathOnly);
+        $optimizedAbsolute = $optimizedPath ? dirname(__DIR__, 2) . str_replace('/', DIRECTORY_SEPARATOR, $optimizedPath) : '';
+        if ($optimizedAbsolute !== '' && is_file($optimizedAbsolute)) {
+            return SITE_URL . $optimizedPath . '?v=' . rawurlencode((string)filemtime($optimizedAbsolute));
+        }
         return is_file($absolutePath) ? SITE_URL . $assetPath : $fallback;
     }
 

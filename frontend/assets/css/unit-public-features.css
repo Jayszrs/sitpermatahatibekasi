@@ -1,0 +1,58 @@
+/* Shared gallery and SPMB presentation for Daycare, TKIT, SDIT, and SMPIT. */
+.unit-gallery-social .section-head,
+.unit-gallery-archive .section-head { max-width: 720px; }
+.unit-gallery-instagram-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.unit-social-empty { padding: 34px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-align: center; }
+.unit-social-empty strong { display: block; color: var(--primary-dark); font-size: 1.1rem; }
+.unit-social-empty p { margin: 8px 0 0; color: var(--muted); }
+
+.unit-spmb-hero { position: relative; overflow: hidden; padding: 72px 0; color: #fff; background: linear-gradient(135deg, var(--primary-dark), var(--primary)); }
+.unit-spmb-hero::before { position: absolute; inset: 0; opacity: .14; background: url('../images/ornament-light.svg') center/130px; content: ''; pointer-events: none; }
+.unit-spmb-hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .8fr); gap: 58px; align-items: center; }
+.unit-spmb-hero h2 { max-width: 700px; margin: 14px 0 18px; color: #fff; font: 700 clamp(2.2rem, 4.6vw, 4.4rem)/1.04 'El Messiri', Segoe UI, sans-serif; }
+.unit-spmb-hero p { max-width: 660px; color: rgba(255,255,255,.83); font-size: 1.03rem; }
+.unit-spmb-hero img { width: 100%; aspect-ratio: 4/3; border: 8px solid rgba(255,255,255,.13); border-radius: 18px; object-fit: cover; box-shadow: 0 28px 65px rgba(0,0,0,.24); }
+.unit-spmb-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.unit-spmb-steps article { min-width: 0; padding: 25px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 10px 26px rgba(30,35,25,.06); }
+.unit-spmb-steps b { display: inline-grid; width: 42px; height: 42px; border-radius: 50%; place-items: center; color: #fff; background: var(--primary); }
+.unit-spmb-steps h3 { margin: 17px 0 8px; font-family: 'El Messiri', Segoe UI, sans-serif; font-size: 1.25rem; line-height: 1.2; }
+.unit-spmb-steps p { margin: 0; color: var(--muted); font-size: .88rem; }
+.unit-spmb-info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 68px; align-items: start; }
+.unit-spmb-requirements { display: grid; gap: 10px; padding: 0; list-style: none; }
+.unit-spmb-requirements li { position: relative; padding: 14px 16px 14px 48px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+.unit-spmb-requirements li::before { position: absolute; top: 13px; left: 15px; display: grid; width: 23px; height: 23px; border-radius: 50%; place-items: center; color: #fff; background: var(--primary); content: '✓'; font-size: .72rem; font-weight: 900; }
+.unit-spmb-schedule { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 10px 26px rgba(30,35,25,.06); }
+.unit-spmb-schedule div { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+.unit-spmb-schedule div:last-child { border-bottom: 0; }
+.unit-spmb-schedule span { color: var(--muted); }
+.unit-spmb-form-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(460px, 1.2fr); gap: 58px; align-items: start; }
+.unit-spmb-form-copy { position: sticky; top: 110px; }
+.unit-spmb-form-copy h2 { margin: 12px 0; font: 700 clamp(2rem, 3vw, 3rem)/1.1 'El Messiri', Segoe UI, sans-serif; }
+.unit-spmb-form-copy > p { color: var(--muted); }
+.unit-spmb-contact-card { margin-top: 26px; padding: 22px; border-radius: 12px; color: #fff; background: var(--primary-dark); }
+.unit-spmb-contact-card p { color: rgba(255,255,255,.78); }
+.unit-spmb-contact-card a { color: var(--accent); font-weight: 800; }
+.unit-spmb-form { margin: 0; }
+.unit-spmb-faq { display: grid; gap: 12px; max-width: 850px; }
+.unit-spmb-faq details { padding: 18px 20px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.unit-spmb-faq summary { cursor: pointer; color: var(--primary-dark); font-weight: 800; }
+.unit-spmb-faq p { margin: 12px 0 0; color: var(--muted); }
+
+@media (max-width: 900px) {
+    .unit-gallery-instagram-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .unit-spmb-hero-grid, .unit-spmb-form-layout { grid-template-columns: 1fr; }
+    .unit-spmb-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .unit-spmb-form-copy { position: static; }
+}
+@media (max-width: 640px) {
+    .unit-gallery-instagram-grid, .unit-spmb-steps, .unit-spmb-info-grid { grid-template-columns: 1fr; }
+    .unit-spmb-hero { padding: 48px 0; }
+    .unit-spmb-hero-grid { gap: 30px; }
+    .unit-spmb-hero h2 { font-size: clamp(2rem, 11vw, 3rem); }
+    .unit-spmb-form-layout { gap: 30px; }
+    .unit-spmb-schedule div { grid-template-columns: 1fr; gap: 4px; }
+}
+
+@supports (content-visibility: auto) {
+    .unit-gallery-archive, .unit-spmb-info-grid, .unit-spmb-faq { content-visibility: auto; contain-intrinsic-size: auto 680px; }
+}

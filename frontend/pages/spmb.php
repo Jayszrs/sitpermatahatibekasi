@@ -29,7 +29,7 @@ require_once __DIR__ . '/../components/header.php';
             </div>
         </div>
         <div class="hero-media">
-            <img src="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="Gedung SIT Permata Hati Bekasi">
+            <img src="<?php echo esc(asset_url('frontend/assets/images/school/gedung-sekolah.jpeg')); ?>" alt="Gedung SIT Permata Hati Bekasi" decoding="async">
         </div>
     </div>
 </section>
@@ -42,7 +42,7 @@ require_once __DIR__ . '/../components/header.php';
             <h2>Jenjang Pendaftaran</h2>
         </div>
         <div class="spmb-unit-grid">
-            <?php foreach($spmbUnits as $unit): ?><?php $unitKey = strtolower((string) $unit['subtitle']); $unitImage = $unit['image'] ?: ($spmbUnitImageMap[$unitKey] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?><div class="card"><img src="<?php echo esc($unitImage); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($unit['title']); ?>"><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,150,'...')); ?></p><a class="btn btn-outline btn-sm" href="form-spmb.php?level=<?php echo urlencode($unit['subtitle']); ?>">Pilih Jenjang</a></div></div><?php endforeach; ?>
+            <?php foreach($spmbUnits as $unit): ?><?php $unitKey = strtolower((string) $unit['subtitle']); $unitImage = $unit['image'] ?: ($spmbUnitImageMap[$unitKey] ?? SITE_URL . '/frontend/assets/images/school/gedung-sekolah.optimized.webp'); ?><div class="card"><img src="<?php echo esc($unitImage); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.optimized.webp" alt="<?php echo esc($unit['title']); ?>" loading="lazy" decoding="async"><div class="card-body"><h3><?php echo esc($unit['title']); ?></h3><p><?php echo esc(mb_strimwidth($unit['description'],0,150,'...')); ?></p><a class="btn btn-outline btn-sm" href="form-spmb.php?level=<?php echo urlencode($unit['subtitle']); ?>">Pilih Jenjang</a></div></div><?php endforeach; ?>
         </div>
     </div>
 </section>

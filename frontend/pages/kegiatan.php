@@ -2,7 +2,17 @@
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 $page_title = 'Kegiatan Sekolah';
-$activities = $pdo->query("SELECT * FROM site_content_items WHERE type='activity' AND is_active=1 ORDER BY sort_order,id")->fetchAll();
+$activities = $pdo->query("SELECT item.*
+    FROM site_content_items item
+    INNER JOIN (
+        SELECT MIN(id) AS id
+        FROM site_content_items
+        WHERE type='activity' AND is_active=1
+        GROUP BY LOWER(TRIM(title)),LOWER(TRIM(COALESCE(subtitle,'')))
+    ) unique_activity ON unique_activity.id=item.id
+    ORDER BY item.sort_order,item.id")->fetchAll();
+foreach ($activities as &$activityItem) $activityItem['image'] = public_media_url($activityItem['image'] ?? null);
+unset($activityItem);
 require_once __DIR__ . '/../components/header.php';
 ?>
 
@@ -21,7 +31,7 @@ require_once __DIR__ . '/../components/header.php';
         </div>
         <div class="activity-grid activity-page-grid">
             <?php foreach ($activities as $a): ?>
-            <div class="card activity-card">
+            <article class="card activity-card" id="kegiatan-<?php echo (int)$a['id']; ?>">
                 <div class="activity-photo">
                     <img src="<?php echo esc($a['image'] ?: SITE_URL . '/frontend/assets/images/school/gedung-sekolah.jpeg'); ?>" data-fallback="<?php echo SITE_URL; ?>/frontend/assets/images/school/gedung-sekolah.jpeg" alt="<?php echo esc($a['title']); ?>" loading="lazy">
                     <?php if($a['subtitle']): ?><span><?php echo esc($a['subtitle']); ?></span><?php endif; ?>
@@ -29,9 +39,9 @@ require_once __DIR__ . '/../components/header.php';
                 <div class="card-body">
                     <h3><?php echo esc($a['title']); ?></h3>
                     <p><?php echo nl2br(esc($a['description'])); ?></p>
-                    <?php if($a['link_url']): ?><a class="program-link" href="<?php echo esc($a['link_url']); ?>" target="_blank" rel="noopener"><?php echo esc($a['link_label'] ?: 'Lihat di Media Sosial'); ?> &rarr;</a><?php endif; ?>
+                    <a class="program-link" href="<?php echo esc(SITE_URL . '/kegiatan-detail.php?id=' . (int)$a['id']); ?>">Lihat detail kegiatan &rarr;</a>
                 </div>
-            </div>
+            </article>
             <?php endforeach; ?>
         </div>
     </div>

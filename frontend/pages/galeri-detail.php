@@ -76,7 +76,7 @@ require_once __DIR__ . '/../components/header.php';
         <button type="button" class="album-lightbox-nav album-lightbox-prev" data-album-prev aria-label="Foto sebelumnya">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
         </button>
-        <img src="" alt="" id="albumLightboxImage">
+        <img alt="" id="albumLightboxImage">
         <button type="button" class="album-lightbox-nav album-lightbox-next" data-album-next aria-label="Foto berikutnya">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         </button>
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lightbox.classList.remove('open');
         lightbox.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
-        image.src = '';
+        image.removeAttribute('src');
     };
 
     document.querySelectorAll('[data-lightbox-index]').forEach((button) => {

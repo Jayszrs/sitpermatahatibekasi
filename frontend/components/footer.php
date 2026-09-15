@@ -105,7 +105,7 @@
     <button type="button" class="image-lightbox-backdrop" data-lightbox-close aria-label="Tutup preview gambar"></button>
     <div class="image-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Preview gambar gedung">
         <button type="button" class="image-lightbox-close" data-lightbox-close aria-label="Tutup preview gambar">&times;</button>
-        <img src="" alt="" id="imageLightboxImage">
+        <img alt="" id="imageLightboxImage">
         <p id="imageLightboxTitle"></p>
     </div>
 </div>
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function closeLightbox() {
         lightbox.classList.remove('open');
         lightbox.setAttribute('aria-hidden', 'true');
-        lightboxImage.src = '';
+        lightboxImage.removeAttribute('src');
         document.body.style.overflow = '';
     }
 

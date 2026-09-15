@@ -88,7 +88,7 @@ body:has(.login)::before {
   display:flex;
   align-items:center;
   color:#fff;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--portal-dark) 94%,#06150f),color-mix(in srgb,var(--portal-primary) 88%,transparent)),url('../images/hero.jpeg') center/cover;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--portal-dark) 94%,#06150f),color-mix(in srgb,var(--portal-primary) 88%,transparent)),url('../images/hero.optimized.webp') center/cover;
   font:700 clamp(2.7rem,5vw,5.25rem)/1.04 'El Messiri','Segoe UI',sans-serif;
 }
 body:has(.login)::after {
@@ -149,7 +149,7 @@ body:has(.login)::before {
   background:
     linear-gradient(135deg,color-mix(in srgb,var(--portal-dark) 68%,transparent),color-mix(in srgb,var(--portal-primary) 48%,transparent)),
     linear-gradient(0deg,rgba(12,20,16,.18),rgba(12,20,16,.04)),
-    url('../images/hero.jpeg') center/cover !important;
+    url('../images/hero.optimized.webp') center/cover !important;
   box-shadow: inset -1px 0 rgba(255,255,255,.18);
 }
 body:has(.login)::after {
