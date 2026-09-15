@@ -436,6 +436,10 @@ body {
 .ig-media-video { z-index: 1; background: #080d0b; }
 .ig-media-video[hidden] { display: none; }
 .ig-gallery-card:hover .ig-media-poster { transform: scale(1.055); }
+.ig-media-play { position: absolute; z-index: 3; top: 50%; left: 50%; display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border: none; border-radius: 50%; background: rgba(5,18,12,.55); color: #fff; cursor: pointer; transform: translate(-50%, -50%); transition: background .2s ease, transform .2s ease; }
+.ig-media-play svg { width: 22px; height: 22px; margin-left: 2px; fill: currentColor; }
+.ig-media-play:hover { background: rgba(5,18,12,.75); transform: translate(-50%, -50%) scale(1.06); }
+.ig-media-play[hidden] { display: none; }
 .ig-media-shade { position: absolute; z-index: 2; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.08), transparent 65%, rgba(0,0,0,.32)); }
 .ig-media-kind {
     position: absolute;

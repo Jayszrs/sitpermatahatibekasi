@@ -4,6 +4,11 @@
   var cards = Array.prototype.slice.call(document.querySelectorAll('[data-ig-card]'));
   if (!cards.length) return;
 
+  function showPlayButton(card, show) {
+    var btn = card.querySelector('[data-ig-play]');
+    if (btn) btn.hidden = !show;
+  }
+
   function play(video) {
     if (!video) return;
     if (!video.getAttribute('src')) {
@@ -16,11 +21,24 @@
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-    video.play().catch(function () {
-      video.addEventListener('canplay', function retryAutoplay() {
-        var card = video.closest('[data-ig-card]');
-        if (card && card.dataset.igVisible === '1') video.play().catch(function () {});
-      }, { once: true });
+    video.play().catch(function () {});
+  }
+
+  function bindVideo(card, video) {
+    if (!video || video.dataset.igBound) return;
+    video.dataset.igBound = '1';
+    video.addEventListener('play', function () { showPlayButton(card, false); });
+    video.addEventListener('pause', function () { showPlayButton(card, true); });
+  }
+
+  function bindPlayButton(card) {
+    var btn = card.querySelector('[data-ig-play]');
+    if (!btn || btn.dataset.igBound) return;
+    btn.dataset.igBound = '1';
+    btn.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      play(card.querySelector('.ig-media-video'));
     });
   }
 
@@ -48,7 +66,9 @@
           video.hidden = false;
           kind.textContent = 'REEL';
           card.dataset.igState = 'video';
-          if (card.dataset.igVisible === '1') play(video);
+          bindVideo(card, video);
+          bindPlayButton(card);
+          showPlayButton(card, true);
         } else {
           kind.textContent = media.is_video ? 'REEL' : 'POST';
           card.dataset.igState = 'image';
@@ -66,6 +86,11 @@
     observer.observe(card);
   }
 
+  cards.forEach(function (card) {
+    bindVideo(card, card.querySelector('.ig-media-video'));
+    bindPlayButton(card);
+  });
+
   if ('IntersectionObserver' in window) {
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -74,7 +99,6 @@
         card.dataset.igVisible = entry.isIntersecting ? '1' : '0';
         if (entry.isIntersecting) {
           hydrate(card);
-          play(video);
         } else if (video && !video.paused) {
           video.pause();
         }

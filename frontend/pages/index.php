@@ -364,7 +364,7 @@ require_once __DIR__ . '/../components/header.php';
                 </header>
                 <div class="ig-gallery-media">
                     <img class="ig-media-poster" src="<?php echo esc($igMedia['image']); ?>" alt="<?php echo esc($igCaption); ?>" loading="lazy" decoding="async">
-                    <?php if($igIsVideo): ?><video class="ig-media-video" data-ig-video-src="<?php echo esc($igMedia['video']); ?>" poster="<?php echo esc($igMedia['image']); ?>" autoplay muted loop playsinline controls preload="none" aria-label="Video Instagram <?php echo esc($igUnitLabel); ?>"></video><?php endif; ?>
+                    <?php if($igIsVideo): ?><video class="ig-media-video" data-ig-video-src="<?php echo esc($igMedia['video']); ?>" poster="<?php echo esc($igMedia['image']); ?>" muted loop playsinline controls preload="none" aria-label="Video Instagram <?php echo esc($igUnitLabel); ?>"></video><button type="button" class="ig-media-play" data-ig-play aria-label="Putar video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></button><?php endif; ?>
                     <span class="ig-media-shade" aria-hidden="true"></span>
                     <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
                     <span class="ig-media-kind" data-ig-kind><?php echo $igIsVideo ? 'REEL' : 'POST'; ?></span>
