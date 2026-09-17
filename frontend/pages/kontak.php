@@ -27,7 +27,7 @@ require_once __DIR__ . '/../components/header.php';
             <?php foreach (array_values($campuses) as $campusIndex => $campus): ?>
                 <?php
                     $coordinates = $campus['latitude'] . ',' . $campus['longitude'];
-                    $mapEmbed = openstreetmap_embed_url($campus['latitude'], $campus['longitude']);
+                    $mapEmbed = google_maps_embed_url($campus['latitude'], $campus['longitude']);
                     $mapOpen = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($coordinates);
                     $whatsapp = preg_replace('/\D+/', '', (string)($campus['whatsapp'] ?? SITE_WHATSAPP));
                     $waMessage = rawurlencode('Assalamu alaikum, saya ingin bertanya mengenai unit ' . $campus['subtitle'] . ' Permata Hati Bekasi.');

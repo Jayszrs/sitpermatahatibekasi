@@ -36,6 +36,12 @@ function app_request_is_secure(): bool
         || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
 }
 
+function app_is_production(): bool
+{
+    return strtolower((string) app_env('APP_ENV', 'local')) === 'production'
+        || app_env('RAILWAY_PUBLIC_DOMAIN') !== null;
+}
+
 /**
  * Baseline header keamanan untuk website publik dan portal.
  *
@@ -48,12 +54,13 @@ function app_send_security_headers(): void
 {
     if (PHP_SAPI === 'cli' || headers_sent()) return;
 
+    header_remove('X-Powered-By');
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Cross-Origin-Opener-Policy: same-origin-allow-popups');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
-    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://www.instagram.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.openstreetmap.org https://www.instagram.com; connect-src 'self' https://www.instagram.com https://graph.instagram.com https://*.cdninstagram.com https://*.fbcdn.net");
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://www.instagram.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://maps.google.com https://www.instagram.com; connect-src 'self' https://www.instagram.com https://graph.instagram.com https://*.cdninstagram.com https://*.fbcdn.net");
 
     if (app_request_is_secure()) {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');

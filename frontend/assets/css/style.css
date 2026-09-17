@@ -812,10 +812,12 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
 .empty-public-state h2 { margin-bottom: 24px; }
 
 /* Stats */
-.stats-section { background: var(--primary); color: #fff; padding: 60px 0; }
+.stats-section { background: var(--primary); color: #fff; padding: clamp(64px, 7vw, 92px) 0; }
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
-.stat-item strong { display: block; font-size: clamp(1.8rem, 3vw, 2.6rem); color: var(--secondary); font-weight: 800; }
-.stat-item span { font-size: 0.92rem; opacity: 0.9; }
+.stat-item { position: relative; padding: 12px 18px; }
+.stat-item + .stat-item::before { position: absolute; top: 12%; bottom: 12%; left: -12px; width: 1px; background: rgba(255,255,255,.13); content: ''; }
+.stat-item strong { display: block; margin-bottom: 10px; color: var(--secondary); font-size: clamp(2.7rem, 4.5vw, 4.6rem); font-weight: 850; line-height: 1; letter-spacing: -.035em; }
+.stat-item > span { color: rgba(255,255,255,.86); font-size: clamp(.95rem, 1.3vw, 1.12rem); font-weight: 700; letter-spacing: .02em; }
 
 /* Achievement cards */
 .achievement-tabs {
@@ -3391,6 +3393,7 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
     .achievement-tabs { margin-inline: -16px; padding-inline: 16px; }
     .stats-grid { gap: 12px; }
     .stat-item { padding: 8px; }
+    .stat-item + .stat-item::before { display: none; }
     .pulse-heading { align-items: flex-start; flex-direction: column; gap: 7px; }
     .pulse-news-card { grid-template-columns: 96px minmax(0,1fr); }
     .pulse-news-card > div { padding: 13px; }

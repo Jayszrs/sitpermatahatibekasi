@@ -20,18 +20,8 @@ if (empty($_SESSION['unit_admin_csrf'])) $_SESSION['unit_admin_csrf'] = bin2hex(
 $csrf = $_SESSION['unit_admin_csrf'];
 $allUnits = ['daycare'=>'Daycare','tkit'=>'TKIT','sdit'=>'SDIT','smpit'=>'SMPIT'];
 $error=''; $notice='';
-if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='logout') {
-    if (!hash_equals($csrf, (string)($_POST['csrf']??''))) { http_response_code(419); exit('Sesi admin tidak valid.'); }
-    $_SESSION=[];
-    if (ini_get('session.use_cookies')) {
-        $params=session_get_cookie_params();
-        setcookie(session_name(), '', time()-42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
-    }
-    session_destroy();
-    header('Location: ' . unit_portal_url(UNIT_SLUG)); exit;
-}
+if (isset($_GET['logout'])) { session_destroy(); header('Location: ' . unit_portal_url(UNIT_SLUG)); exit; }
 if (empty($_SESSION['unit_admin']) && $_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='login') {
-    if (!hash_equals($csrf, (string)($_POST['csrf']??''))) { http_response_code(419); exit('Sesi login tidak valid. Muat ulang halaman.'); }
     $now=time();
     $_SESSION['unit_login_failures']=array_values(array_filter($_SESSION['unit_login_failures']??[], static fn($time)=>is_int($time)&&$time>$now-900));
     if (count($_SESSION['unit_login_failures'])>=5) {

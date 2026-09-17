@@ -6,6 +6,12 @@ require_once $projectRoot . '/backend/config/unit_database.php';
 require_once $projectRoot . '/backend/config/storage.php';
 $unit_config = require __DIR__ . '/config.php';
 
+// Safe defaults apply to both the public form session and the unit portal.
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.use_strict_mode', '1');
+if (app_request_is_secure()) ini_set('session.cookie_secure', '1');
+
 function unit_base_url(): string {
     $root = realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: '';
     $folder = realpath(__DIR__) ?: __DIR__;
@@ -70,17 +76,31 @@ function unit_ensure_schema(PDO $pdo): void {
 
 function unit_seed_defaults(PDO $pdo): void {
     global $unit_config;
-    $userCount = (int) $pdo->query('SELECT COUNT(*) FROM unit_users')->fetchColumn();
-    if ($userCount === 0) {
-        $users = [
-            ['superadmin', 'SuperUnit#2026', 'superadmin', null],
-            ['daycare-admin', 'Daycare#2026', 'unit_admin', 'daycare'],
-            ['tkit-admin', 'TKIT#2026', 'unit_admin', 'tkit'],
-            ['sdit-admin', 'SDIT#2026', 'unit_admin', 'sdit'],
-            ['smpit-admin', 'SMPIT#2026', 'unit_admin', 'smpit'],
-        ];
-        $statement = $pdo->prepare('INSERT INTO unit_users (username,password_hash,role,unit_slug) VALUES (?,?,?,?)');
-        foreach ($users as [$username, $password, $role, $slug]) $statement->execute([$username, password_hash($password, PASSWORD_DEFAULT), $role, $slug]);
+    $users = [
+        ['superadmin', 'UNIT_SUPERADMIN_PASSWORD', 'SuperUnit#2026', 'superadmin', null],
+        ['daycare-admin', 'UNIT_DAYCARE_ADMIN_PASSWORD', 'Daycare#2026', 'unit_admin', 'daycare'],
+        ['tkit-admin', 'UNIT_TKIT_ADMIN_PASSWORD', 'TKIT#2026', 'unit_admin', 'tkit'],
+        ['sdit-admin', 'UNIT_SDIT_ADMIN_PASSWORD', 'SDIT#2026', 'unit_admin', 'sdit'],
+        ['smpit-admin', 'UNIT_SMPIT_ADMIN_PASSWORD', 'SMPIT#2026', 'unit_admin', 'smpit'],
+    ];
+    $findUser = $pdo->prepare('SELECT id,password_hash FROM unit_users WHERE username=? LIMIT 1');
+    $insertUser = $pdo->prepare('INSERT INTO unit_users (username,password_hash,role,unit_slug) VALUES (?,?,?,?)');
+    $secureExistingUser = $pdo->prepare('UPDATE unit_users SET password_hash=?,is_active=1 WHERE id=?');
+    $disableDemoUser = $pdo->prepare('UPDATE unit_users SET is_active=0 WHERE id=?');
+    foreach ($users as [$username, $environmentKey, $developmentPassword, $role, $slug]) {
+        $configuredPassword = app_env($environmentKey);
+        $targetPassword = app_is_production() ? $configuredPassword : ($configuredPassword ?? $developmentPassword);
+        $findUser->execute([$username]);
+        $existingUser = $findUser->fetch();
+        if (!$existingUser && $targetPassword !== null) {
+            $insertUser->execute([$username, password_hash($targetPassword, PASSWORD_DEFAULT), $role, $slug]);
+        } elseif ($existingUser && password_verify($developmentPassword, $existingUser['password_hash'])) {
+            if ($configuredPassword !== null) {
+                $secureExistingUser->execute([password_hash($configuredPassword, PASSWORD_DEFAULT), $existingUser['id']]);
+            } elseif (app_is_production()) {
+                $disableDemoUser->execute([$existingUser['id']]);
+            }
+        }
     }
     $settings = array_merge(['name' => $unit_config['name'], 'tagline' => $unit_config['tagline'], 'description' => $unit_config['description']], $unit_config['contact']);
     $setting = $pdo->prepare('INSERT IGNORE INTO unit_settings (unit_slug,setting_key,setting_value) VALUES (?,?,?)');

@@ -401,22 +401,14 @@ function school_unit_catalog(): array {
     ];
 }
 
-/** URL embed peta ringan tanpa memuat Google Maps JavaScript atau API key. */
-function openstreetmap_embed_url(string $latitude, string $longitude): string {
+/** URL embed Google Maps tanpa memasang JavaScript API atau API key pada halaman utama. */
+function google_maps_embed_url(string $latitude, string $longitude): string {
     $lat = filter_var($latitude, FILTER_VALIDATE_FLOAT);
     $lon = filter_var($longitude, FILTER_VALIDATE_FLOAT);
-    if ($lat === false || $lon === false) return 'https://www.openstreetmap.org/export/embed.html?layer=mapnik';
+    if ($lat === false || $lon === false) return 'https://maps.google.com/maps?q=Bekasi&z=13&hl=id&output=embed';
 
-    $lat = (float) $lat;
-    $lon = (float) $lon;
-    $bbox = implode(',', [
-        number_format($lon - 0.006, 6, '.', ''),
-        number_format($lat - 0.004, 6, '.', ''),
-        number_format($lon + 0.006, 6, '.', ''),
-        number_format($lat + 0.004, 6, '.', ''),
-    ]);
-    return 'https://www.openstreetmap.org/export/embed.html?bbox=' . rawurlencode($bbox)
-        . '&layer=mapnik&marker=' . rawurlencode(number_format($lat, 7, '.', '') . ',' . number_format($lon, 7, '.', ''));
+    $coordinates = number_format((float) $lat, 6, '.', '') . ',' . number_format((float) $lon, 6, '.', '');
+    return 'https://maps.google.com/maps?q=' . rawurlencode($coordinates) . '&z=16&hl=id&output=embed';
 }
 
 function fetch_school_units(PDO $pdo): array {

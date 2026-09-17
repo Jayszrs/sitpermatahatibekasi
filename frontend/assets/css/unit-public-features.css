@@ -1,19 +1,23 @@
 /* Shared section-heading alignment for Daycare, TKIT, SDIT, and SMPIT. */
-.section-head.line-head {
+.section-head.line-head,
+.section-head.light-head {
     width: 100%;
     max-width: none;
     align-items: flex-end;
     gap: clamp(28px, 5vw, 72px);
 }
-.section-head.line-head > div {
+.section-head.line-head > div,
+.section-head.light-head > div {
     min-width: 0;
     max-width: 860px;
 }
-.section-head.line-head h2 {
+.section-head.line-head h2,
+.section-head.light-head h2 {
     max-width: 860px;
     text-wrap: balance;
 }
-.section-head.line-head > .text-link {
+.section-head.line-head > .text-link,
+.section-head.light-head > .text-link {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -21,12 +25,22 @@
     margin-bottom: 5px;
     padding: 9px 15px;
     border: 1px solid rgba(20, 92, 57, .18);
-    border-bottom: 2px solid var(--accent);
     border-radius: 9px;
     background: rgba(255,255,255,.78);
     line-height: 1.2;
     white-space: nowrap;
 }
+.section-head.light-head > .text-link {
+    border-color: rgba(255,255,255,.26);
+    color: var(--primary-dark);
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(0,0,0,.14);
+}
+
+/* Remove the old decorative strokes that crossed banners and headings. */
+.eyebrow::before,
+.page-banner::before,
+.page-banner::after { display: none !important; }
 
 /* Consistent title rhythm across every public page of the four units. */
 .page-banner .shell,
@@ -55,6 +69,60 @@
     line-height: 1.72;
 }
 .section-head h2 { margin-top: 10px; line-height: 1.08; }
+
+/* Contact presentation shared by all units. */
+.contact-grid {
+    grid-template-columns: minmax(0, .9fr) minmax(380px, 1.1fr);
+    gap: clamp(28px, 5vw, 66px);
+    align-items: stretch;
+}
+.contact-grid > div:first-child {
+    padding: clamp(25px, 4vw, 40px);
+    border: 1px solid rgba(20, 92, 57, .13);
+    border-radius: 16px;
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 18px 44px rgba(28,45,35,.09);
+}
+.contact-grid h2 { margin-bottom: 22px; }
+.contact-grid dl { gap: 0; margin: 0; }
+.contact-grid dl > div { min-width: 0; }
+.contact-grid dt {
+    margin-top: 13px;
+    color: var(--primary-dark);
+    letter-spacing: .08em;
+}
+.contact-grid dd {
+    margin: 4px 0 13px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(20, 92, 57, .11);
+    color: var(--ink);
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+.contact-grid .social-links { margin-top: 20px; }
+.contact-grid .social-links a {
+    min-height: 40px;
+    padding: 9px 14px;
+    border-color: rgba(20, 92, 57, .15);
+    border-radius: 999px;
+    color: var(--primary-dark);
+    background: var(--soft);
+}
+.contact-grid .map-card {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    padding: 12px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 20px 48px rgba(28,45,35,.12);
+}
+.contact-grid .map-card iframe {
+    min-height: 390px;
+    flex: 1 1 auto;
+    border-radius: 11px;
+}
+.contact-grid .map-card .button { width: 100%; }
 
 /* One polished footer system shared by Daycare, TKIT, SDIT, and SMPIT. */
 .unit-site-footer {
@@ -198,6 +266,8 @@
     .unit-spmb-form-copy { position: static; }
     .unit-footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .unit-footer-brand { grid-column: 1 / -1; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .contact-grid .map-card iframe { min-height: 330px; }
 }
 @media (max-width: 640px) {
     /* Mobile onboarding: copy sits directly on the full-bleed media. The
@@ -283,12 +353,15 @@
         padding-top: 16px;
         border-top: 1px solid rgba(255,255,255,.18);
     }
-    .section-head.line-head {
+    .section-head.line-head,
+    .section-head.light-head {
         align-items: flex-start;
         gap: 17px;
     }
-    .section-head.line-head h2 { max-width: 100%; }
-    .section-head.line-head > .text-link { min-height: 40px; margin-bottom: 0; }
+    .section-head.line-head h2,
+    .section-head.light-head h2 { max-width: 100%; }
+    .section-head.line-head > .text-link,
+    .section-head.light-head > .text-link { min-height: 40px; margin-bottom: 0; }
     .page-banner h1 { font-size: clamp(2.1rem, 11vw, 3.2rem); }
     .section-head h2 { font-size: clamp(1.85rem, 9vw, 2.65rem); }
     .unit-site-footer { padding-top: 42px; text-align: left; }
@@ -313,6 +386,8 @@
     .unit-footer-contact a { min-height: 33px; font-size: .82rem; }
     .unit-footer-social-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .unit-site-footer .footer-bottom { padding: 17px 22px; font-size: .72rem; line-height: 1.55; }
+    .contact-grid > div:first-child { padding: 23px 20px; }
+    .contact-grid .map-card iframe { min-height: 260px; }
     .unit-gallery-instagram-grid, .unit-spmb-steps, .unit-spmb-info-grid { grid-template-columns: 1fr; }
     .unit-spmb-hero { padding: 48px 0; }
     .unit-spmb-hero-grid { gap: 30px; }

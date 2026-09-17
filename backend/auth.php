@@ -17,6 +17,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     ]);
     session_start();
 }
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    header('Cache-Control: private, no-store, max-age=0');
+    header('Pragma: no-cache');
+}
 
 function portal_bootstrap_database(PDO $pdo): void
 {
@@ -177,32 +181,38 @@ function portal_bootstrap_database(PDO $pdo): void
     $pdo->exec("UPDATE site_content_items SET extra=REPLACE(extra, '\\\\n', CHAR(10)) WHERE extra LIKE '%\\\\n%'");
 
     $defaults = [
-        ['Administrator', 'admin', 'AdminPHB#2026', 'admin'],
-        ['Tim Humas', 'humas', 'HumasPHB#2026', 'humas'],
-        ['Kasir SPMB', 'kasir', 'KasirPHB#2026', 'kasir'],
-    ];
-    $findDefaultUser = $pdo->prepare('SELECT id FROM portal_users WHERE username=? LIMIT 1');
-    $insertDefaultUser = $pdo->prepare('INSERT INTO portal_users (name, username, password, role) VALUES (?, ?, ?, ?)');
-    foreach ($defaults as [$name, $username, $password, $role]) {
-        $findDefaultUser->execute([$username]);
-        if (!$findDefaultUser->fetchColumn()) {
-            $insertDefaultUser->execute([$name, $username, password_hash($password, PASSWORD_DEFAULT), $role]);
-        }
-    }
-
-    // Migrasikan hanya password akun bawaan lama; password yang pernah diganti admin tidak disentuh.
-    $legacyPasswords = [
-        'admin' => ['AdminTBZ#2026', 'AdminPHB#2026'],
-        'humas' => ['HumasTBZ#2026', 'HumasPHB#2026'],
-        'kasir' => ['KasirTBZ#2026', 'KasirPHB#2026'],
+        ['Administrator', 'admin', 'PORTAL_ADMIN_PASSWORD', 'AdminPHB#2026', ['AdminTBZ#2026', 'AdminPHB#2026'], 'admin'],
+        ['Tim Humas', 'humas', 'PORTAL_HUMAS_PASSWORD', 'HumasPHB#2026', ['HumasTBZ#2026', 'HumasPHB#2026'], 'humas'],
+        ['Kasir SPMB', 'kasir', 'PORTAL_KASIR_PASSWORD', 'KasirPHB#2026', ['KasirTBZ#2026', 'KasirPHB#2026'], 'kasir'],
     ];
     $findDefaultUser = $pdo->prepare('SELECT id,password FROM portal_users WHERE username=? LIMIT 1');
-    $updateDefaultPassword = $pdo->prepare('UPDATE portal_users SET password=? WHERE id=?');
-    foreach ($legacyPasswords as $username => [$legacyPassword, $currentPassword]) {
+    $insertDefaultUser = $pdo->prepare('INSERT INTO portal_users (name, username, password, role) VALUES (?, ?, ?, ?)');
+    $secureDefaultUser = $pdo->prepare('UPDATE portal_users SET password=?,is_active=1 WHERE id=?');
+    $disableDemoUser = $pdo->prepare('UPDATE portal_users SET is_active=0 WHERE id=?');
+    foreach ($defaults as [$name, $username, $environmentKey, $developmentPassword, $knownDemoPasswords, $role]) {
+        $configuredPassword = app_env($environmentKey);
+        $targetPassword = app_is_production() ? $configuredPassword : ($configuredPassword ?? $developmentPassword);
         $findDefaultUser->execute([$username]);
         $defaultUser = $findDefaultUser->fetch();
-        if ($defaultUser && password_verify($legacyPassword, $defaultUser['password'])) {
-            $updateDefaultPassword->execute([password_hash($currentPassword, PASSWORD_DEFAULT), $defaultUser['id']]);
+        if (!$defaultUser && $targetPassword !== null) {
+            $insertDefaultUser->execute([$name, $username, password_hash($targetPassword, PASSWORD_DEFAULT), $role]);
+            continue;
+        }
+        if (!$defaultUser) continue;
+        $usesKnownDemoPassword = false;
+        foreach ($knownDemoPasswords as $knownDemoPassword) {
+            if (password_verify($knownDemoPassword, $defaultUser['password'])) {
+                $usesKnownDemoPassword = true;
+                break;
+            }
+        }
+        if (!$usesKnownDemoPassword) continue;
+        if ($configuredPassword !== null) {
+            $secureDefaultUser->execute([password_hash($configuredPassword, PASSWORD_DEFAULT), $defaultUser['id']]);
+        } elseif (app_is_production()) {
+            $disableDemoUser->execute([$defaultUser['id']]);
+        } elseif (!password_verify($developmentPassword, $defaultUser['password'])) {
+            $secureDefaultUser->execute([password_hash($developmentPassword, PASSWORD_DEFAULT), $defaultUser['id']]);
         }
     }
 }
@@ -512,14 +522,23 @@ function portal_require_auth(array $roles = []): void
 
 function portal_attempt_login(PDO $pdo, string $username, string $password): bool
 {
+    $now = time();
+    $_SESSION['portal_login_failures'] = array_values(array_filter(
+        $_SESSION['portal_login_failures'] ?? [],
+        static fn($timestamp): bool => is_int($timestamp) && $timestamp > $now - 900
+    ));
+    if (count($_SESSION['portal_login_failures']) >= 5) return false;
+
     $stmt = $pdo->prepare('SELECT * FROM portal_users WHERE username = ? AND is_active = 1 LIMIT 1');
     $stmt->execute([strtolower(trim($username))]);
     $user = $stmt->fetch();
     if (!$user || !password_verify($password, $user['password'])) {
+        $_SESSION['portal_login_failures'][] = $now;
         return false;
     }
 
     session_regenerate_id(true);
+    unset($_SESSION['portal_login_failures']);
     $_SESSION['portal_user'] = [
         'id' => (int)$user['id'],
         'name' => $user['name'],
