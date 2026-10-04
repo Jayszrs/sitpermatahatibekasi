@@ -19,9 +19,11 @@ $karirOld = [];
 if ($page === 'spmb') {
     require_once __DIR__ . '/../backend/helpers/functions.php';
     require_once __DIR__ . '/../backend/helpers/spmb_shared.php';
+    unit_csrf();
     $lockedLevel = school_unit_catalog()[UNIT_SLUG]['subtitle'] ?? ucfirst(UNIT_SLUG);
     $spmbOld = spmb_empty_fields($lockedLevel);
-    $spmbSuccess = false;
+    $spmbSuccess = !empty($_SESSION['unit_spmb_success']);
+    unset($_SESSION['unit_spmb_success']);
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!unit_verify_csrf($_POST['csrf'] ?? '')) {
             $formError = 'Sesi formulir tidak valid. Silakan muat ulang halaman.';
@@ -31,7 +33,7 @@ if ($page === 'spmb') {
             $mainPdo = unit_connect_main_site_pdo();
             $spmbResult = spmb_validate_and_save($mainPdo, $_POST, $lockedLevel);
             $spmbOld = $spmbResult['old'];
-            if ($spmbResult['success']) $spmbSuccess = true;
+            if ($spmbResult['success']) { $_SESSION['unit_spmb_success'] = true; header('Location: spmb.php'); exit; }
             else $formError = implode(' ', $spmbResult['errors']);
         }
     }
@@ -50,6 +52,7 @@ if ($page === 'karir') {
         $stmt = $mainPdo->prepare("SELECT * FROM job_vacancies WHERE slug=? AND is_active=1 AND (deadline IS NULL OR deadline>=CURDATE()) LIMIT 1");
         $stmt->execute([$karirSlug]);
         $karirJob = $stmt->fetch() ?: null;
+        if ($karirJob && school_unit_slug((string)$karirJob['unit']) !== UNIT_SLUG) $karirJob = null;
         if ($karirJob && $_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach (array_keys($karirOld) as $key) $karirOld[$key] = trim($_POST[$key] ?? $karirOld[$key]);
             try {
@@ -73,7 +76,7 @@ if ($page === 'karir') {
             } catch (Throwable $e) { $karirErrors[] = $e->getMessage(); }
         }
     } else {
-        $karirJobs = $mainPdo->query("SELECT * FROM job_vacancies WHERE is_active=1 AND (deadline IS NULL OR deadline>=CURDATE()) ORDER BY is_featured DESC, deadline ASC, created_at DESC")->fetchAll();
+        $karirJobs = array_values(array_filter($mainPdo->query("SELECT * FROM job_vacancies WHERE is_active=1 AND (deadline IS NULL OR deadline>=CURDATE()) ORDER BY is_featured DESC, deadline ASC, created_at DESC")->fetchAll(), static fn(array $job): bool => school_unit_slug((string)$job['unit']) === UNIT_SLUG));
     }
 }
 
@@ -159,10 +162,7 @@ function unit_home_notices(): array {
 if ($page === 'home') {
     unit_page_start('Beranda', 'home'); $programs=unit_content($pdo,'program',3); $activities=unit_content($pdo,'activity',3); $achievements=unit_content($pdo,'achievement',3); $albums=unit_albums($pdo); $notices=unit_home_notices();
     require_once __DIR__ . '/../backend/helpers/unit_shared.php';
-    $mainSocialPdo = unit_connect_main_site_pdo();
-    $socialStmt = $mainSocialPdo->prepare("SELECT * FROM instagram_gallery WHERE scope=? AND is_active=1 AND media_type='embed' ORDER BY sort_order,id LIMIT 12");
-    $socialStmt->execute([UNIT_SLUG]);
-    $socialItems = instagram_verified_gallery($socialStmt->fetchAll(), [UNIT_SLUG => instagram_profile_username($settings['instagram']) ?: ''], 5);
+    $socialItems = unit_instagram_gallery_items($settings['instagram']);
     $youtubeItems = youtube_public_videos($settings['youtube'], 2); ?>
 <?php $heroIsVideo = ($settings['hero_media_type'] ?? '') === 'video' && !empty($settings['hero_media_path']); ?>
 <section class="hero hero-foundation" data-hero-unit>
@@ -179,13 +179,8 @@ if ($page === 'home') {
 <section class="section section-primary"><div class="shell"><div class="section-head light-head"><div><span class="eyebrow light">POTRET SEKOLAH</span><h2>Setiap momen adalah proses bertumbuh</h2></div><a class="text-link light-link" href="gallery.php">Buka galeri</a></div><div class="album-strip"><?php foreach(array_slice($albums,0,3) as $album): ?><a href="gallery.php?album=<?php echo (int)$album['id']; ?>" class="album-tile" style="background-image:url('<?php echo unit_e(unit_media($album['cover_image'])); ?>')"><span><?php echo unit_e($album['title']); ?></span></a><?php endforeach; ?></div></div></section>
 <section class="section"><div class="shell"><div class="section-head line-head"><div><span class="eyebrow">APRESIASI</span><h2>Pencapaian yang Dirayakan</h2></div><a class="text-link" href="achievements.php">Semua Prestasi</a></div><?php unit_cards($achievements,'achievement-grid','Prestasi akan segera ditampilkan.','achievements.php'); ?></div></section>
 <?php if ($socialItems): ?>
-<section class="section section-soft unit-instagram-section"><div class="shell"><div class="section-head"><span class="eyebrow">CERITA TERBARU</span><h2>Instagram <?php echo unit_e($unit_config['short_name']); ?></h2><p>Ikuti kegiatan harian, karya, dan momen terbaru kami. Klik tombol putar untuk menonton video.</p></div><div class="ig-gallery-grid"><?php foreach ($socialItems as $socialItem): ?>
-<?php $igMedia = $socialItem['public_media']; $igIsVideo = !empty($igMedia['video']); $igCaption = ($igMedia['caption'] ?? null) ?: (($socialItem['caption'] ?? null) ?: 'Momen terbaru '.$unit_config['short_name'].' di Instagram.'); ?>
-<article class="ig-gallery-card ig-native-card" data-ig-card data-ig-state="<?php echo $igIsVideo ? 'video' : 'image'; ?>">
-<header class="ig-card-head"><span class="ig-card-brand<?php echo !empty($igMedia['profile_image']) ? ' ig-card-avatar' : ''; ?>" aria-hidden="true"><?php if(!empty($igMedia['profile_image'])): ?><img src="<?php echo unit_e($igMedia['profile_image']); ?>" alt="" loading="lazy"><?php else: ?><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"/></svg><?php endif; ?></span><span class="ig-card-identity"><strong><?php echo unit_e($unit_config['short_name']); ?></strong><small data-ig-username>@<?php echo unit_e($igMedia['username']); ?></small></span><a class="ig-card-open" href="<?php echo unit_e($socialItem['instagram_url']); ?>" target="_blank" rel="noopener" aria-label="Buka postingan di Instagram">&nearr;</a></header>
-<div class="ig-gallery-media"><img class="ig-media-poster" src="<?php echo unit_e($igMedia['image']); ?>" alt="<?php echo unit_e($igCaption); ?>" loading="lazy" decoding="async"><?php if($igIsVideo): ?><video class="ig-media-video" data-ig-video-src="<?php echo unit_e($igMedia['video']); ?>" poster="<?php echo unit_e($igMedia['image']); ?>" muted loop playsinline controls preload="none"></video><button type="button" class="ig-media-play" data-ig-play aria-label="Putar video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></button><?php endif; ?><span class="ig-media-shade" aria-hidden="true"></span><span class="ig-media-kind" data-ig-kind><?php echo $igIsVideo ? 'REEL' : 'POST'; ?></span></div>
-<footer class="ig-gallery-foot"><p data-ig-caption><?php echo unit_e($igCaption); ?></p><a href="<?php echo unit_e($socialItem['instagram_url']); ?>" target="_blank" rel="noopener"><span>Lihat postingan</span><span aria-hidden="true">&rarr;</span></a></footer>
-</article><?php endforeach; ?></div><div class="ig-gallery-cta"><a class="button button-primary" href="<?php echo unit_e($settings['instagram']); ?>" target="_blank" rel="noopener">Ikuti Instagram Kami</a></div></div></section>
+<section class="section section-soft unit-instagram-section"><div class="shell"><div class="section-head"><span class="eyebrow">CERITA TERBARU</span><h2>Instagram <?php echo unit_e($unit_config['short_name']); ?></h2><p>Ikuti kegiatan harian, karya, dan momen terbaru dari tautan yang dikelola admin unit.</p></div><div class="ig-gallery-grid"><?php foreach ($socialItems as $socialItem): instagram_embed_card($socialItem, $unit_config['short_name']); ?>
+<?php endforeach; ?></div><div class="ig-gallery-cta"><a class="button button-primary" href="<?php echo unit_e($settings['instagram']); ?>" target="_blank" rel="noopener">Ikuti Instagram Kami</a></div></div></section>
 <?php endif; ?>
 <?php if ($youtubeItems): ?><section class="section unit-youtube-section"><div class="shell"><div class="section-head line-head"><div><span class="eyebrow">VIDEO SEKOLAH</span><h2>YouTube <?php echo unit_e($unit_config['short_name']); ?></h2><p>Tekan tombol putar untuk menonton video channel resmi tanpa meninggalkan website.</p></div><a class="text-link" href="<?php echo unit_e($settings['youtube']); ?>" target="_blank" rel="noopener">Buka channel</a></div><div class="youtube-gallery-grid"><?php foreach($youtubeItems as $youtubeItem): ?><article class="youtube-gallery-card" data-youtube-card><div class="youtube-gallery-frame" style="background-image:url('<?php echo unit_e($youtubeItem['thumbnail']); ?>')"><iframe title="<?php echo unit_e($youtubeItem['title']); ?>" data-youtube-src="<?php echo unit_e($youtubeItem['embed_url']); ?>" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><button class="youtube-gallery-play" type="button" data-youtube-play aria-label="Putar <?php echo unit_e($youtubeItem['title']); ?>"><span aria-hidden="true"></span></button><span>YOUTUBE</span></div><footer><strong><?php echo unit_e($youtubeItem['title']); ?></strong><a href="<?php echo unit_e($youtubeItem['url']); ?>" target="_blank" rel="noopener">Tonton di YouTube &rarr;</a></footer></article><?php endforeach; ?></div></div></section><?php endif; ?>
 <?php unit_page_end(); return; }
@@ -198,8 +193,7 @@ if ($page === 'gallery' || $page === 'spmb') {
     else unit_render_spmb_page($settings, $unit_config, $spmbOld, $spmbSuccess, $formError, $lockedLevel);
     $page = '__rendered';
 }
-if($page==='profile'): ?>
-<section class="section"><div class="shell story-grid"><img src="<?php echo unit_e(unit_media($unit_config['building_image'])); ?>" alt="Gedung <?php echo unit_e($settings['name']); ?>"><div><span class="eyebrow">TENTANG KAMI</span><h2><?php echo unit_e($settings['name']); ?></h2><p><?php echo unit_e($settings['description']); ?></p><p>Kami percaya setiap anak perlu didampingi dengan perhatian, keteladanan, dan kesempatan untuk menemukan potensinya.</p><a class="button button-primary" href="contact.php">Hubungi Kami</a></div></div></section>
+if($page==='profile'): require_once __DIR__ . '/../backend/helpers/unit_profile.php'; unit_render_profile($settings, $unit_config); ?>
 <?php elseif($page==='programs'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'program',$id):null; ?><section class="section"><div class="shell"><?php if($detailItem): unit_render_detail($detailItem,'programs.php','Kembali ke semua program'); else: unit_cards(unit_content($pdo,'program'),'program-grid','Program akan segera hadir.','programs.php'); endif; ?></div></section>
 <?php elseif($page==='activities'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'activity',$id):null; ?><section class="section activity-detail-section"><?php if($detailItem): unit_render_detail($detailItem,'activities.php','Kembali ke semua kegiatan',unit_documentation_photos($pdo,$detailItem)); else: ?><div class="shell"><?php unit_cards(unit_content($pdo,'activity'),'activity-grid','Kegiatan akan segera hadir.','activities.php'); ?></div><?php endif; ?></section>
 <?php elseif($page==='news'): $detailItem=($id=(int)($_GET['id']??0))?unit_content_detail($pdo,'news',$id):null; ?><section class="section"><div class="shell"><?php if($detailItem): unit_render_detail($detailItem,'news.php','Kembali ke semua berita'); else: unit_cards(unit_content($pdo,'news'),'news-grid','Belum ada berita terbaru.','news.php'); endif; ?></div></section>

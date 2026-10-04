@@ -1019,7 +1019,7 @@ h1, h2, h3, h4 { line-height: 1.25; font-weight: 700; color: var(--primary-dark)
 .ig-section-eyebrow .ig-dot { fill: currentColor; stroke: none; }
 .ig-gallery-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-content: center;
     gap: 22px;
 }
@@ -3606,3 +3606,11 @@ textarea.form-control::placeholder { color: #8c9a93; opacity: .7; }
         box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
     }
 }
+.ig-embed-card { overflow: hidden; background: #fff; border: 1px solid #e8e1d5; border-radius: 20px; box-shadow: 0 12px 30px rgba(44,36,24,.08); }
+.ig-embed-card[hidden] { display: none; }
+.ig-embed-heading, .ig-embed-footer { padding: 15px 18px; }
+.ig-embed-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.ig-embed-heading span { font-size: .8rem; color: #81776a; }
+.ig-embed-card iframe { display: block; width: 100%; height: 520px; border: 0; background: #faf8f3; }
+.ig-embed-footer p { margin: 0 0 8px; line-height: 1.5; }
+.ig-embed-footer a { color: #a65300; font-weight: 700; }

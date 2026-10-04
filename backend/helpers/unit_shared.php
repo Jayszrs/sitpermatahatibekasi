@@ -20,9 +20,9 @@ function unit_connect_main_site_pdo(): PDO {
 }
 
 /** Ambil post Instagram resmi untuk unit aktif, memakai sumber yang sama dengan beranda. */
-function unit_instagram_gallery_items(string $profileUrl, int $limit = 12): array {
+function unit_instagram_gallery_items(string $profileUrl, int $limit = 0): array {
     $mainPdo = unit_connect_main_site_pdo();
-    $stmt = $mainPdo->prepare("SELECT * FROM instagram_gallery WHERE scope=? AND is_active=1 AND media_type='embed' ORDER BY sort_order,id LIMIT 24");
+    $stmt = $mainPdo->prepare("SELECT * FROM instagram_gallery WHERE scope=? AND is_active=1 AND media_type='embed' ORDER BY sort_order,id");
     $stmt->execute([UNIT_SLUG]);
     return instagram_verified_gallery(
         $stmt->fetchAll(),
@@ -39,18 +39,7 @@ function unit_render_instagram_cards(array $items, array $settings): void {
     }
     echo '<div class="ig-gallery-grid unit-gallery-instagram-grid">';
     foreach ($items as $socialItem) {
-        $media = $socialItem['public_media'];
-        $isVideo = !empty($media['video']);
-        $caption = ($media['caption'] ?? null) ?: (($socialItem['caption'] ?? null) ?: 'Momen terbaru '.$unit_config['short_name'].' di Instagram.');
-        echo '<article class="ig-gallery-card ig-native-card" data-ig-card data-ig-state="'.($isVideo ? 'video' : 'image').'">';
-        echo '<header class="ig-card-head"><span class="ig-card-brand'.(!empty($media['profile_image']) ? ' ig-card-avatar' : '').'" aria-hidden="true">';
-        if (!empty($media['profile_image'])) echo '<img src="'.unit_e($media['profile_image']).'" alt="" loading="lazy" decoding="async">';
-        else echo '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"/></svg>';
-        echo '</span><span class="ig-card-identity"><strong>'.unit_e($unit_config['short_name']).'</strong><small data-ig-username>@'.unit_e($media['username']).'</small></span><a class="ig-card-open" href="'.unit_e($socialItem['instagram_url']).'" target="_blank" rel="noopener" aria-label="Buka postingan di Instagram">&nearr;</a></header>';
-        echo '<div class="ig-gallery-media"><img class="ig-media-poster" src="'.unit_e($media['image']).'" alt="'.unit_e($caption).'" loading="lazy" decoding="async">';
-        if ($isVideo) echo '<video class="ig-media-video" data-ig-video-src="'.unit_e($media['video']).'" poster="'.unit_e($media['image']).'" muted loop playsinline controls preload="none"></video><button type="button" class="ig-media-play" data-ig-play aria-label="Putar video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></button>';
-        echo '<span class="ig-media-shade" aria-hidden="true"></span><span class="ig-media-kind" data-ig-kind>'.($isVideo ? 'REEL' : 'POST').'</span></div>';
-        echo '<footer class="ig-gallery-foot"><p data-ig-caption>'.unit_e($caption).'</p><a href="'.unit_e($socialItem['instagram_url']).'" target="_blank" rel="noopener"><span>Lihat postingan</span><span aria-hidden="true">&rarr;</span></a></footer></article>';
+        instagram_embed_card($socialItem, $unit_config['short_name']);
     }
     echo '</div><div class="ig-gallery-cta"><a class="button button-primary" href="'.unit_e($settings['instagram']).'" target="_blank" rel="noopener">Ikuti Instagram '.unit_e($unit_config['short_name']).'</a></div>';
 }
@@ -77,8 +66,8 @@ function unit_render_gallery_page(PDO $pdo, array $settings): void {
         return;
     }
 
-    $items = unit_instagram_gallery_items($settings['instagram'], 12);
-    echo '<section class="section unit-gallery-social"><div class="shell"><div class="section-head"><span class="eyebrow">POSTINGAN RESMI</span><h2>Instagram '.unit_e($unit_config['short_name']).'</h2><p>Postingan terbaru dari akun resmi kami. Reel berjalan otomatis tanpa suara saat terlihat di layar.</p></div>';
+    $items = unit_instagram_gallery_items($settings['instagram']);
+    echo '<section class="section unit-gallery-social"><div class="shell"><div class="section-head"><span class="eyebrow">POSTINGAN RESMI</span><h2>Instagram '.unit_e($unit_config['short_name']).'</h2><p>Jelajahi seluruh postingan yang dipilih admin unit dari Instagram resmi kami.</p></div>';
     unit_render_instagram_cards($items, $settings);
     echo '</div></section>';
 

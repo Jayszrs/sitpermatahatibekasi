@@ -81,8 +81,8 @@ $instagramAccountNames = [
 // Beranda yayasan menampilkan gabungan postingan dari yayasan sendiri (kalau
 // ada) plus semua 4 unit sekolah, supaya "semua institusi kelihatan" di satu
 // tempat, bukan cuma galeri khusus yayasan.
-$instagram_gallery_rows = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 AND media_type='embed' AND scope IN ('yayasan','daycare','tkit','sdit','smpit') ORDER BY FIELD(scope,'yayasan','daycare','tkit','sdit','smpit'), sort_order, id LIMIT 40")->fetchAll();
-$instagram_gallery_rows = instagram_verified_gallery($instagram_gallery_rows, $instagramAccountNames, 24);
+$instagram_gallery_rows = $pdo->query("SELECT * FROM instagram_gallery WHERE is_active=1 AND media_type='embed' AND scope IN ('yayasan','daycare','tkit','sdit','smpit') ORDER BY FIELD(scope,'yayasan','daycare','tkit','sdit','smpit'), sort_order, id")->fetchAll();
+$instagram_gallery_rows = instagram_verified_gallery($instagram_gallery_rows, $instagramAccountNames);
 // Selang-seling per unit agar empat kartu pertama tidak dikuasai satu unit.
 $instagram_gallery_groups = [];
 foreach ($instagram_gallery_rows as $instagramRow) $instagram_gallery_groups[$instagramRow['scope']][] = $instagramRow;
@@ -347,7 +347,7 @@ require_once __DIR__ . '/../components/header.php';
         <div class="section-head">
             <span class="section-eyebrow ig-section-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"></circle></svg> Instagram</span>
             <h2>Instagram SIT Permata Hati</h2>
-            <p>Momen terbaru Yayasan dan setiap unit sekolah. Video diputar otomatis tanpa suara saat terlihat di layar.</p>
+            <p>Momen terbaru Yayasan dan setiap unit sekolah. Postingan berasal dari tautan yang dikelola admin setiap unit.</p>
         </div>
         <?php $igVisibleCount = 4; ?>
         <?php if ($instagram_gallery_items): ?>
@@ -355,25 +355,7 @@ require_once __DIR__ . '/../components/header.php';
             <?php foreach ($instagram_gallery_items as $igIndex => $igItem): ?>
             <?php $igUnitLabel = $igItem['scope'] === 'yayasan' ? 'Yayasan' : ($unitCatalog[$igItem['scope']]['subtitle'] ?? ucfirst($igItem['scope'])); ?>
             <?php $igHidden = $igIndex >= $igVisibleCount; ?>
-            <?php $igMedia = $igItem['public_media']; $igIsVideo = !empty($igMedia['video']); $igCaption = ($igMedia['caption'] ?? null) ?: (($igItem['caption'] ?? null) ?: 'Momen terbaru '.$igUnitLabel.' di Instagram.'); ?>
-            <article class="ig-gallery-card ig-native-card" data-ig-card data-ig-state="<?php echo $igIsVideo ? 'video' : 'image'; ?>"<?php echo $igHidden ? ' hidden' : ''; ?>>
-                <header class="ig-card-head">
-                    <span class="ig-card-brand<?php echo !empty($igMedia['profile_image']) ? ' ig-card-avatar' : ''; ?>" aria-hidden="true"><?php if(!empty($igMedia['profile_image'])): ?><img src="<?php echo esc($igMedia['profile_image']); ?>" alt="" loading="lazy"><?php else: ?><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r=".8" class="ig-dot"></circle></svg><?php endif; ?></span>
-                    <span class="ig-card-identity"><strong><?php echo esc($igUnitLabel); ?></strong><small data-ig-username>@<?php echo esc($igMedia['username']); ?></small></span>
-                    <a class="ig-card-open" href="<?php echo esc($igItem['instagram_url']); ?>" target="_blank" rel="noopener" aria-label="Buka postingan <?php echo esc($igUnitLabel); ?> di Instagram">&nearr;</a>
-                </header>
-                <div class="ig-gallery-media">
-                    <img class="ig-media-poster" src="<?php echo esc($igMedia['image']); ?>" alt="<?php echo esc($igCaption); ?>" loading="lazy" decoding="async">
-                    <?php if($igIsVideo): ?><video class="ig-media-video" data-ig-video-src="<?php echo esc($igMedia['video']); ?>" poster="<?php echo esc($igMedia['image']); ?>" muted loop playsinline controls preload="none" aria-label="Video Instagram <?php echo esc($igUnitLabel); ?>"></video><button type="button" class="ig-media-play" data-ig-play aria-label="Putar video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></button><?php endif; ?>
-                    <span class="ig-media-shade" aria-hidden="true"></span>
-                    <span class="ig-gallery-unit-badge"><?php echo esc($igUnitLabel); ?></span>
-                    <span class="ig-media-kind" data-ig-kind><?php echo $igIsVideo ? 'REEL' : 'POST'; ?></span>
-                </div>
-                <footer class="ig-gallery-foot">
-                    <p><?php echo esc($igCaption); ?></p>
-                    <a href="<?php echo esc($igItem['instagram_url']); ?>" target="_blank" rel="noopener"><span>Lihat di Instagram</span><span aria-hidden="true">&rarr;</span></a>
-                </footer>
-            </article>
+            <?php instagram_embed_card($igItem, $igUnitLabel, $igHidden ? ' hidden' : ''); ?>
             <?php endforeach; ?>
         </div>
         <?php if (count($instagram_gallery_items) > $igVisibleCount): ?>

@@ -56,8 +56,11 @@ function esc(?string $string) {
 // pakai loading="lazy" bawaan browser di tag iframe-nya.
 function instagram_embed_url(?string $postUrl): ?string {
     $postUrl = trim((string) $postUrl);
-    if ($postUrl === '') return null;
-    if (!preg_match('~instagram\.com/(p|reel|tv)/([A-Za-z0-9_-]+)~i', $postUrl, $match)) return null;
+    if ($postUrl === '' || !filter_var($postUrl, FILTER_VALIDATE_URL)) return null;
+    $parts = parse_url($postUrl);
+    if (!in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http','https'], true)
+        || !in_array(strtolower((string) ($parts['host'] ?? '')), ['instagram.com','www.instagram.com'], true)
+        || !preg_match('~^/(p|reel|tv)/([A-Za-z0-9_-]+)/?~i', (string) ($parts['path'] ?? ''), $match)) return null;
     return 'https://www.instagram.com/' . $match[1] . '/' . $match[2] . '/embed/';
 }
 
@@ -189,35 +192,27 @@ function instagram_profile_username(?string $profileUrl): ?string {
     return preg_match('/^[A-Za-z0-9._]+$/', $username) ? strtolower($username) : null;
 }
 
-/**
- * Sisakan hanya post Instagram yang masih tersedia dan benar-benar berasal
- * dari akun unit yang sesuai. Media hasil verifikasi disertakan agar halaman
- * tidak pernah menampilkan foto lokal sebagai pengganti post yang gagal.
- *
- * @param array<int,array<string,mixed>> $rows
- * @param array<string,string> $expectedUsernames username per scope
- * @return array<int,array<string,mixed>>
- */
-function instagram_verified_gallery(array $rows, array $expectedUsernames, int $limit = 24): array {
+/** Pilih semua tautan post valid; iframe resmi tetap tersedia saat metadata gagal diambil. */
+function instagram_verified_gallery(array $rows, array $expectedUsernames, int $limit = 0): array {
     $verified = [];
     foreach ($rows as $row) {
-        if (($row['media_type'] ?? '') !== 'embed' || empty($row['instagram_url'])) continue;
-        $media = instagram_public_media((string) $row['instagram_url']);
-        if (!$media || empty($media['image']) || empty($media['username'])) continue;
-
-        $scope = strtolower((string) ($row['scope'] ?? ''));
-        $expected = strtolower((string) ($expectedUsernames[$scope] ?? ''));
-        if ($expected === '' || strtolower((string) $media['username']) !== $expected) continue;
-
-        // Reel tanpa video_url publik hanya akan terlihat seperti poster diam.
-        // Jangan tampilkan kartu semacam itu sebagai video yang seolah rusak.
-        if (!empty($media['is_video']) && empty($media['video'])) continue;
-
-        $row['public_media'] = $media;
+        if (($row['media_type'] ?? '') !== 'embed' || !instagram_embed_url($row['instagram_url'] ?? null)) continue;
+        $row['public_media'] = null;
         $verified[] = $row;
-        if (count($verified) >= $limit) break;
+        if ($limit > 0 && count($verified) >= $limit) break;
     }
     return $verified;
+}
+
+function instagram_embed_card(array $row, string $unitLabel, string $extraAttributes = ''): void {
+    $url = (string) $row['instagram_url'];
+    $embed = instagram_embed_url($url);
+    if (!$embed) return;
+    $caption = trim((string) ($row['caption'] ?? '')) ?: 'Postingan Instagram ' . $unitLabel;
+    echo '<article class="ig-gallery-card ig-embed-card"' . $extraAttributes . '>';
+    echo '<div class="ig-embed-heading"><strong>' . htmlspecialchars($unitLabel, ENT_QUOTES, 'UTF-8') . '</strong><span>Instagram resmi</span></div>';
+    echo '<iframe src="' . htmlspecialchars($embed, ENT_QUOTES, 'UTF-8') . '" title="' . htmlspecialchars($caption, ENT_QUOTES, 'UTF-8') . '" loading="lazy" allowtransparency="true" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    echo '<div class="ig-embed-footer"><p>' . htmlspecialchars($caption, ENT_QUOTES, 'UTF-8') . '</p><a href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">Buka di Instagram &rarr;</a></div></article>';
 }
 
 /**

@@ -1,8 +1,8 @@
 <?php
 
 function unit_social_profiles(): array {
-    global $unit_config;
-    $contact = $unit_config['contact'] ?? [];
+    global $unit_config, $pdo;
+    $contact = array_merge($unit_config['contact'] ?? [], unit_settings($pdo));
     $platforms = [
         'instagram' => 'Instagram',
         'facebook' => 'Facebook',

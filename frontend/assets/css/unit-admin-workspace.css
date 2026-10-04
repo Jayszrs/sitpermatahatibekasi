@@ -342,3 +342,9 @@ tr:last-child td { border-bottom: 0 !important; }
     .stat { min-height: 112px !important; }
     .panel { padding: 14px !important; }
 }
+.form-grid input[type="checkbox"] { width: auto; justify-self: start; accent-color: var(--primary, #145c39); }
+.form-grid label:has(> input[type="checkbox"]) { display: flex; align-items: center; gap: 9px; }
+.panel hr { border: 0; border-top: 1px solid #e7e1d7; margin: 24px 0; }
+.panel details { margin-top: 8px; }
+.panel details summary { cursor: pointer; color: #79501c; font-weight: 700; }
+.panel td form select, .panel td form input { min-width: 105px; margin-bottom: 6px; }
