@@ -6,12 +6,14 @@ Dokumen ini khusus untuk branch `deploy/railway-demo-v2`. Jangan merge branch in
 
 | Pendekatan lama | Gejala | Perubahan V2 |
 |---|---|---|
-| Paket APT `php8.4-mysql` | Paket tidak tersedia di image deploy Railpack sehingga build berhenti dengan exit 100. | PHP dikunci ke 8.3 dan ekstensi dinyatakan sebagai requirement Composer. Railpack membaca `ext-pdo_mysql`, `ext-mbstring`, dan `ext-fileinfo` langsung dari `composer.json`. |
+| Paket APT `php8.4-mysql` | Paket tidak tersedia di image deploy Railpack sehingga build berhenti dengan exit 100. | PHP mengikuti runtime default Railpack; constraint `~8.3.0` yang menyebabkan build lama gagal sengaja dihapus. Ekstensi dinyatakan sebagai requirement Composer. Railpack membaca `ext-pdo_mysql`, `ext-mbstring`, dan `ext-fileinfo` langsung dari `composer.json`. |
 | Docker + Apache | `pdo_mysql` berhasil dikompilasi, tetapi container crash karena lebih dari satu MPM Apache dimuat. | Dockerfile, Apache, dan Nixpacks tidak digunakan. Runtime mengikuti Railpack + FrankenPHP. |
 | `RAILPACK_PHP_EXTENSIONS` dan paket deploy APT | Hasilnya bergantung pada nama paket OS dan image runtime. | Kedua variable tersebut sengaja tidak dipasang. Composer menjadi sumber kebutuhan ekstensi. |
 | Koneksi dengan fallback `localhost/root` | Railway dapat diam-diam mencoba database di container web dan exception terlihat ke pengunjung. | Railway memakai `MYSQL*`; XAMPP memakai `.env`. Konfigurasi yang hilang atau koneksi gagal menghasilkan HTTP 503 dan log tanpa credential. |
 | Migrasi mengasumsikan dump sudah di-import | Database kosong tidak mempunyai tabel fondasi. | Migrasi membuat tabel fondasi, tabel konten, karir, lalu seed demo secara idempoten. Dump Downloads dan data privat tidak digunakan. |
-| Upload ditulis ke source container | File hilang setelah redeploy; CV berpotensi berada di web root. | Upload memakai `/data/uploads`; media publik disajikan di `/media`, sedangkan CV berada di `private/careers` dan hanya diunduh melalui portal terautentikasi. |
+| Upload ditulis ke source container | File hilang setelah redeploy; CV berpotensi berada di web root. | Upload memakai `/data/uploads`; media publik hanya disajikan di `/media/public/*` dan `/media/units/*`; `/media/private/*` ditolak, sedangkan CV berada di `private/careers` dan hanya diunduh melalui portal terautentikasi. |
+
+Clean URL bertingkat seperti `/portal/admin` dihitung menggunakan `APP_BASE_PATH`, sehingga tidak bergantung pada `SCRIPT_NAME` yang berbeda pada FrankenPHP.
 
 Referensi perilaku Railpack: PHP dideteksi dari `index.php`/`composer.json`, versi dibaca dari Composer, ekstensi Composer dipasang otomatis, dan `Caddyfile` serta `php.ini` di root menggantikan konfigurasi default. Lihat dokumentasi resmi [Railpack PHP](https://railpack.com/languages/php) dan [Railway Railpack](https://docs.railway.com/builds/railpack).
 

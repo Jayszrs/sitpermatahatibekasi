@@ -4,7 +4,6 @@
     "type": "project",
     "license": "proprietary",
     "require": {
-        "php": "~8.3.0",
         "ext-fileinfo": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
