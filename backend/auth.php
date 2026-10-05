@@ -185,7 +185,7 @@ function portal_bootstrap_database(PDO $pdo): void
         ['Tim Humas', 'humas', 'PORTAL_HUMAS_PASSWORD', 'HumasPHB#2026', ['HumasTBZ#2026', 'HumasPHB#2026'], 'humas'],
         ['Kasir SPMB', 'kasir', 'PORTAL_KASIR_PASSWORD', 'KasirPHB#2026', ['KasirTBZ#2026', 'KasirPHB#2026'], 'kasir'],
     ];
-    $findDefaultUser = $pdo->prepare('SELECT id,password FROM portal_users WHERE username=? LIMIT 1');
+    $findDefaultUser = $pdo->prepare('SELECT id,password,role,is_active FROM portal_users WHERE username=? LIMIT 1');
     $insertDefaultUser = $pdo->prepare('INSERT INTO portal_users (name, username, password, role) VALUES (?, ?, ?, ?)');
     $secureDefaultUser = $pdo->prepare('UPDATE portal_users SET password=?,is_active=1 WHERE id=?');
     $disableDemoUser = $pdo->prepare('UPDATE portal_users SET is_active=0 WHERE id=?');
@@ -199,6 +199,16 @@ function portal_bootstrap_database(PDO $pdo): void
             continue;
         }
         if (!$defaultUser) continue;
+        // Password admin yayasan dikelola oleh variable privat Railway. Saat
+        // nilainya diganti, akun lama langsung dapat dipulihkan tanpa shell.
+        if ($username === 'admin' && $configuredPassword !== null) {
+            if (!password_verify($configuredPassword, $defaultUser['password'])
+                || $defaultUser['role'] !== 'admin' || !(int) $defaultUser['is_active']) {
+                $pdo->prepare("UPDATE portal_users SET password=?,role='admin',is_active=1 WHERE id=?")
+                    ->execute([password_hash($configuredPassword, PASSWORD_DEFAULT), $defaultUser['id']]);
+            }
+            continue;
+        }
         $usesKnownDemoPassword = false;
         foreach ($knownDemoPasswords as $knownDemoPassword) {
             if (password_verify($knownDemoPassword, $defaultUser['password'])) {

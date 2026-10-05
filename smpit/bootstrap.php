@@ -83,7 +83,7 @@ function unit_seed_defaults(PDO $pdo): void {
         ['sdit-admin', 'UNIT_SDIT_ADMIN_PASSWORD', 'SDIT#2026', 'unit_admin', 'sdit'],
         ['smpit-admin', 'UNIT_SMPIT_ADMIN_PASSWORD', 'SMPIT#2026', 'unit_admin', 'smpit'],
     ];
-    $findUser = $pdo->prepare('SELECT id,password_hash FROM unit_users WHERE username=? LIMIT 1');
+    $findUser = $pdo->prepare('SELECT id,password_hash,role,unit_slug,is_active FROM unit_users WHERE username=? LIMIT 1');
     $insertUser = $pdo->prepare('INSERT INTO unit_users (username,password_hash,role,unit_slug) VALUES (?,?,?,?)');
     $secureExistingUser = $pdo->prepare('UPDATE unit_users SET password_hash=?,is_active=1 WHERE id=?');
     $disableDemoUser = $pdo->prepare('UPDATE unit_users SET is_active=0 WHERE id=?');
@@ -94,6 +94,14 @@ function unit_seed_defaults(PDO $pdo): void {
         $existingUser = $findUser->fetch();
         if (!$existingUser && $targetPassword !== null) {
             $insertUser->execute([$username, password_hash($targetPassword, PASSWORD_DEFAULT), $role, $slug]);
+        } elseif ($existingUser && $username === 'superadmin' && $configuredPassword !== null) {
+            // Environment Railway menjadi sumber password superadmin unit.
+            if (!password_verify($configuredPassword, $existingUser['password_hash'])
+                || $existingUser['role'] !== 'superadmin' || $existingUser['unit_slug'] !== null
+                || !(int) $existingUser['is_active']) {
+                $pdo->prepare("UPDATE unit_users SET password_hash=?,role='superadmin',unit_slug=NULL,is_active=1 WHERE id=?")
+                    ->execute([password_hash($configuredPassword, PASSWORD_DEFAULT), $existingUser['id']]);
+            }
         } elseif ($existingUser && password_verify($developmentPassword, $existingUser['password_hash'])) {
             if ($configuredPassword !== null) {
                 $secureExistingUser->execute([password_hash($configuredPassword, PASSWORD_DEFAULT), $existingUser['id']]);
