@@ -32,7 +32,7 @@ function admin_replacement_plan(PDO $mainPdo, PDO $unitPdo, string $username, st
         ['pdo' => $mainPdo, 'scope' => 'portal', 'table' => 'portal_users', 'hash' => 'password', 'role' => 'admin', 'legacy' => 'admin'],
         ['pdo' => $unitPdo, 'scope' => 'unit', 'table' => 'unit_users', 'hash' => 'password_hash', 'role' => 'superadmin', 'legacy' => 'superadmin'],
     ];
-    
+
     // Inspect both databases before changing either. A matching existing replacement
     // is accepted on reruns, but an unrelated account is never overwritten.
     foreach ($accounts as $account) {
@@ -45,7 +45,7 @@ function admin_replacement_plan(PDO $mainPdo, PDO $unitPdo, string $username, st
             throw new RuntimeException("Username sudah digunakan akun lain di {$account['scope']}; pilih username lain.");
         }
     }
-    
+
     return $accounts;
 }
 
@@ -71,7 +71,7 @@ function admin_replace_accounts(PDO $mainPdo, PDO $unitPdo, string $username, st
             }
         }
     }
-    
+
     foreach ($accounts as $account) {
         $query = $account['pdo']->prepare("SELECT * FROM {$account['table']} WHERE username=? AND is_active=1");
         $query->execute([$username]);
@@ -80,7 +80,7 @@ function admin_replace_accounts(PDO $mainPdo, PDO $unitPdo, string $username, st
             throw new RuntimeException('Verifikasi akun baru gagal; akun lama belum dihapus.');
         }
     }
-    
+
     foreach ($accounts as $account) {
         $connection = $account['pdo'];
         $connection->beginTransaction();
