@@ -4,6 +4,7 @@ date_default_timezone_set('Asia/Jakarta');
 $projectRoot = dirname(__DIR__);
 require_once $projectRoot . '/backend/config/unit_database.php';
 require_once $projectRoot . '/backend/config/storage.php';
+require_once $projectRoot . '/backend/helpers/admin_accounts.php';
 $unit_config = require __DIR__ . '/config.php';
 
 // Safe defaults apply to both the public form session and the unit portal.
@@ -76,6 +77,7 @@ function unit_ensure_schema(PDO $pdo): void {
 
 function unit_seed_defaults(PDO $pdo): void {
     global $unit_config;
+    $retiredUsernames = admin_retired_usernames($pdo, 'unit');
     $users = [
         ['superadmin', 'UNIT_SUPERADMIN_PASSWORD', 'SuperUnit#2026', 'superadmin', null],
         ['daycare-admin', 'UNIT_DAYCARE_ADMIN_PASSWORD', 'Daycare#2026', 'unit_admin', 'daycare'],
@@ -88,6 +90,7 @@ function unit_seed_defaults(PDO $pdo): void {
     $secureExistingUser = $pdo->prepare('UPDATE unit_users SET password_hash=?,is_active=1 WHERE id=?');
     $disableDemoUser = $pdo->prepare('UPDATE unit_users SET is_active=0 WHERE id=?');
     foreach ($users as [$username, $environmentKey, $developmentPassword, $role, $slug]) {
+        if (in_array($username, $retiredUsernames, true)) continue;
         $configuredPassword = app_env($environmentKey);
         $targetPassword = app_is_production() ? $configuredPassword : ($configuredPassword ?? $developmentPassword);
         $findUser->execute([$username]);

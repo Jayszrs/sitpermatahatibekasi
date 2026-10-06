@@ -29,10 +29,17 @@ if ($passwords['admin yayasan'] === $passwords['superadmin unit']
 }
 
 require_once dirname(__DIR__) . '/backend/config/database.php';
+require_once dirname(__DIR__) . '/backend/helpers/functions.php';
 require_once dirname(__DIR__) . '/backend/auth.php';
 require_once dirname(__DIR__) . '/daycare/bootstrap.php';
 $unitPdo = unit_database_connection();
 unit_ensure_schema($unitPdo);
+
+if (in_array('admin', admin_retired_usernames($pdo, 'portal'), true)
+    || in_array('superadmin', admin_retired_usernames($unitPdo, 'unit'), true)) {
+    fwrite(STDERR, "Akun lama sudah diganti. Kelola akun penggantinya; jangan hidupkan kembali login lama.\n");
+    exit(1);
+}
 
 if (!in_array('--apply', $argv, true)) {
     echo "Konfigurasi dan koneksi database siap. Jalankan lagi dengan --apply untuk mereset dua akun.\n";

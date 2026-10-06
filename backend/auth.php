@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/config/storage.php';
+require_once __DIR__ . '/helpers/admin_accounts.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_name('tbz_portal_session');
@@ -180,6 +181,7 @@ function portal_bootstrap_database(PDO $pdo): void
     // Seed lama menyimpan pemisah baris sebagai teks "\\n"; normalkan agar tag tampil terpisah.
     $pdo->exec("UPDATE site_content_items SET extra=REPLACE(extra, '\\\\n', CHAR(10)) WHERE extra LIKE '%\\\\n%'");
 
+    $retiredUsernames = admin_retired_usernames($pdo, 'portal');
     $defaults = [
         ['Administrator', 'admin', 'PORTAL_ADMIN_PASSWORD', 'AdminPHB#2026', ['AdminTBZ#2026', 'AdminPHB#2026'], 'admin'],
         ['Tim Humas', 'humas', 'PORTAL_HUMAS_PASSWORD', 'HumasPHB#2026', ['HumasTBZ#2026', 'HumasPHB#2026'], 'humas'],
@@ -190,6 +192,7 @@ function portal_bootstrap_database(PDO $pdo): void
     $secureDefaultUser = $pdo->prepare('UPDATE portal_users SET password=?,is_active=1 WHERE id=?');
     $disableDemoUser = $pdo->prepare('UPDATE portal_users SET is_active=0 WHERE id=?');
     foreach ($defaults as [$name, $username, $environmentKey, $developmentPassword, $knownDemoPasswords, $role]) {
+        if (in_array($username, $retiredUsernames, true)) continue;
         $configuredPassword = app_env($environmentKey);
         $targetPassword = app_is_production() ? $configuredPassword : ($configuredPassword ?? $developmentPassword);
         $findDefaultUser->execute([$username]);
@@ -491,7 +494,18 @@ portal_bootstrap_database($pdo);
 
 function portal_user(): ?array
 {
-    return $_SESSION['portal_user'] ?? null;
+    global $pdo;
+    $sessionUser = $_SESSION['portal_user'] ?? null;
+    if (!$sessionUser) return null;
+    $query = $pdo->prepare('SELECT id,name,username,role FROM portal_users WHERE id=? AND username=? AND is_active=1');
+    $query->execute([$sessionUser['id'], $sessionUser['username']]);
+    $user = $query->fetch();
+    if (!$user) {
+        unset($_SESSION['portal_user'], $_SESSION['portal_csrf']);
+        return null;
+    }
+    $user['id'] = (int) $user['id'];
+    return $_SESSION['portal_user'] = $user;
 }
 
 function portal_logged_in(): bool
