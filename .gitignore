@@ -8,3 +8,6 @@
 # Dokumen pelamar adalah data pribadi dan tidak boleh masuk repository.
 /frontend/assets/uploads/careers/*
 !/frontend/assets/uploads/careers/.gitkeep
+
+/frontend/assets/uploads/private/
+/dist/

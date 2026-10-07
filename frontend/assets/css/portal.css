@@ -253,3 +253,12 @@ a { color: inherit; text-decoration: none; }
     .portal-table-wrap { width: calc(100% + 32px); margin-inline: -16px; padding-inline: 16px; }
     .candidate-links .portal-action { width: 100%; }
 }
+
+/* Central account and audit controls. */
+.user-filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.user-filters label{display:grid;gap:6px;flex:1 1 160px;font-size:.85rem;font-weight:600}
+.user-filters input,.user-filters select{width:100%;min-height:42px;padding:10px;border:1px solid var(--portal-border,#dfe6df);border-radius:8px;background:#fff;color:inherit;font:inherit}
+.permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.permission-grid label{display:flex;gap:9px;align-items:center}
+.permission-grid input[type=checkbox]{width:18px;height:18px;flex:0 0 18px}
+.portal-panel+.portal-panel{margin-top:20px}

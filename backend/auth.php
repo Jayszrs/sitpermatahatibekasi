@@ -5,6 +5,8 @@
 
 require_once __DIR__ . '/config/storage.php';
 require_once __DIR__ . '/helpers/admin_accounts.php';
+require_once __DIR__ . '/helpers/access_control.php';
+require_once __DIR__ . '/helpers/admin_audit.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_name('tbz_portal_session');
@@ -38,6 +40,8 @@ function portal_bootstrap_database(PDO $pdo): void
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    portal_access_schema($pdo);
+    admin_audit_schema($pdo);
     $userColumnCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'portal_users' AND COLUMN_NAME = ?");
     $userColumnCheck->execute([DB_NAME, 'username']);
     if ((int)$userColumnCheck->fetchColumn() === 0) {
@@ -187,7 +191,7 @@ function portal_bootstrap_database(PDO $pdo): void
         ['Tim Humas', 'humas', 'PORTAL_HUMAS_PASSWORD', 'HumasPHB#2026', ['HumasTBZ#2026', 'HumasPHB#2026'], 'humas'],
         ['Kasir SPMB', 'kasir', 'PORTAL_KASIR_PASSWORD', 'KasirPHB#2026', ['KasirTBZ#2026', 'KasirPHB#2026'], 'kasir'],
     ];
-    $findDefaultUser = $pdo->prepare('SELECT id,password,role,is_active FROM portal_users WHERE username=? LIMIT 1');
+    $findDefaultUser = $pdo->prepare('SELECT id,password,role,is_active,managed_at FROM portal_users WHERE username=? LIMIT 1');
     $insertDefaultUser = $pdo->prepare('INSERT INTO portal_users (name, username, password, role) VALUES (?, ?, ?, ?)');
     $secureDefaultUser = $pdo->prepare('UPDATE portal_users SET password=?,is_active=1 WHERE id=?');
     $disableDemoUser = $pdo->prepare('UPDATE portal_users SET is_active=0 WHERE id=?');
@@ -201,7 +205,7 @@ function portal_bootstrap_database(PDO $pdo): void
             $insertDefaultUser->execute([$name, $username, password_hash($targetPassword, PASSWORD_DEFAULT), $role]);
             continue;
         }
-        if (!$defaultUser) continue;
+        if (!$defaultUser || $defaultUser['managed_at'] !== null) continue;
         // Password admin yayasan dikelola oleh variable privat Railway. Saat
         // nilainya diganti, akun lama langsung dapat dipulihkan tanpa shell.
         if ($username === 'admin' && $configuredPassword !== null) {
@@ -497,10 +501,10 @@ function portal_user(): ?array
     global $pdo;
     $sessionUser = $_SESSION['portal_user'] ?? null;
     if (!$sessionUser) return null;
-    $query = $pdo->prepare('SELECT id,name,username,role FROM portal_users WHERE id=? AND username=? AND is_active=1');
+    $query = $pdo->prepare('SELECT id,name,username,role,session_version FROM portal_users WHERE id=? AND username=? AND is_active=1');
     $query->execute([$sessionUser['id'], $sessionUser['username']]);
     $user = $query->fetch();
-    if (!$user) {
+    if (!$user || (int)($sessionUser['session_version'] ?? 1) !== (int)$user['session_version']) {
         unset($_SESSION['portal_user'], $_SESSION['portal_csrf']);
         return null;
     }
@@ -538,10 +542,12 @@ function portal_require_auth(array $roles = []): void
         exit;
     }
     if ($roles && !in_array(portal_user()['role'], $roles, true)) {
+        admin_audit($GLOBALS['pdo'], 'portal', portal_user(), null, 'access_denied', 'Akses halaman ditolak', 'failure');
         http_response_code(403);
         require __DIR__ . '/../frontend/pages/portal/forbidden.php';
         exit;
     }
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') admin_audit($GLOBALS['pdo'], 'portal', portal_user(), null, 'view', 'Membuka ' . basename((string)parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH)));
 }
 
 function portal_attempt_login(PDO $pdo, string $username, string $password): bool
@@ -557,6 +563,7 @@ function portal_attempt_login(PDO $pdo, string $username, string $password): boo
     $stmt->execute([strtolower(trim($username))]);
     $user = $stmt->fetch();
     if (!$user || !password_verify($password, $user['password'])) {
+        admin_audit($pdo, 'portal', ['username'=>strtolower(trim($username))], null, 'login', 'Login ditolak', 'failure');
         $_SESSION['portal_login_failures'][] = $now;
         return false;
     }
@@ -568,17 +575,21 @@ function portal_attempt_login(PDO $pdo, string $username, string $password): boo
         'name' => $user['name'],
         'username' => $user['username'],
         'role' => $user['role'],
+        'session_version' => (int)$user['session_version'],
     ];
     $pdo->prepare('UPDATE portal_users SET last_login_at = NOW() WHERE id = ?')->execute([$user['id']]);
     portal_log($pdo, 'login', 'Masuk ke portal sebagai ' . ucfirst($user['role']));
     return true;
 }
 
-function portal_log(PDO $pdo, string $action, string $description): void
+function portal_log(PDO $pdo, string $action, string $description, ?string $unit = null): void
 {
     $user = portal_user();
     $stmt = $pdo->prepare('INSERT INTO portal_activity_logs (user_id, action, description) VALUES (?, ?, ?)');
     $stmt->execute([$user['id'] ?? null, $action, mb_strimwidth($description, 0, 250, '...')]);
+    $legacyId = (int)$pdo->lastInsertId();
+    admin_audit($pdo, 'portal', $user, $unit, $action, $description);
+    $pdo->prepare('UPDATE admin_audit_events SET legacy_portal_id=? WHERE id=?')->execute([$legacyId,(int)$pdo->lastInsertId()]);
 }
 
 function portal_csrf_token(): string
@@ -593,6 +604,7 @@ function portal_verify_csrf(): void
 {
     $token = $_POST['_token'] ?? '';
     if (!$token || !hash_equals($_SESSION['portal_csrf'] ?? '', $token)) {
+        admin_audit($GLOBALS['pdo'], 'portal', portal_user(), null, 'csrf_rejected', 'Token formulir tidak valid', 'failure');
         http_response_code(419);
         exit('Sesi formulir tidak valid. Muat ulang halaman dan coba lagi.');
     }
@@ -600,6 +612,7 @@ function portal_verify_csrf(): void
 
 function portal_flash(string $type, string $message): void
 {
+    if ($type === 'danger' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') admin_audit($GLOBALS['pdo'], 'portal', portal_user(), null, (string)($_POST['action'] ?? 'update'), 'Tindakan ditolak atau gagal', 'failure');
     $_SESSION['portal_flash'] = ['type' => $type, 'message' => $message];
 }
 
@@ -657,10 +670,10 @@ function portal_delete_uploaded_image(?string $url): void
 {
     if (!$url) return;
     $path = (string) (parse_url($url, PHP_URL_PATH) ?: '');
-    if (str_starts_with($path, '/media/public/')) {
+    if (preg_match('~(?:^|/)media/public/[^/]+$~', $path)) {
         $target = app_storage_path('public/' . basename($path));
     } elseif (str_contains($path, '/frontend/assets/uploads/')) {
-        $target = dirname(__DIR__) . '/frontend/assets/uploads/' . basename($path);
+        $target = app_storage_path(basename($path));
     } else {
         return;
     }

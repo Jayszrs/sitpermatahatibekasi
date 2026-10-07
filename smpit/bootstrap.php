@@ -5,6 +5,7 @@ $projectRoot = dirname(__DIR__);
 require_once $projectRoot . '/backend/config/unit_database.php';
 require_once $projectRoot . '/backend/config/storage.php';
 require_once $projectRoot . '/backend/helpers/admin_accounts.php';
+require_once $projectRoot . '/backend/helpers/access_control.php';
 $unit_config = require __DIR__ . '/config.php';
 
 // Safe defaults apply to both the public form session and the unit portal.
@@ -73,6 +74,7 @@ function unit_ensure_schema(PDO $pdo): void {
         "CREATE TABLE IF NOT EXISTS unit_enrollments (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, unit_slug VARCHAR(24) NOT NULL, parent_name VARCHAR(160) NOT NULL, child_name VARCHAR(160) NOT NULL, phone VARCHAR(40) NOT NULL, email VARCHAR(160) NULL, message TEXT NULL, status VARCHAR(32) NOT NULL DEFAULT 'baru', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX unit_enrollment (unit_slug, status, created_at))",
     ];
     foreach ($queries as $query) $pdo->exec($query);
+    unit_access_schema($pdo);
 }
 
 function unit_seed_defaults(PDO $pdo): void {
@@ -85,7 +87,7 @@ function unit_seed_defaults(PDO $pdo): void {
         ['sdit-admin', 'UNIT_SDIT_ADMIN_PASSWORD', 'SDIT#2026', 'unit_admin', 'sdit'],
         ['smpit-admin', 'UNIT_SMPIT_ADMIN_PASSWORD', 'SMPIT#2026', 'unit_admin', 'smpit'],
     ];
-    $findUser = $pdo->prepare('SELECT id,password_hash,role,unit_slug,is_active FROM unit_users WHERE username=? LIMIT 1');
+    $findUser = $pdo->prepare('SELECT id,password_hash,role,unit_slug,is_active,managed_at FROM unit_users WHERE username=? LIMIT 1');
     $insertUser = $pdo->prepare('INSERT INTO unit_users (username,password_hash,role,unit_slug) VALUES (?,?,?,?)');
     $secureExistingUser = $pdo->prepare('UPDATE unit_users SET password_hash=?,is_active=1 WHERE id=?');
     $disableDemoUser = $pdo->prepare('UPDATE unit_users SET is_active=0 WHERE id=?');
@@ -95,6 +97,7 @@ function unit_seed_defaults(PDO $pdo): void {
         $targetPassword = app_is_production() ? $configuredPassword : ($configuredPassword ?? $developmentPassword);
         $findUser->execute([$username]);
         $existingUser = $findUser->fetch();
+        if ($existingUser && $existingUser['managed_at'] !== null) continue;
         if (!$existingUser && $targetPassword !== null) {
             $insertUser->execute([$username, password_hash($targetPassword, PASSWORD_DEFAULT), $role, $slug]);
         } elseif ($existingUser && $username === 'superadmin' && $configuredPassword !== null) {

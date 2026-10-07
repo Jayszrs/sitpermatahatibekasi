@@ -1,3 +1,13 @@
+# Portal SIT Permata Hati ? dokumentasi terkini
+
+- [Upload dan migrasi ke hosting Indonesia](docs/HOSTING_INDONESIA.md)
+- [Pengelolaan akun, role, dan audit terpusat](docs/CENTRAL_ADMIN.md)
+- [Pemulihan / penggantian akun admin](docs/ADMIN_ACCESS_RECOVERY.md)
+
+Gunakan PHP 8.3/8.4 dan dua database MySQL/MariaDB. Akun demo di bawah hanya untuk lokal; jangan dipakai sebagai konfigurasi production.
+
+---
+
 # School Website — Panduan Instalasi (XAMPP)
 
 > Konfigurasi Railway demo V2 tersedia di [`docs/RAILWAY_DEPLOYMENT.md`](docs/RAILWAY_DEPLOYMENT.md). Konfigurasi tersebut demo-only dan berada di branch terpisah dari `main`.

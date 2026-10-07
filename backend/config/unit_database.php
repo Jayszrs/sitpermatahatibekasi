@@ -19,10 +19,10 @@ function unit_database_connection(): PDO
     if ($connection instanceof PDO) return $connection;
 
     $railway = app_env('MYSQLHOST') !== null;
-    $host = app_env($railway ? 'MYSQLHOST' : 'DB_HOST');
-    $port = app_env($railway ? 'MYSQLPORT' : 'DB_PORT', '3306');
-    $user = app_env($railway ? 'MYSQLUSER' : 'DB_USER');
-    $pass = app_env($railway ? 'MYSQLPASSWORD' : 'DB_PASS', '');
+    $host = app_env('UNIT_DB_HOST', app_env($railway ? 'MYSQLHOST' : 'DB_HOST'));
+    $port = app_env('UNIT_DB_PORT', app_env($railway ? 'MYSQLPORT' : 'DB_PORT', '3306'));
+    $user = app_env('UNIT_DB_USER', app_env($railway ? 'MYSQLUSER' : 'DB_USER'));
+    $pass = app_env('UNIT_DB_PASS', app_env($railway ? 'MYSQLPASSWORD' : 'DB_PASS', ''));
     $name = app_env('UNIT_DB_NAME', $railway ? null : 'school_units_portal');
 
     if ($host === null || $user === null || $name === null) unit_database_unavailable('Required connection settings are missing.');
@@ -36,9 +36,16 @@ function unit_database_connection(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
-        $server = new PDO(sprintf('mysql:host=%s;port=%d;charset=utf8mb4', $host, (int) $port), $user, $pass, $options);
-        $server->exec(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', $name));
-        $connection = new PDO(sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, (int) $port, $name), $user, $pass, $options);
+        try {
+            $connection = new PDO(sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, (int) $port, $name), $user, $pass, $options);
+        } catch (PDOException $error) {
+            // Hosting panels create databases outside PHP. Never require CREATE
+            // DATABASE privileges when the configured database already exists.
+            if ((int)($error->errorInfo[1] ?? 0) !== 1049 || (app_is_production() && app_env('APP_ALLOW_DATABASE_CREATE') !== '1')) throw $error;
+            $server = new PDO(sprintf('mysql:host=%s;port=%d;charset=utf8mb4', $host, (int) $port), $user, $pass, $options);
+            $server->exec(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', $name));
+            $connection = new PDO(sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $host, (int) $port, $name), $user, $pass, $options);
+        }
         return $connection;
     } catch (Throwable $exception) {
         unit_database_unavailable('Connection failed (' . get_class($exception) . ').');

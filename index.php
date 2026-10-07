@@ -30,6 +30,11 @@ if (in_array('..', explode('/', $path), true)) {
     $path = '__invalid_path__';
 }
 
+if (str_starts_with($path, 'media/')) {
+    require __DIR__ . '/backend/media.php';
+    exit;
+}
+
 // Jika kosong atau index.php, arahkan ke beranda
 if (empty($path) || $path === 'index.php') {
     $page = 'index.php';

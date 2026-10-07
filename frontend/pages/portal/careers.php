@@ -21,6 +21,7 @@ if (isset($_GET['download_cv'])) {
     header('Content-Disposition: attachment; filename="' . addcslashes($safeName, '"\\') . '"');
     header('X-Content-Type-Options: nosniff');
     header('Cache-Control: private, no-store');
+    portal_log($pdo,'download_cv','Mengunduh CV #'.$applicationId);
     readfile($path);
     exit;
 }

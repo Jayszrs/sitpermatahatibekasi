@@ -58,8 +58,11 @@ if (!defined('APP_BASE_PATH')) {
     define('APP_BASE_PATH', rtrim($basePath, '/'));
 }
 if (!defined('SITE_URL')) {
+    $configuredUrl = rtrim((string)app_env('APP_URL', ''), '/');
     $railwayPublicDomain = trim((string) app_env('RAILWAY_PUBLIC_DOMAIN', ''));
-    if ($railwayPublicDomain !== '' && preg_match('/^[a-zA-Z0-9.-]+(?::[0-9]+)?$/', $railwayPublicDomain)) {
+    if ($configuredUrl !== '' && filter_var($configuredUrl, FILTER_VALIDATE_URL) && in_array(parse_url($configuredUrl, PHP_URL_SCHEME), ['http','https'], true)) {
+        define('SITE_URL', $configuredUrl);
+    } elseif ($railwayPublicDomain !== '' && preg_match('/^[a-zA-Z0-9.-]+(?::[0-9]+)?$/', $railwayPublicDomain)) {
         define('SITE_URL', 'https://' . $railwayPublicDomain . APP_BASE_PATH);
     } else {
         $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')

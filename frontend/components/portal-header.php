@@ -18,6 +18,7 @@ $portalNav = [
     ['key' => 'site-profile', 'label' => 'Profil, Visi & Misi', 'url' => '/portal/site-content?type=profile', 'roles' => ['admin', 'humas']],
     ['key' => 'careers', 'label' => 'Karir & Lamaran', 'url' => '/portal/careers', 'roles' => ['admin', 'humas']],
     ['key' => 'payments', 'label' => 'Pembayaran SPMB', 'url' => '/portal/payments', 'roles' => ['admin', 'kasir']],
+    ['key' => 'activity', 'label' => 'Audit Aktivitas', 'url' => '/portal/activity', 'roles' => ['admin']],
     ['key' => 'users', 'label' => 'Manajemen Pengguna', 'url' => '/portal/users', 'roles' => ['admin']],
 ];
 ?>
@@ -43,7 +44,7 @@ $portalNav = [
         </a>
         <div class="sidebar-role">
             <small>Akses aktif</small>
-            <strong><?php echo esc(ucfirst($portalUser['role'])); ?></strong>
+            <strong><?php echo esc($portalUser['role']==='admin'?'Superadmin Yayasan':ucfirst($portalUser['role'])); ?></strong>
         </div>
         <nav class="portal-nav">
             <?php foreach ($portalNav as $item): ?>

@@ -1,9 +1,17 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteRule ^\.well-known/acme-challenge/ - [L]
+    # Private source, credentials, dumps, test tools, and applicant documents.
+    RewriteRule (^|/)\. - [F,L]
+    RewriteRule ^(?:backend|database|docs|tools|tests|tmp)(?:/|$) - [F,L,NC]
+    RewriteRule ^frontend/assets/uploads/(?:private|careers)(?:/|$) - [F,L,NC]
+    RewriteRule ^(?:composer\.(?:json|lock)|php\.ini|Caddyfile|.*\.(?:sql|log|bak|zip))$ - [F,L,NC]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
+
+Options -Indexes
 
 <IfModule php_module>
     php_value upload_max_filesize 80M
