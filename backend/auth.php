@@ -590,7 +590,7 @@ function portal_log(PDO $pdo, string $action, string $description, ?string $unit
     $legacyId = (int)$pdo->lastInsertId();
     admin_audit($pdo, 'portal', $user, $unit, $action, $description);
     $pdo->prepare('UPDATE admin_audit_events SET legacy_portal_id=? WHERE id=?')->execute([$legacyId,(int)$pdo->lastInsertId()]);
-}
+ }
 
 function portal_csrf_token(): string
 {
