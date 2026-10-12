@@ -48,6 +48,13 @@ function ensure_public_schema(PDO $pdo): void
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS foundation_contact_settings (
+        id TINYINT PRIMARY KEY,
+        phone VARCHAR(40) NOT NULL,
+        email VARCHAR(190) NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS spmb_registrations (
         id INT AUTO_INCREMENT PRIMARY KEY,
         registration_number VARCHAR(40) NULL,

@@ -4,11 +4,12 @@ Uploads must point to tmp/central-uploads; never run against client databases.
 import base64
 from datetime import date
 from html.parser import HTMLParser
+import os
 import re
 import secrets
 import requests
 
-B='http://127.0.0.1:8768'
+B=os.environ.get('CMS_TEST_BASE','http://127.0.0.1:8768')
 TAG=secrets.token_hex(4)
 PNG=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j3WQAAAAASUVORK5CYII=')
 PDF=b'%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF\n'
@@ -17,7 +18,7 @@ PDF=b'%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF\n'
 class Forms(HTMLParser):
     def __init__(self, text):
         super().__init__(convert_charrefs=True)
-        self.forms=[];self.current=None;self.select=None;self.textarea=None
+        self.forms=[];self.current=None;self.select=None;self.textarea=None;self.option_text=None
         self.feed(text)
     def handle_starttag(self, tag, attrs):
         a=dict(attrs)
@@ -28,14 +29,20 @@ class Forms(HTMLParser):
             if a.get('type') in ['checkbox','radio'] and 'checked' not in a:return
             self.current[name]=a.get('value','')
         if tag=='select':self.select=name
-        if tag=='option' and self.select and ('selected' in a or self.select not in self.current):self.current[self.select]=a.get('value','')
+        if tag=='option' and self.select:
+            if 'selected' in a or self.select not in self.current:
+                self.current[self.select]=a.get('value','')
+                self.option_text=self.select if 'value' not in a else None
+            else:self.option_text=None
         if tag=='textarea' and name:self.textarea=name;self.current[name]=''
     def handle_data(self, data):
         if self.current is not None and self.textarea:self.current[self.textarea]+=data
+        if self.current is not None and self.option_text:self.current[self.option_text]+=data
     def handle_endtag(self, tag):
         if tag=='form':self.current=None
         if tag=='select':self.select=None
         if tag=='textarea':self.textarea=None
+        if tag=='option':self.option_text=None
 
 
 def check(r,status=200):
@@ -57,7 +64,7 @@ f=Forms(r.text).forms[0];f.update(username='admin',password='AdminPHB#2026')
 check(admin.post(B+'/portal/admin',data=f,timeout=30))
 units=requests.Session();check(units.post(B+'/daycare/admin/index.php',data={'action':'login','username':'superadmin','password':'SuperUnit#2026'},timeout=30))
 
-for n,unit in enumerate(['daycare','tkit','sdit','smpit']):
+for n,unit in enumerate(os.environ.get('CMS_AUDIT_UNITS','daycare,tkit,sdit,smpit').split(',')):
     base=B+'/'+unit+'/admin/index.php'
     def get(tab,**params):return check(units.get(base,params={'tab':tab,'unit':unit,**params},timeout=30))
     def post(tab,data,files=None,notice=None):
@@ -95,7 +102,7 @@ for n,unit in enumerate(['daycare','tkit','sdit','smpit']):
 
     f=find_form(get('settings').text,'save_settings');post('settings',f,notice='Kontak dan identitas diperbarui')
     r=post('settings',{'action':'save_hero','hero_media_type':'image'},files={'hero_media':('audit.png',PNG,'image/png')},notice='Media hero beranda diperbarui')
-    media=re.search(r'href="([^"]+)">lihat file',r.text)[1]
+    media=re.search(r'href="([^"]+)"[^>]*>lihat file',r.text)[1]
     check(requests.get(B+media if media.startswith('/') else media,timeout=30))
     post('settings',{'action':'reset_hero'},notice='Media hero dikembalikan')
 
@@ -107,7 +114,7 @@ for n,unit in enumerate(['daycare','tkit','sdit','smpit']):
 
     job={'action':'save_job','title':title+' job','department':'Pengajar','employment_type':'Full Time','work_location':'Bekasi','summary':'Uji','description':'Deskripsi uji','responsibilities':'Tanggung jawab uji','requirements':'Kualifikasi uji','is_active':'1'}
     r=post('careers',job,notice='Lowongan berhasil disimpan');job_row=row(r.text,title+' job');job_id=re.search(r'edit_job=(\d+)',job_row)[1]
-    f=find_form(get('careers',edit_job=job_id).text,'save_job');f['summary']='Diperbarui';post('careers',f,notice='Lowongan berhasil disimpan')
+    f=find_form(get('careers',edit_job=job_id).text,'save_job');f['summary']='Diperbarui';f['employment_type']='Penuh Waktu';post('careers',f,notice='Lowongan berhasil disimpan')
     job_url=re.search(r'href="([^"]+karir.php\?slug=[^"]+)"',job_row)[1]
     applicant=requests.Session();r=check(applicant.get(job_url,timeout=30));f=Forms(r.text).forms[0]
     f.update(full_name=title+' applicant',email='audit-'+TAG+str(n)+'@example.test',phone='08000000000',cover_letter='Lamaran pengujian',experience_years='0')

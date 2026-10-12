@@ -1,7 +1,8 @@
 <?php
 $metaTitle = isset($page_title) ? $page_title . ' - ' . SITE_NAME : SITE_NAME;
 $metaDescription = $meta_description ?? SITE_TAGLINE;
-$metaImage = public_media_url($meta_image ?? null);
+$shareImage = public_share_image($meta_image ?? null);
+$metaImage = $shareImage['url'];
 $metaUrl = $canonical_url ?? SITE_URL . '/' . ltrim((string)($current_page ?? 'index.php'), '/');
 $metaType = $meta_type ?? 'website';
 $schoolSocialLinks = [
@@ -64,6 +65,8 @@ $renderSocialIcon = static function (string $key): void {
 <meta property="og:description" content="<?php echo esc($metaDescription); ?>">
 <meta property="og:url" content="<?php echo esc($metaUrl); ?>">
 <meta property="og:image" content="<?php echo esc($metaImage); ?>">
+<?php if ($shareImage['type']): ?><meta property="og:image:type" content="<?php echo esc($shareImage['type']); ?>"><?php endif; ?>
+<?php if ($shareImage['width'] && $shareImage['height']): ?><meta property="og:image:width" content="<?php echo $shareImage['width']; ?>"><meta property="og:image:height" content="<?php echo $shareImage['height']; ?>"><?php endif; ?>
 <meta property="og:image:alt" content="<?php echo esc($metaTitle); ?>">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<?php echo esc($metaTitle); ?>">

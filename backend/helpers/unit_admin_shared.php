@@ -1,5 +1,33 @@
 <?php
 
+function unit_admin_default_settings(string $scope): array {
+    if (!in_array($scope, ['daycare', 'tkit', 'sdit', 'smpit'], true)) return [];
+    $config = require dirname(__DIR__, 2) . '/' . $scope . '/config.php';
+    return array_merge([
+        'name' => $config['name'],
+        'tagline' => $config['tagline'],
+        'description' => $config['description'],
+    ], $config['contact']);
+}
+
+function unit_admin_save_settings(PDO $pdo, string $scope, array $input): void {
+    $email = trim((string)($input['email'] ?? ''));
+    $phone = trim((string)($input['phone'] ?? ''));
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 190) throw new RuntimeException('Email unit tidak valid.');
+    if (!preg_match('/^\+?[0-9().\s-]{7,40}$/', $phone) || strlen(preg_replace('/\D/', '', $phone)) < 7) throw new RuntimeException('Nomor telepon unit tidak valid.');
+    if (trim((string)($input['name'] ?? '')) === '') throw new RuntimeException('Nama unit wajib diisi.');
+    $whatsapp = trim((string)($input['whatsapp'] ?? ''));
+    if ($whatsapp !== '' && !preg_match('/^[0-9]{9,17}$/', $whatsapp)) throw new RuntimeException('Nomor WhatsApp unit harus berupa angka.');
+    foreach (['maps','instagram','youtube'] as $key) {
+        $url = trim((string)($input[$key] ?? ''));
+        if ($url !== '' && (!filter_var($url, FILTER_VALIDATE_URL) || !in_array(strtolower((string)parse_url($url, PHP_URL_SCHEME)), ['http','https'], true))) throw new RuntimeException('Tautan ' . ucfirst($key) . ' harus berupa URL HTTP atau HTTPS.');
+    }
+    $save = $pdo->prepare('INSERT INTO unit_settings (unit_slug,setting_key,setting_value) VALUES (?,?,?) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)');
+    foreach (['name','tagline','description','phone','whatsapp','email','address','maps','instagram','youtube'] as $key) {
+        $save->execute([$scope, $key, trim((string)($input[$key] ?? ''))]);
+    }
+}
+
 function unit_admin_spmb_rows(PDO $mainPdo, string $scope): array {
     $rows = $mainPdo->query('SELECT * FROM spmb_registrations ORDER BY created_at DESC, id DESC')->fetchAll();
     return array_values(array_filter($rows, static fn(array $row): bool => school_unit_slug((string) $row['level']) === $scope));
@@ -32,7 +60,7 @@ function unit_admin_career_action(PDO $mainPdo, array $post, string $scope, ?str
         }
         $deadline = trim((string) ($post['deadline'] ?? ''));
         if ($deadline !== '' && (!DateTimeImmutable::createFromFormat('!Y-m-d', $deadline) || DateTimeImmutable::createFromFormat('!Y-m-d', $deadline)->format('Y-m-d') !== $deadline)) throw new RuntimeException('Tanggal batas lamaran tidak valid.');
-        $base = strtolower(trim(preg_replace('/[^a-z0-9]+/', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $fields['title']) ?: $fields['title']), '-')) ?: 'lowongan';
+        $base = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $fields['title']) ?: $fields['title']), '-')) ?: 'lowongan';
         $slug = $base; $suffix = 2;
         $check = $mainPdo->prepare('SELECT COUNT(*) FROM job_vacancies WHERE slug=? AND id<>?');
         do { $check->execute([$slug, $id]); if (!(int) $check->fetchColumn()) break; $slug = $base . '-' . $suffix++; } while (true);
@@ -77,6 +105,6 @@ function unit_admin_render_careers(PDO $mainPdo, string $scope, string $csrf): v
     <?php foreach (['description'=>'Deskripsi posisi','responsibilities'=>'Tanggung jawab','requirements'=>'Kualifikasi','benefits'=>'Fasilitas / benefit'] as $key=>$label): ?><label class="full"><?php echo $label; ?><textarea name="<?php echo $key; ?>" rows="4" <?php echo $key==='benefits'?'':'required'; ?>><?php echo unit_e($edit[$key] ?? ''); ?></textarea></label><?php endforeach; ?>
     <label class="full">Gambar lowongan (opsional)<input type="file" name="career_image" accept="image/jpeg,image/png,image/webp"></label><label><input type="checkbox" name="is_featured" <?php echo !empty($edit['is_featured'])?'checked':''; ?>> Posisi prioritas</label><label><input type="checkbox" name="is_active" <?php echo !isset($edit['is_active']) || $edit['is_active']?'checked':''; ?>> Tampilkan di website</label><div class="full actions"><button>Simpan Lowongan</button><?php if ($edit): ?><a href="<?php echo $base; ?>">Batal ubah</a><?php endif; ?></div></form></section>
     <section class="panel"><h2>Lowongan Saat Ini (<?php echo count($jobs); ?>)</h2><table><tr><th>Posisi</th><th>Status</th><th>Pelamar</th><th>Aksi</th></tr><?php foreach ($jobs as $job): $count = 0; foreach ($applications as $application) if ((int) $application['vacancy_id'] === (int) $job['id']) $count++; ?><tr><td><strong><?php echo unit_e($job['title']); ?></strong><br><span class="muted"><?php echo unit_e($job['department']); ?></span></td><td><?php echo $job['is_active']?'Tayang':'Arsip'; ?></td><td><?php echo $count; ?></td><td><div class="actions"><a href="?tab=careers&amp;unit=<?php echo unit_e($scope); ?>&amp;edit_job=<?php echo (int) $job['id']; ?>">Ubah</a><a href="<?php echo unit_e(unit_portal_url($scope,'karir.php?slug='.urlencode($job['slug']))); ?>" target="_blank" rel="noopener">Lihat</a><form method="post" onsubmit="return confirm('Arsipkan lowongan ini?')"><input type="hidden" name="csrf" value="<?php echo unit_e($csrf); ?>"><input type="hidden" name="action" value="archive_job"><input type="hidden" name="id" value="<?php echo (int) $job['id']; ?>"><button class="danger">Arsipkan</button></form></div></td></tr><?php endforeach; if (!$jobs): ?><tr><td colspan="4" class="muted">Belum ada lowongan untuk unit ini.</td></tr><?php endif; ?></table></section>
-    <section class="panel"><h2>Lamaran Masuk (<?php echo count($applications); ?>)</h2><table><tr><th>Pelamar / Posisi</th><th>Kontak</th><th>Status</th><th>Aksi</th></tr><?php foreach ($applications as $application): ?><tr><td><strong><?php echo unit_e($application['full_name']); ?></strong><br><?php echo unit_e($application['job_title']); ?><details><summary>Lihat pengantar</summary><p><?php echo nl2br(unit_e($application['cover_letter'])); ?></p></details></td><td><?php echo unit_e($application['email']); ?><br><?php echo unit_e($application['phone']); ?></td><td><?php echo unit_e($application['status']); ?></td><td><a href="?tab=careers&amp;unit=<?php echo unit_e($scope); ?>&amp;download_cv=<?php echo (int) $application['id']; ?>">Unduh CV</a><form method="post"><input type="hidden" name="csrf" value="<?php echo unit_e($csrf); ?>"><input type="hidden" name="action" value="update_application"><input type="hidden" name="id" value="<?php echo (int) $application['id']; ?>"><select name="status"><?php foreach (['baru','ditinjau','wawancara','diterima','ditolak'] as $status): ?><option value="<?php echo $status; ?>" <?php echo $application['status']===$status?'selected':''; ?>><?php echo ucfirst($status); ?></option><?php endforeach; ?></select><input name="admin_notes" value="<?php echo unit_e($application['admin_notes'] ?? ''); ?>" placeholder="Catatan internal"><button>Simpan</button></form></td></tr><?php endforeach; if (!$applications): ?><tr><td colspan="4" class="muted">Belum ada lamaran.</td></tr><?php endif; ?></table></section>
+    <section class="panel"><h2>Lamaran Masuk (<?php echo count($applications); ?>)</h2><table><tr><th>Pelamar / Posisi</th><th>Kontak</th><th>Status</th><th>Aksi</th></tr><?php foreach ($applications as $application): ?><tr><td><strong><?php echo unit_e($application['full_name']); ?></strong><br><?php echo unit_e($application['job_title']); ?><details><summary>Lihat pengantar</summary><p><?php echo nl2br(unit_e($application['cover_letter'])); ?></p></details></td><td><a href="mailto:<?php echo unit_e($application['email']); ?>"><?php echo unit_e($application['email']); ?></a><br><a href="tel:<?php echo unit_e(preg_replace('/[^0-9+]/','',$application['phone'])); ?>"><?php echo unit_e($application['phone']); ?></a></td><td><?php echo unit_e($application['status']); ?></td><td><a href="?tab=careers&amp;unit=<?php echo unit_e($scope); ?>&amp;download_cv=<?php echo (int) $application['id']; ?>">Unduh CV</a><form method="post"><input type="hidden" name="csrf" value="<?php echo unit_e($csrf); ?>"><input type="hidden" name="action" value="update_application"><input type="hidden" name="id" value="<?php echo (int) $application['id']; ?>"><select name="status"><?php foreach (['baru','ditinjau','wawancara','diterima','ditolak'] as $status): ?><option value="<?php echo $status; ?>" <?php echo $application['status']===$status?'selected':''; ?>><?php echo ucfirst($status); ?></option><?php endforeach; ?></select><input name="admin_notes" value="<?php echo unit_e($application['admin_notes'] ?? ''); ?>" placeholder="Catatan internal"><button>Simpan</button></form></td></tr><?php endforeach; if (!$applications): ?><tr><td colspan="4" class="muted">Belum ada lamaran.</td></tr><?php endif; ?></table></section>
     <?php
 }

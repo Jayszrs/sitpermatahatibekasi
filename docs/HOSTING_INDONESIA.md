@@ -1,6 +1,6 @@
 # Panduan hosting — SIT Permata Hati
 
-Diperbarui 7 Oktober 2026. Berlaku untuk satu website yayasan dengan empat unit pada subfolder `/daycare`, `/tkit`, `/sdit`, `/smpit`.
+Diperbarui 8 Oktober 2026. Berlaku untuk satu website yayasan dengan empat unit pada subfolder `/daycare`, `/tkit`, `/sdit`, `/smpit`.
 
 ## Pilihan hosting
 
@@ -97,6 +97,8 @@ Link upload baru memakai `/media/...`. Data lama mungkin masih menyimpan URL abs
 - Setiap unit mengirim satu formulir pendaftaran berlabel UJI; datanya muncul di CMS yang sesuai. Hapus data uji lewat prosedur admin/database setelah verifikasi.
 - Upload gambar → buka URL `/media/...`; upload PDF brosur → unduh; video bisa diputar dan seek. Uji CV hanya dari CMS yang berizin.
 - Login/perubahan data keempat unit muncul di Audit Aktivitas yayasan; filter dan CSV bekerja.
+- Isi email dan telepon resmi yayasan di **Kontak Yayasan**, lalu isi kontak masing-masing unit pada menu **Kontak** CMS unit. Periksa tautan `mailto:` dan `tel:` di halaman publik dan footer. Nilai bawaan konfigurasi harus diverifikasi sebelum situs diumumkan.
+- Buka satu berita yayasan dan satu berita tiap unit, periksa `og:image` ber-URL HTTPS absolut serta gambar dapat diakses publik. Uji berbagi lewat WhatsApp pada perangkat nyata; pratinjau lama dapat tersimpan di cache aplikasi penerima.
 - `/.env`, `/database/`, `/tools/`, `/tmp/`, `/media/private/`, serta `/frontend/assets/uploads/private/` ditolak (403/404). Folder tidak menampilkan directory listing.
 - Logout, login ulang, menu mobile, tautan WhatsApp/Instagram/Maps, serta tombol submit diuji pada desktop dan HP. API/embed eksternal tetap tergantung layanan penyedianya.
 

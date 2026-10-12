@@ -50,3 +50,10 @@ CSV memakai UTF-8 dan menetralkan awalan formula spreadsheet. Password, cookie, 
 - Migrasi hanya menambahkan struktur yang belum ada. Akun `unit_admin` lama tetap mendapat hak Admin Unit; akun superadmin lama tetap dikenali.
 
 Uji regresi HTTP tersedia di `tests/deployment/central_admin.py`; jalankan hanya menggunakan database sementara `codex_railway_central_main` dan `codex_railway_central_units`, dengan server PHP lokal pada port 8768. Skrip mengubah data uji sehingga tidak boleh diarahkan ke database klien.
+
+## Kontak dan tautan berbagi
+
+- **Portal Yayasan → Kontak Yayasan** mengatur telepon dan email website utama. Nomor tampil sebagai tautan `tel:` dan email sebagai `mailto:` di halaman Kontak serta footer.
+- **CMS Daycare/TKIT/SDIT/SMPIT → Kontak** mengatur telepon dan email masing-masing unit secara terpisah. Isi alamat resmi yang berbeda untuk tiap unit sebelum publikasi; nilai awal pada instalasi kosong adalah contoh konfigurasi dan perlu diperiksa.
+- Halaman detail berita yayasan dan keempat unit memuat metadata Open Graph berupa judul, ringkasan, URL, serta gambar artikel. Untuk gambar sumber JPG/PNG yang memiliki salinan WebP hasil optimasi, metadata berbagi menggunakan berkas sumber. Tampilan pratinjau akhir bergantung pada crawler dan cache aplikasi penerima; setelah mengganti gambar lama, minta platform mengambil ulang URL artikel.
+- Galeri Instagram yayasan dan keempat CMS unit menerima tautan tanpa batas jumlah. Halaman publik membaca semua tautan aktif yang valid; beranda yayasan menampilkan empat dahulu dan menyediakan tombol **Tampilkan Lebih Banyak**.

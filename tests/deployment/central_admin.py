@@ -41,6 +41,8 @@ def save(s, data, scope='unit', expect='berhasil'):
     if 'permissions' in data: data['permissions[]']=data.pop('permissions')
     url = B+'/portal/users?scope='+scope
     r=check(s.get(url, timeout=30))
+    if 'name="_token"' not in r.text:
+        r=check(s.get(url+'&new=1', timeout=30))
     r=check(s.post(url,data={'_token':token(r),'scope':scope,**data},timeout=30))
     if expect: assert expect.lower() in r.text.lower(), expect
     return r

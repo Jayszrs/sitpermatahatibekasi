@@ -18,6 +18,50 @@ define('SITE_TKIT_WHATSAPP', SITE_WHATSAPP);
 define('SITE_SDIT_WHATSAPP', SITE_WHATSAPP);
 define('SITE_SMPIT_WHATSAPP', SITE_WHATSAPP);
 define('SITE_EMAIL', 'info@sitpermatahati-bekasi.sch.id');
+function foundation_contact(PDO $pdo): array {
+    $fallback = ['phone' => SITE_PHONE, 'email' => SITE_EMAIL];
+    try {
+        $row = $pdo->query('SELECT phone,email FROM foundation_contact_settings WHERE id=1')->fetch(PDO::FETCH_ASSOC);
+        return $row ? array_merge($fallback, $row) : $fallback;
+    } catch (PDOException $exception) {
+        return $fallback;
+    }
+}
+
+function public_share_image(?string $source): array {
+    $url = public_media_url($source);
+    if (str_starts_with($url, '/')) {
+        $parts = parse_url(SITE_URL);
+        $origin = ($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? 'localhost') . (isset($parts['port']) ? ':' . $parts['port'] : '');
+        $url = $origin . $url;
+    }
+    $path = (string) parse_url($url, PHP_URL_PATH);
+    $siteHost = strtolower((string) parse_url(SITE_URL, PHP_URL_HOST));
+    $imageHost = strtolower((string) parse_url($url, PHP_URL_HOST));
+    $basePath = rtrim((string) parse_url(SITE_URL, PHP_URL_PATH), '/');
+    $localFile = static function (string $candidate) use ($basePath): string {
+        if ($basePath !== '' && !str_starts_with($candidate, $basePath . '/')) return '';
+        $relative = $basePath === '' ? $candidate : substr($candidate, strlen($basePath));
+        if (str_contains($relative, '..')) return '';
+        return dirname(__DIR__, 2) . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+    };
+    if ($siteHost !== '' && $siteHost === $imageHost && str_ends_with(strtolower($path), '.optimized.webp')) {
+        $stem = substr($path, 0, -strlen('.optimized.webp'));
+        foreach (['.jpeg', '.jpg', '.png'] as $extension) {
+            $candidate = $stem . $extension;
+            if (is_file($localFile($candidate))) { $path = $candidate; $url = SITE_URL . substr($path, strlen($basePath)); break; }
+        }
+    }
+    $type = match (strtolower((string)pathinfo($path, PATHINFO_EXTENSION))) {
+        'jpg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', default => ''
+    };
+    $dimensions = [];
+    if ($siteHost !== '' && $siteHost === $imageHost) {
+        $file = $localFile($path);
+        if ($file !== '' && is_file($file)) $dimensions = @getimagesize($file) ?: [];
+    }
+    return ['url' => $url, 'type' => $type, 'width' => (int)($dimensions[0] ?? 0), 'height' => (int)($dimensions[1] ?? 0)];
+}
 define('SITE_ADDRESS', 'Kp. Buwek Jaya Gg. Buser No. 23-24, Sumberjaya, Tambun Selatan, Bekasi, Jawa Barat 17510');
 define('SITE_DAYCARE_TKIT_CAMPUS_LABEL', 'Daycare, TKIT');
 define('SITE_DAYCARE_TKIT_CAMPUS_ADDRESS', 'Kp. Buwek Jaya Gg. Buser No. 23-24, Sumberjaya, Tambun Selatan, Bekasi, Jawa Barat 17510');

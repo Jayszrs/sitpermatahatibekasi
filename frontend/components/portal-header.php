@@ -5,7 +5,7 @@ $portalActive = $portalActive ?? 'dashboard';
 $portalNav = [
     ['key' => 'dashboard', 'label' => 'Dashboard', 'url' => '/portal/dashboard', 'roles' => ['admin', 'humas', 'kasir']],
     ['key' => 'content', 'label' => 'Berita & Galeri', 'url' => '/portal/content', 'roles' => ['admin', 'humas']],
-    ['key' => 'hero-media', 'label' => 'Hero Image & Video', 'url' => '/portal/hero-media', 'roles' => ['admin', 'humas']],
+    ['key' => 'hero-media', 'label' => 'Media Beranda', 'url' => '/portal/hero-media', 'roles' => ['admin', 'humas']],
     ['key' => 'social-gallery', 'label' => 'Galeri Instagram', 'url' => '/portal/social-gallery', 'roles' => ['admin', 'humas']],
     ['key' => 'brochures', 'label' => 'Brosur Unit', 'url' => '/portal/brochures', 'roles' => ['admin', 'humas']],
     ['key' => 'site-unit', 'label' => 'Unit Sekolah', 'url' => '/portal/site-content?type=unit', 'roles' => ['admin', 'humas']],
@@ -16,10 +16,11 @@ $portalNav = [
     ['key' => 'site-program', 'label' => 'Program Unggulan', 'url' => '/portal/site-content?type=program', 'roles' => ['admin', 'humas']],
     ['key' => 'site-activity', 'label' => 'Kegiatan Sekolah', 'url' => '/portal/site-content?type=activity', 'roles' => ['admin', 'humas']],
     ['key' => 'site-profile', 'label' => 'Profil, Visi & Misi', 'url' => '/portal/site-content?type=profile', 'roles' => ['admin', 'humas']],
+    ['key' => 'foundation-contact', 'label' => 'Kontak Yayasan', 'url' => '/portal/foundation-contact', 'roles' => ['admin', 'humas']],
     ['key' => 'careers', 'label' => 'Karir & Lamaran', 'url' => '/portal/careers', 'roles' => ['admin', 'humas']],
     ['key' => 'payments', 'label' => 'Pembayaran SPMB', 'url' => '/portal/payments', 'roles' => ['admin', 'kasir']],
     ['key' => 'activity', 'label' => 'Audit Aktivitas', 'url' => '/portal/activity', 'roles' => ['admin']],
-    ['key' => 'users', 'label' => 'Manajemen Pengguna', 'url' => '/portal/users', 'roles' => ['admin']],
+    ['key' => 'users', 'label' => 'Pengguna & Hak Akses', 'url' => '/portal/users', 'roles' => ['admin']],
 ];
 ?>
 <!DOCTYPE html>

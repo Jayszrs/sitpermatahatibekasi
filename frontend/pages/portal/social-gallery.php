@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../../backend/auth.php';
 portal_require_auth(['admin', 'humas']);
 
 const SOCIAL_GALLERY_SCOPE = 'yayasan';
-const SOCIAL_GALLERY_MAX = 5;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     portal_verify_csrf();
@@ -13,17 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = $_POST['action'] ?? '';
         $id = (int) ($_POST['id'] ?? 0);
         if ($action === 'save') {
-            $countStmt = $pdo->prepare('SELECT COUNT(*) FROM instagram_gallery WHERE scope=?');
-            $countStmt->execute([SOCIAL_GALLERY_SCOPE]);
-            $currentCount = (int) $countStmt->fetchColumn();
-            if (!$id && $currentCount >= SOCIAL_GALLERY_MAX) {
-                throw new RuntimeException('Galeri Instagram yayasan sudah penuh (maksimal ' . SOCIAL_GALLERY_MAX . ' item). Hapus salah satu dulu sebelum menambah yang baru.');
-            }
             $caption = trim($_POST['caption'] ?? '');
             $instagramUrl = trim($_POST['instagram_url'] ?? '');
             $sortOrder = max(0, (int) ($_POST['sort_order'] ?? 0));
             if ($instagramUrl === '') throw new RuntimeException('Tempel link postingan Instagram-nya dulu.');
-            if (!filter_var($instagramUrl, FILTER_VALIDATE_URL) || !str_contains($instagramUrl, 'instagram.com')) throw new RuntimeException('Link harus berupa URL postingan Instagram yang valid (instagram.com/p/...).');
+            if (!instagram_embed_url($instagramUrl)) throw new RuntimeException('Link harus berupa postingan atau reel Instagram yang valid.');
 
             $previous = null;
             if ($id) {
@@ -76,7 +69,7 @@ $portalTitle = 'Galeri Instagram';
 $portalActive = 'social-gallery';
 require __DIR__ . '/../../components/portal-header.php';
 ?>
-<div class="portal-welcome"><div><h2>Galeri Instagram Beranda</h2><p>Tempel link postingan Instagram yang mau ditampilkan - tidak perlu upload foto/video, kontennya diambil langsung dan live dari Instagram. Maksimal <?php echo SOCIAL_GALLERY_MAX; ?> link untuk web yayasan.</p></div><?php if (count($items) < SOCIAL_GALLERY_MAX): ?><a class="portal-action" href="<?php echo SITE_URL; ?>/portal/social-gallery?new=1">+ Tambah Link</a><?php endif; ?></div>
+<div class="portal-welcome"><div><h2>Galeri Instagram Beranda</h2><p>Tempel tautan postingan Instagram resmi. Semua link yang tersimpan dapat ditampilkan di website tanpa batas jumlah.</p></div><a class="portal-action" href="<?php echo SITE_URL; ?>/portal/social-gallery?new=1">+ Tambah Link</a></div>
 
 <?php if ($showForm): ?>
 <section class="portal-panel" style="margin-bottom:22px"><div class="panel-head"><h3><?php echo $editItem ? 'Edit' : 'Tambah'; ?> Link Postingan</h3><a href="<?php echo SITE_URL; ?>/portal/social-gallery">Tutup</a></div>
@@ -89,5 +82,5 @@ require __DIR__ . '/../../components/portal-header.php';
 </section>
 <?php endif; ?>
 
-<section class="portal-panel"><div class="panel-head"><h3>Link Galeri (<?php echo count($items); ?>/<?php echo SOCIAL_GALLERY_MAX; ?>)</h3></div><div class="portal-table-wrap"><table class="portal-table"><thead><tr><th>Keterangan</th><th>Tautan IG</th><th>Aksi</th></tr></thead><tbody><?php foreach ($items as $item): ?><tr><td><strong><?php echo esc($item['caption'] ?: '(tanpa keterangan)'); ?></strong></td><td><?php echo $item['instagram_url'] ? '<a href="' . esc($item['instagram_url']) . '" target="_blank" rel="noopener">' . esc($item['instagram_url']) . '</a>' : '-'; ?></td><td><div class="table-actions"><a class="portal-action secondary small" href="<?php echo SITE_URL; ?>/portal/social-gallery?edit=<?php echo (int) $item['id']; ?>">Edit</a><form method="post" onsubmit="return confirm('Hapus link ini?')"><input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?php echo (int) $item['id']; ?>"><button class="portal-action danger small">Hapus</button></form></div></td></tr><?php endforeach; ?><?php if (!$items): ?><tr><td colspan="3" class="muted">Belum ada link. Tempel link postingan Instagram yang mau ditampilkan.</td></tr><?php endif; ?></tbody></table></div></section>
+<section class="portal-panel"><div class="panel-head"><h3>Link Galeri (<?php echo count($items); ?>)</h3></div><div class="portal-table-wrap"><table class="portal-table"><thead><tr><th>Keterangan</th><th>Tautan IG</th><th>Aksi</th></tr></thead><tbody><?php foreach ($items as $item): ?><tr><td><strong><?php echo esc($item['caption'] ?: '(tanpa keterangan)'); ?></strong></td><td><?php echo $item['instagram_url'] ? '<a href="' . esc($item['instagram_url']) . '" target="_blank" rel="noopener">' . esc($item['instagram_url']) . '</a>' : '-'; ?></td><td><div class="table-actions"><a class="portal-action secondary small" href="<?php echo SITE_URL; ?>/portal/social-gallery?edit=<?php echo (int) $item['id']; ?>">Edit</a><form method="post" onsubmit="return confirm('Hapus link ini?')"><input type="hidden" name="_token" value="<?php echo esc(portal_csrf_token()); ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?php echo (int) $item['id']; ?>"><button class="portal-action danger small">Hapus</button></form></div></td></tr><?php endforeach; ?><?php if (!$items): ?><tr><td colspan="3" class="muted">Belum ada link. Tempel link postingan Instagram yang mau ditampilkan.</td></tr><?php endif; ?></tbody></table></div></section>
 <?php require __DIR__ . '/../../components/portal-footer.php'; ?>

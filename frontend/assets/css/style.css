@@ -2926,6 +2926,21 @@ img, video, iframe { max-width: 100%; }
 .social-share > span { width: 100%; margin-bottom: 3px; color: var(--muted); font-size: .73rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
 .social-share a, .social-share button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--primary); background: #fff; font: inherit; font-size: .75rem; font-weight: 800; cursor: pointer; }
 .social-share a:hover, .social-share button:hover { color: #fff; background: var(--primary); }
+
+/* Berita dibaca sebagai artikel; area berbagi dipisahkan dengan ritme yang lebih ringan. */
+.news-article { border: 0; border-radius: 34px 12px 34px 12px; box-shadow: 0 28px 65px rgba(3,30,19,.1); }
+.news-article-meta { padding-block: 19px; background: #f8faf7; }
+.news-article-cover { max-height: 550px; }
+.news-article-content { padding-bottom: 24px; }
+.news-article > .social-share { margin: 32px clamp(20px,5vw,62px) 10px; padding: 25px; border: 0; border-radius: 8px 28px 8px 28px; background: linear-gradient(125deg,#f0f6ed,#fff8e9); }
+.news-article > .social-share > span { color: var(--primary-dark); font-size: .84rem; letter-spacing: .025em; text-transform: none; }
+.news-article > .social-share a, .news-article > .social-share button { min-height: 42px; padding-inline: 16px; border-color: rgba(15,81,50,.15); }
+.news-article-footer { border-top: 0; padding-top: 8px; }
+.news-article-aside { border: 0; border-left: 4px solid var(--secondary); border-radius: 0 22px 22px 0; background: #f7faf6; box-shadow: none; }
+.contact-info-item a, .footer-contact-list a { color: inherit; text-decoration: underline; text-decoration-color: rgba(15,81,50,.35); text-underline-offset: 3px; }
+.contact-info-item a:hover, .footer-contact-list a:hover { text-decoration-color: currentColor; }
+.news-modern-card:nth-child(2n), .program-page-card:nth-child(2n), .gallery-publication-card:nth-child(2n) { border-radius: 8px 28px 8px 28px; }
+@media (max-width: 760px) { .news-article { border-radius: 22px 8px 22px 8px; } .news-article > .social-share { margin-inline: 18px; padding: 18px; } }
 .achievement-detail-hero { padding: 70px 0; color: #fff; background: radial-gradient(circle at 10% 10%,rgba(212,175,55,.2),transparent 30%),var(--primary-dark); }
 .achievement-detail-grid { display: grid; grid-template-columns: 1fr 430px; gap: 62px; align-items: center; }
 .achievement-detail-grid h1 { margin: 12px 0 18px; color: #fff; font-family: 'El Messiri',Inter,sans-serif; font-size: clamp(2.7rem,5vw,4.8rem); line-height: 1; }

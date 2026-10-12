@@ -56,7 +56,7 @@ require __DIR__ . '/../../components/portal-header.php';
                 <a class="quick-link" href="<?php echo SITE_URL; ?>/portal/payments"><strong>Pembayaran SPMB</strong><small>Cek dan ubah status pembayaran.</small></a>
             <?php endif; ?>
             <?php if ($user['role'] === 'admin'): ?>
-                <a class="quick-link" href="<?php echo SITE_URL; ?>/portal/users"><strong>Pengguna Portal</strong><small>Kelola akun dan role petugas.</small></a>
+                <a class="quick-link" href="<?php echo SITE_URL; ?>/portal/users"><strong>Pengguna &amp; Hak Akses</strong><small>Kelola akun yayasan, empat unit, dan izin tiap role.</small></a>
             <?php endif; ?>
         </div>
     </aside>
