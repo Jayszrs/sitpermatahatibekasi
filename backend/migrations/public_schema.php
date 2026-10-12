@@ -58,8 +58,12 @@ function ensure_public_schema(PDO $pdo): void
     $pdo->exec("CREATE TABLE IF NOT EXISTS spmb_registrations (
         id INT AUTO_INCREMENT PRIMARY KEY,
         registration_number VARCHAR(40) NULL,
+        registration_source ENUM('online','manual') NOT NULL DEFAULT 'online',
+        payment_access_token CHAR(64) NULL UNIQUE,
         student_name VARCHAR(150) NOT NULL,
         student_nik VARCHAR(30) NULL,
+        nisn VARCHAR(10) NULL,
+        student_number VARCHAR(40) NULL UNIQUE,
         gender ENUM('L','P') NULL,
         birth_place VARCHAR(100) NULL,
         birth_date DATE NULL,
@@ -78,11 +82,35 @@ function ensure_public_schema(PDO $pdo): void
         document_status ENUM('belum_lengkap','lengkap','terverifikasi') NOT NULL DEFAULT 'belum_lengkap',
         payment_status ENUM('belum_bayar','sebagian','lunas') NOT NULL DEFAULT 'belum_bayar',
         payment_amount DECIMAL(14,2) NOT NULL DEFAULT 0,
+        total_due DECIMAL(14,2) NOT NULL DEFAULT 0,
         payment_method VARCHAR(50) NULL,
         payment_date DATE NULL,
         payment_notes TEXT NULL,
         payment_updated_by INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS spmb_payment_claims (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        registration_id INT NOT NULL,
+        source ENUM('online','staff') NOT NULL DEFAULT 'online',
+        payment_type VARCHAR(50) NOT NULL DEFAULT 'Pembayaran SPMB',
+        claimed_amount DECIMAL(14,2) NOT NULL,
+        payment_method VARCHAR(50) NOT NULL DEFAULT 'Transfer Bank',
+        payment_date DATE NOT NULL,
+        payer_name VARCHAR(150) NULL,
+        reference_number VARCHAR(100) NULL,
+        verified_reference VARCHAR(100) NULL UNIQUE,
+        proof_path VARCHAR(255) NULL,
+        status ENUM('pending','verified','rejected','voided') NOT NULL DEFAULT 'pending',
+        review_notes TEXT NULL,
+        reviewed_by_scope VARCHAR(20) NULL,
+        reviewed_by_id INT NULL,
+        reviewed_at DATETIME NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_claim_registration (registration_id,status),
+        INDEX idx_claim_queue (status,created_at),
+        CONSTRAINT fk_spmb_claim_registration FOREIGN KEY (registration_id) REFERENCES spmb_registrations(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS site_content_items (
@@ -490,6 +518,17 @@ function ensure_public_schema(PDO $pdo): void
     $recordMigration('20260901-gallery-unit-publications', 'Publikasi galeri Instagram berdasarkan empat unit');
 
     if ($tableExists('spmb_registrations')) {
+        foreach ([
+            'registration_source' => "ENUM('online','manual') NOT NULL DEFAULT 'online'",
+            'payment_access_token' => 'CHAR(64) NULL UNIQUE',
+            'nisn' => 'VARCHAR(10) NULL',
+            'student_number' => 'VARCHAR(40) NULL UNIQUE',
+            'total_due' => 'DECIMAL(14,2) NOT NULL DEFAULT 0',
+        ] as $column => $definition) {
+            if (!$columnExists('spmb_registrations', $column)) {
+                $pdo->exec("ALTER TABLE spmb_registrations ADD COLUMN `$column` $definition");
+            }
+        }
         if (!$columnExists('spmb_registrations', 'entry_class')) {
             $pdo->exec("ALTER TABLE spmb_registrations ADD COLUMN entry_class VARCHAR(40) NULL AFTER level");
         }
@@ -504,6 +543,15 @@ function ensure_public_schema(PDO $pdo): void
         $stmt = $pdo->prepare("UPDATE spmb_registrations SET academic_year=? WHERE academic_year IS NULL OR academic_year=''");
         $stmt->execute([$currentYear]);
         $recordMigration('20260828-spmb-academic-year', 'Tahun ajaran dan waiting list SPMB');
+    }
+    if ($tableExists('spmb_payment_claims') && !$columnExists('spmb_payment_claims', 'verified_reference')) {
+        $pdo->exec('ALTER TABLE spmb_payment_claims ADD COLUMN verified_reference VARCHAR(100) NULL UNIQUE AFTER reference_number');
+    }
+    if ($tableExists('spmb_payment_claims')) {
+        $claimStatusType = $pdo->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='spmb_payment_claims' AND COLUMN_NAME='status'")->fetchColumn();
+        if ($claimStatusType && !str_contains((string)$claimStatusType, "'voided'")) {
+            $pdo->exec("ALTER TABLE spmb_payment_claims MODIFY COLUMN status ENUM('pending','verified','rejected','voided') NOT NULL DEFAULT 'pending'");
+        }
     }
 
     if ((int) $pdo->query('SELECT COUNT(*) FROM hero_media')->fetchColumn() === 0) {

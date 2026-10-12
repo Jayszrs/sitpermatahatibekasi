@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/helpers/functions.php';
 require_once __DIR__ . '/../../backend/helpers/spmb_shared.php';
+require_once __DIR__ . '/../../backend/helpers/spmb_workflow.php';
 $publicCsrfToken = public_form_csrf_token();
 $page_title = 'Form Pendaftaran SPMB';
 $spmbLevelRows = fetch_school_units($pdo);
@@ -11,7 +12,9 @@ foreach ($spmbLevelRows as $row) {
     if ($value !== '') $spmbLevels[$value] = $row['title'];
 }
 
-$success = false;
+$registrationResult = $_SESSION['spmb_registration_success'] ?? null;
+unset($_SESSION['spmb_registration_success']);
+$success = $registrationResult !== null;
 $errors = [];
 $requestedLevel = trim($_GET['level'] ?? '');
 foreach (array_keys($spmbLevels) as $availableLevel) if (strcasecmp($availableLevel, $requestedLevel) === 0) $requestedLevel = $availableLevel;
@@ -23,6 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         public_verify_csrf($_POST['_token'] ?? null);
         $result = spmb_validate_and_save($pdo, $_POST, null, $spmbLevels);
         $success = $result['success'];
+        if ($success) {
+            $_SESSION['spmb_registration_success'] = $result;
+            header('Location: form-spmb.php?registered=1');
+            exit;
+        }
         $errors = $result['errors'];
         $old = $result['old'];
     } catch (Throwable $e) {
@@ -47,7 +55,7 @@ require_once __DIR__ . '/../components/header.php';
             <div class="form-card">
 
                 <?php if ($success): ?>
-                    <div class="alert alert-success">Pendaftaran berhasil dikirim. Tim kami akan segera menghubungi Anda.</div>
+                    <div class="alert alert-success">Pendaftaran berhasil dikirim. Nomor pendaftaran: <strong><?php echo esc($registrationResult['registration_number']); ?></strong>. Simpan nomor ini. <a href="<?php echo esc(spmb_payment_url($registrationResult['payment_token'])); ?>">Kirim bukti pembayaran / pantau status</a>.</div>
                 <?php endif; ?>
 
                 <?php if (!empty($errors)): ?>
@@ -64,6 +72,7 @@ require_once __DIR__ . '/../components/header.php';
                         <input type="text" id="student_name" name="student_name" class="form-control" value="<?php echo esc($old['student_name']); ?>" placeholder="Contoh: Ahmad Fadhil Ramadhan" required>
                     </div>
                     <div class="form-row"><div class="form-group"><label for="student_nik">NIK Calon Siswa</label><input type="text" id="student_nik" name="student_nik" class="form-control" value="<?php echo esc($old['student_nik']); ?>" placeholder="Contoh: 327501120820180001"></div><div class="form-group"><label for="gender">Jenis Kelamin</label><select id="gender" name="gender" class="form-control"><option value="">-- Pilih --</option><option value="L" <?php echo $old['gender']==='L'?'selected':''; ?>>Laki-laki</option><option value="P" <?php echo $old['gender']==='P'?'selected':''; ?>>Perempuan</option></select></div></div>
+                    <div class="form-group"><label for="nisn">NISN lama (jika sudah punya)</label><input id="nisn" name="nisn" class="form-control" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" value="<?php echo esc($old['nisn']); ?>" placeholder="10 digit; boleh dikosongkan"></div>
                     <div class="form-row"><div class="form-group"><label for="birth_place">Tempat Lahir</label><input type="text" id="birth_place" name="birth_place" class="form-control" value="<?php echo esc($old['birth_place']); ?>" placeholder="Contoh: Bekasi"></div><div class="form-group"><label for="birth_date">Tanggal Lahir</label><input type="date" id="birth_date" name="birth_date" class="form-control" value="<?php echo esc($old['birth_date']); ?>"></div></div>
                     <div class="form-group">
                         <label for="parent_name">Nama Orang Tua *</label>

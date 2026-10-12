@@ -77,8 +77,12 @@ CREATE TABLE IF NOT EXISTS `contacts` (
 CREATE TABLE IF NOT EXISTS `spmb_registrations` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `registration_number` VARCHAR(40) DEFAULT NULL,
+    `registration_source` ENUM('online','manual') NOT NULL DEFAULT 'online',
+    `payment_access_token` CHAR(64) DEFAULT NULL UNIQUE,
     `student_name` VARCHAR(150) NOT NULL,
     `student_nik` VARCHAR(30) DEFAULT NULL,
+    `nisn` VARCHAR(10) DEFAULT NULL,
+    `student_number` VARCHAR(40) DEFAULT NULL UNIQUE,
     `gender` ENUM('L','P') DEFAULT NULL,
     `birth_place` VARCHAR(100) DEFAULT NULL,
     `birth_date` DATE DEFAULT NULL,
@@ -97,6 +101,7 @@ CREATE TABLE IF NOT EXISTS `spmb_registrations` (
     `document_status` ENUM('belum_lengkap','lengkap','terverifikasi') NOT NULL DEFAULT 'belum_lengkap',
     `payment_status` ENUM('belum_bayar','sebagian','lunas') NOT NULL DEFAULT 'belum_bayar',
     `payment_amount` DECIMAL(14,2) NOT NULL DEFAULT 0,
+    `total_due` DECIMAL(14,2) NOT NULL DEFAULT 0,
     `payment_method` VARCHAR(50) DEFAULT NULL,
     `payment_date` DATE DEFAULT NULL,
     `payment_notes` TEXT DEFAULT NULL,
@@ -182,6 +187,29 @@ CREATE TABLE IF NOT EXISTS `spmb_payments` (
     INDEX `idx_payment_registration` (`registration_id`),
     CONSTRAINT `fk_payment_registration` FOREIGN KEY (`registration_id`) REFERENCES `spmb_registrations` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_payment_recorder` FOREIGN KEY (`recorded_by`) REFERENCES `portal_users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `spmb_payment_claims` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `registration_id` INT NOT NULL,
+    `source` ENUM('online','staff') NOT NULL DEFAULT 'online',
+    `payment_type` VARCHAR(50) NOT NULL DEFAULT 'Pembayaran SPMB',
+    `claimed_amount` DECIMAL(14,2) NOT NULL,
+    `payment_method` VARCHAR(50) NOT NULL DEFAULT 'Transfer Bank',
+    `payment_date` DATE NOT NULL,
+    `payer_name` VARCHAR(150) DEFAULT NULL,
+    `reference_number` VARCHAR(100) DEFAULT NULL,
+    `verified_reference` VARCHAR(100) DEFAULT NULL UNIQUE,
+    `proof_path` VARCHAR(255) DEFAULT NULL,
+    `status` ENUM('pending','verified','rejected','voided') NOT NULL DEFAULT 'pending',
+    `review_notes` TEXT DEFAULT NULL,
+    `reviewed_by_scope` VARCHAR(20) DEFAULT NULL,
+    `reviewed_by_id` INT DEFAULT NULL,
+    `reviewed_at` DATETIME DEFAULT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_claim_registration` (`registration_id`,`status`),
+    INDEX `idx_claim_queue` (`status`,`created_at`),
+    CONSTRAINT `fk_spmb_claim_registration` FOREIGN KEY (`registration_id`) REFERENCES `spmb_registrations` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `schema_migrations` (

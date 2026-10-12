@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../backend/config/database.php';
 require_once __DIR__ . '/../../../backend/helpers/functions.php';
 require_once __DIR__ . '/../../../backend/auth.php';
 portal_require_auth();
+if (portal_user()['role'] === 'kasir') { header('Location: ' . SITE_URL . '/portal/payments'); exit; }
 
 $user = portal_user();
 $stats = [];

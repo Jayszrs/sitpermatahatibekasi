@@ -67,7 +67,7 @@ function unit_action_permission(string $action): ?string
         'save_album','delete_album','save_photo','delete_photo' => 'gallery',
         'save_social','save_social_bulk','toggle_social','delete_social' => 'social',
         'save_job','archive_job','update_application' => 'careers',
-        'update_spmb_status' => 'enrollments',
+        'update_spmb_status','review_spmb_payment','void_spmb_payment' => 'enrollments',
         'save_settings','save_hero','reset_hero' => 'settings',
         'save_user','manage_staff','change_own_password','replace_foundation_admin' => 'users',
         default => null,

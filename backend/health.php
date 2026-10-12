@@ -14,7 +14,7 @@ $checks = [
 
 try {
     $checks['database'] = (int) $pdo->query('SELECT 1')->fetchColumn() === 1;
-    $requiredTables = ['news', 'site_content_items', 'job_vacancies', 'spmb_registrations'];
+    $requiredTables = ['news', 'site_content_items', 'job_vacancies', 'spmb_registrations', 'spmb_payment_claims'];
     $placeholders = implode(',', array_fill(0, count($requiredTables), '?'));
     $statement = $pdo->prepare("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ($placeholders)");
     $statement->execute(array_merge([DB_NAME], $requiredTables));

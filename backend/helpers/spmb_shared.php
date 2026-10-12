@@ -30,6 +30,7 @@ function spmb_fields_from_post(array $post, ?string $lockedLevel = null): array 
     return [
         'student_name' => trim((string) ($post['student_name'] ?? '')),
         'student_nik' => trim((string) ($post['student_nik'] ?? '')),
+        'nisn' => trim((string) ($post['nisn'] ?? '')),
         'gender' => trim((string) ($post['gender'] ?? '')),
         'birth_place' => trim((string) ($post['birth_place'] ?? '')),
         'birth_date' => trim((string) ($post['birth_date'] ?? '')),
@@ -55,12 +56,13 @@ function spmb_empty_fields(?string $lockedLevel = null, ?array $academicYears = 
  *        saat level sudah dikunci ($lockedLevel) sehingga tidak perlu divalidasi ulang.
  * @return array{success:bool,errors:string[],old:array<string,string>}
  */
-function spmb_validate_and_save(PDO $pdo, array $post, ?string $lockedLevel = null, ?array $validLevels = null): array {
+function spmb_validate_and_save(PDO $pdo, array $post, ?string $lockedLevel = null, ?array $validLevels = null, string $source = 'online'): array {
     $academicYears = spmb_academic_years();
     $old = spmb_fields_from_post($post, $lockedLevel);
     $errors = [];
 
     if ($old['student_name'] === '') $errors[] = 'Nama calon siswa wajib diisi.';
+    if ($old['nisn'] !== '' && !preg_match('/^[0-9]{10}$/', $old['nisn'])) $errors[] = 'NISN harus terdiri dari 10 angka.';
     if ($old['parent_name'] === '') $errors[] = 'Nama orang tua wajib diisi.';
     if ($old['whatsapp'] === '') $errors[] = 'Nomor WhatsApp wajib diisi.';
     if ($old['level'] === '' || ($validLevels !== null && !isset($validLevels[$old['level']]))) {
@@ -71,13 +73,15 @@ function spmb_validate_and_save(PDO $pdo, array $post, ?string $lockedLevel = nu
     }
     if (!isset($academicYears[$old['academic_year']])) $errors[] = 'Tahun ajaran yang dipilih tidak valid.';
 
+    if (!in_array($source, ['online','manual'], true)) $errors[] = 'Sumber pendaftaran tidak valid.';
     if ($errors) return ['success' => false, 'errors' => $errors, 'old' => $old];
 
     $admissionTrack = $academicYears[$old['academic_year']] === 'Waiting List' ? 'waiting_list' : 'reguler';
-    $stmt = $pdo->prepare("INSERT INTO spmb_registrations (student_name,student_nik,gender,birth_place,birth_date,parent_name,parent_nik,family_card_number,whatsapp,level,entry_class,academic_year,admission_track,previous_school,address) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    $token = bin2hex(random_bytes(32));
+    $stmt = $pdo->prepare("INSERT INTO spmb_registrations (student_name,student_nik,nisn,gender,birth_place,birth_date,parent_name,parent_nik,family_card_number,whatsapp,level,entry_class,academic_year,admission_track,previous_school,address,registration_source,payment_access_token) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     $stmt->execute([
         $old['student_name'],
-        $old['student_nik'] ?: null, $old['gender'] ?: null, $old['birth_place'] ?: null, $old['birth_date'] ?: null,
+        $old['student_nik'] ?: null, $old['nisn'] ?: null, $old['gender'] ?: null, $old['birth_place'] ?: null, $old['birth_date'] ?: null,
         $old['parent_name'],
         $old['parent_nik'] ?: null, $old['family_card_number'] ?: null,
         $old['whatsapp'],
@@ -87,10 +91,13 @@ function spmb_validate_and_save(PDO $pdo, array $post, ?string $lockedLevel = nu
         $admissionTrack,
         $old['previous_school'] ?: null,
         $old['address'] ?: null,
+        $source,
+        $token,
     ]);
     $newId = (int) $pdo->lastInsertId();
+    require_once __DIR__ . '/spmb_workflow.php';
     $pdo->prepare('UPDATE spmb_registrations SET registration_number=? WHERE id=?')
-        ->execute(['SPMB-' . substr($old['academic_year'], 0, 4) . '-' . str_pad((string) $newId, 4, '0', STR_PAD_LEFT), $newId]);
+        ->execute([spmb_registration_code($newId, $old['level'], $old['academic_year']), $newId]);
 
-    return ['success' => true, 'errors' => [], 'old' => spmb_empty_fields($lockedLevel, $academicYears)];
+    return ['success' => true, 'errors' => [], 'old' => spmb_empty_fields($lockedLevel, $academicYears), 'id' => $newId, 'registration_number' => spmb_registration_code($newId, $old['level'], $old['academic_year']), 'payment_token' => $token];
 }

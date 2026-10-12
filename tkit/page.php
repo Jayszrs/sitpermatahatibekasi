@@ -19,11 +19,13 @@ $karirOld = [];
 if ($page === 'spmb') {
     require_once __DIR__ . '/../backend/helpers/functions.php';
     require_once __DIR__ . '/../backend/helpers/spmb_shared.php';
+    require_once __DIR__ . '/../backend/helpers/spmb_workflow.php';
     unit_csrf();
     $lockedLevel = school_unit_catalog()[UNIT_SLUG]['subtitle'] ?? ucfirst(UNIT_SLUG);
     $spmbOld = spmb_empty_fields($lockedLevel);
     $spmbSuccess = !empty($_SESSION['unit_spmb_success']);
-    unset($_SESSION['unit_spmb_success']);
+    $spmbPaymentInfo = $_SESSION['unit_spmb_payment_info'] ?? null;
+    unset($_SESSION['unit_spmb_success'], $_SESSION['unit_spmb_payment_info']);
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!unit_verify_csrf($_POST['csrf'] ?? '')) {
             $formError = 'Sesi formulir tidak valid. Silakan muat ulang halaman.';
@@ -33,7 +35,7 @@ if ($page === 'spmb') {
             $mainPdo = unit_connect_main_site_pdo();
             $spmbResult = spmb_validate_and_save($mainPdo, $_POST, $lockedLevel);
             $spmbOld = $spmbResult['old'];
-            if ($spmbResult['success']) { $_SESSION['unit_spmb_success'] = true; header('Location: spmb.php'); exit; }
+            if ($spmbResult['success']) { $_SESSION['unit_spmb_success'] = true; $_SESSION['unit_spmb_payment_info'] = ['number'=>$spmbResult['registration_number'],'token'=>$spmbResult['payment_token']]; header('Location: spmb.php'); exit; }
             else $formError = implode(' ', $spmbResult['errors']);
         }
     }
@@ -225,7 +227,7 @@ if($page==='profile'): require_once __DIR__ . '/../backend/helpers/unit_profile.
         <input type="hidden" name="csrf" value="<?php echo unit_e(unit_csrf()); ?>">
         <input type="hidden" name="level" value="<?php echo unit_e($lockedLevel); ?>">
         <p class="form-locked-level">Mendaftar untuk jenjang: <strong><?php echo unit_e($lockedLevel); ?></strong></p>
-        <?php if (!empty($spmbSuccess)): ?><p class="form-success">Pendaftaran berhasil dikirim. Tim kami akan segera menghubungi Anda melalui WhatsApp.</p><?php endif; ?>
+        <?php if (!empty($spmbSuccess)): ?><p class="form-success">Pendaftaran berhasil dikirim. Nomor pendaftaran: <strong><?php echo unit_e($spmbPaymentInfo['number'] ?? ''); ?></strong>. <a href="<?php echo unit_e(spmb_payment_url($spmbPaymentInfo['token'] ?? '')); ?>">Kirim bukti pembayaran / pantau status</a>.</p><?php endif; ?>
         <?php if (!empty($formError)): ?><p class="form-error"><?php echo unit_e($formError); ?></p><?php endif; ?>
         <label>Nama Calon Siswa *<input required name="student_name" value="<?php echo unit_e($spmbOld['student_name']); ?>"></label>
         <div class="form-pair">
@@ -242,6 +244,7 @@ if($page==='profile'): require_once __DIR__ . '/../backend/helpers/unit_profile.
             <label>Nomor Kartu Keluarga<input name="family_card_number" value="<?php echo unit_e($spmbOld['family_card_number']); ?>"></label>
         </div>
         <label>Nomor WhatsApp *<input required name="whatsapp" inputmode="tel" value="<?php echo unit_e($spmbOld['whatsapp']); ?>"></label>
+        <label>NISN lama (jika sudah punya)<input name="nisn" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" value="<?php echo unit_e($spmbOld['nisn']); ?>" placeholder="10 digit; boleh dikosongkan"></label>
         <label>Tahun Ajaran *<select required name="academic_year"><?php foreach ($spmbAcademicYears as $year => $track): ?><option value="<?php echo unit_e($year); ?>" <?php echo $spmbOld['academic_year']===$year?'selected':''; ?>><?php echo unit_e($year.' — '.$track); ?></option><?php endforeach; ?></select><small class="field-help">Tahun berikutnya otomatis tercatat sebagai waiting list.</small></label>
         <label>Kelas Tujuan *<select required name="entry_class"><option value="">-- Pilih Kelas --</option><?php foreach(spmb_entry_classes($lockedLevel) as $class): ?><option value="<?php echo unit_e($class); ?>" <?php echo $spmbOld['entry_class']===$class?'selected':''; ?>><?php echo unit_e($class); ?></option><?php endforeach; ?></select></label>
         <label>Asal Sekolah<input name="previous_school" value="<?php echo unit_e($spmbOld['previous_school']); ?>"></label>

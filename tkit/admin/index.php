@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/backend/helpers/unit_shared.php';
 require_once dirname(__DIR__, 2) . '/backend/helpers/unit_admin_shared.php';
 $mainPdo = unit_connect_main_site_pdo();
 require_once dirname(__DIR__, 2) . '/backend/helpers/spmb_report.php';
+require_once dirname(__DIR__, 2) . '/backend/helpers/spmb_workflow.php';
 require_once dirname(__DIR__, 2) . '/backend/helpers/admin_audit.php';
 admin_audit_schema($mainPdo);
 if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -67,6 +68,16 @@ $admin=$_SESSION['unit_admin']; $isSuper=$admin['role']==='superadmin';
 $permissions=unit_permissions($pdo,$admin);
 if (!$isSuper && $admin['unit_slug'] !== UNIT_SLUG) { header('Location: ' . unit_portal_url((string)$admin['unit_slug'])); exit; }
 $scope=$isSuper && isset($allUnits[$_GET['unit']??'']) ? $_GET['unit'] : ($isSuper ? UNIT_SLUG : $admin['unit_slug']);
+
+if (isset($_GET['proof_spmb'])) {
+    if (!in_array('enrollments', $permissions, true)) { http_response_code(403); exit('Akses ditolak.'); }
+    $proof = $mainPdo->prepare('SELECT c.proof_path,r.level FROM spmb_payment_claims c JOIN spmb_registrations r ON r.id=c.registration_id WHERE c.id=?');
+    $proof->execute([(int)$_GET['proof_spmb']]);
+    $proofRow = $proof->fetch();
+    if (!$proofRow || school_unit_slug((string)$proofRow['level']) !== $scope) { http_response_code(404); exit('Bukti tidak ditemukan.'); }
+    admin_audit($mainPdo,'unit',$admin,$scope,'view_spmb_proof','Melihat bukti pembayaran #'.(int)$_GET['proof_spmb']);
+    spmb_stream_proof((string)$proofRow['proof_path']);
+}
 
 if (isset($_GET['export_spmb'])) {
     if (!in_array('enrollments', $permissions, true)) { http_response_code(403); exit('Akses ditolak.'); }
@@ -162,7 +173,9 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')!=='login') {
         } elseif($action==='toggle_social') {$mainPdo->prepare('UPDATE instagram_gallery SET is_active=? WHERE id=? AND scope=?')->execute([(int)!empty($_POST['is_active']),(int)($_POST['id']??0),$scope]);$notice='Status tautan Instagram diperbarui.';
         } elseif($action==='delete_social') {$mainPdo->prepare('DELETE FROM instagram_gallery WHERE id=? AND scope=?')->execute([(int)($_POST['id']??0),$scope]);$notice='Item galeri Instagram unit dihapus.';
         } elseif(in_array($action,['save_job','archive_job','update_application'],true)) {$image=$action==='save_job'?admin_upload('career_image',$scope):null;$notice=unit_admin_career_action($mainPdo,$_POST,$scope,$image);
-        } elseif($action==='update_spmb_status') {$registrationId=(int)($_POST['id']??0);$status=(string)($_POST['status']??'');if(!in_array($status,['baru','verifikasi','lulus','cadangan','ditolak','daftar_ulang'],true))throw new RuntimeException('Status pendaftar tidak valid.');$check=$mainPdo->prepare('SELECT level FROM spmb_registrations WHERE id=?');$check->execute([$registrationId]);$level=$check->fetchColumn();if(!$level||school_unit_slug((string)$level)!==$scope)throw new RuntimeException('Pendaftar tidak ditemukan di unit ini.');$mainPdo->prepare('UPDATE spmb_registrations SET registration_status=? WHERE id=?')->execute([$status,$registrationId]);$notice='Status pendaftar diperbarui.';
+        } elseif($action==='update_spmb_status') {$registrationId=(int)($_POST['id']??0);$status=(string)($_POST['status']??'');if(!in_array($status,['baru','verifikasi','lulus','cadangan','ditolak','daftar_ulang'],true))throw new RuntimeException('Status pendaftar tidak valid.');$check=$mainPdo->prepare('SELECT level FROM spmb_registrations WHERE id=?');$check->execute([$registrationId]);$level=$check->fetchColumn();if(!$level||school_unit_slug((string)$level)!==$scope)throw new RuntimeException('Pendaftar tidak ditemukan di unit ini.');$mainPdo->prepare('UPDATE spmb_registrations SET registration_status=? WHERE id=?')->execute([$status,$registrationId]);spmb_update_student_number($mainPdo,$registrationId);$notice='Status pendaftar diperbarui.';
+        } elseif($action==='review_spmb_payment') {$decision=(string)($_POST['decision']??'');$review=spmb_review_payment_claim($mainPdo,(int)($_POST['claim_id']??0),'unit',(int)$admin['id'],$scope,$decision,trim((string)($_POST['confirmed_amount']??'')),trim((string)($_POST['bank_reference']??'')),trim((string)($_POST['review_notes']??'')));$notice=$decision==='verified'?'Pembayaran diverifikasi. Total terbayar: Rp '.number_format($review['total'],0,',','.').'.':'Bukti pembayaran ditolak.';
+        } elseif($action==='void_spmb_payment') {$total=spmb_void_payment_claim($mainPdo,(int)($_POST['claim_id']??0),'unit',(int)$admin['id'],$scope,(string)($_POST['reason']??''));$notice='Verifikasi dibatalkan. Total terbayar: Rp '.number_format($total,0,',','.').'.';
         } elseif($action==='save_user' && $isSuper) {admin_save_unit_user($pdo,$_POST);$notice='Akun disimpan.';
         } elseif($action==='manage_staff' && !$isSuper) {unit_admin_manage_staff($pdo,$admin,$_POST);$notice='Role atau password petugas diperbarui.';
         } elseif($action==='change_own_password' && !$isSuper) {$version=unit_admin_change_own_password($pdo,$admin,(string)($_POST['current_password']??''),(string)($_POST['new_password']??''));$_SESSION['unit_admin']['session_version']=$version;session_regenerate_id(true);$notice='Password akun Anda diperbarui.';
