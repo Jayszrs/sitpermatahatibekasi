@@ -3,7 +3,7 @@ require_once __DIR__ . '/spmb_shared.php';
 
 function spmb_report_filters(string $scope, array $query): array
 {
-    if (!is_scalar($query['year'] ?? '') || !is_scalar($query['class'] ?? '')) {
+    if (!is_scalar($query['year'] ?? '') || !is_scalar($query['class'] ?? '') || !is_scalar($query['q'] ?? '') || !is_scalar($query['payment'] ?? '')) {
         throw new RuntimeException('Filter rekap tidak valid.');
     }
     $year = trim((string) ($query['year'] ?? ''));
@@ -12,7 +12,10 @@ function spmb_report_filters(string $scope, array $query): array
     if ($class !== '' && $class !== 'Belum ditentukan' && !in_array($class, spmb_entry_classes($scope), true)) {
         throw new RuntimeException('Kelas tujuan tidak valid.');
     }
-    return ['year' => $year, 'class' => $class];
+    $search = trim((string)($query['q'] ?? ''));
+    $payment = (string)($query['payment'] ?? '');
+    if (mb_strlen($search) > 100 || !in_array($payment, ['', 'belum_bayar', 'sebagian', 'lunas'], true)) throw new RuntimeException('Pencarian atau status bayar tidak valid.');
+    return ['year' => $year, 'class' => $class, 'q' => $search, 'payment' => $payment];
 }
 
 function spmb_report_rows(PDO $mainPdo, PDO $unitPdo, string $scope, array $filters): array
@@ -34,8 +37,13 @@ function spmb_report_rows(PDO $mainPdo, PDO $unitPdo, string $scope, array $filt
     }
     $rows = array_values(array_filter($rows, static function (array $row) use ($filters): bool {
         $class = trim((string) ($row['entry_class'] ?? '')) ?: 'Belum ditentukan';
+        $search = $filters['q'] ?? '';
+        $payment = $filters['payment'] ?? '';
+        $text = implode(' ', [$row['registration_number'] ?? '', $row['student_name'], $row['parent_name'], $row['whatsapp'], $row['nisn'] ?? '']);
         return ($filters['year'] === '' || $row['academic_year'] === $filters['year'])
-            && ($filters['class'] === '' || $class === $filters['class']);
+            && ($filters['class'] === '' || $class === $filters['class'])
+            && ($search === '' || mb_stripos($text, $search) !== false)
+            && ($payment === '' || ($row['payment_status'] ?? 'belum_bayar') === $payment);
     }));
     usort($rows, static fn(array $a, array $b): int => strcmp((string)$b['created_at'], (string)$a['created_at']));
     return $rows;
@@ -70,7 +78,10 @@ function spmb_export_xlsx(array $rows, string $scope, array $filters): void
     $counts = spmb_report_counts($rows, $scope);
     $xmlRows = [];
     $xmlRows[] = '<row r="1" ht="32">' . spmb_xlsx_cell('A', 1, 'REKAP PENDAFTAR SPMB · ' . strtoupper($unit), 1) . '</row>';
-    $xmlRows[] = '<row r="2" ht="24">' . spmb_xlsx_cell('A', 2, 'SIT Permata Hati Bekasi  |  Tahun ajaran: ' . ($filters['year'] ?: 'Semua') . '  |  Kelas: ' . ($filters['class'] ?: 'Semua'), 2) . '</row>';
+    $filterNote = 'SIT Permata Hati Bekasi  |  Tahun ajaran: ' . ($filters['year'] ?: 'Semua') . '  |  Kelas: ' . ($filters['class'] ?: 'Semua');
+    if (!empty($filters['q'])) $filterNote .= '  |  Pencarian: ' . $filters['q'];
+    if (!empty($filters['payment'])) $filterNote .= '  |  Status bayar: ' . str_replace('_', ' ', $filters['payment']);
+    $xmlRows[] = '<row r="2" ht="24">' . spmb_xlsx_cell('A', 2, $filterNote, 2) . '</row>';
     $xmlRows[] = '<row r="3" ht="22">' . spmb_xlsx_cell('A', 3, 'Total pendaftar', 3) . spmb_xlsx_cell('B', 3, count($rows), 4) . spmb_xlsx_cell('D', 3, 'Diekspor', 3) . spmb_xlsx_cell('E', 3, date('d/m/Y H:i'), 4) . '</row>';
     $xmlRows[] = '<row r="5" ht="24">' . spmb_xlsx_cell('A', 5, 'RINGKASAN PER KELAS', 5) . '</row>';
     $line = 6;

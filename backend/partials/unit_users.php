@@ -30,8 +30,10 @@ foreach ($users as $user) if ((int)$user['id'] === $editId) $editUser = $user;
 <p class="full">Akun <strong><?php echo unit_e($editUser['username']); ?></strong> · <?php echo unit_e($allUnits[$scope]); ?></p>
 <label>Role<select name="role_key"><?php foreach($staffRoles as $key=>$label): ?><option value="<?php echo $key; ?>" <?php echo $editUser['role_key']===$key?'selected':''; ?>><?php echo unit_e($label); ?></option><?php endforeach; ?></select></label>
 <?php endif; ?>
-<?php if($isSuper) require __DIR__ . '/replace_admin_form.php'; ?>
-<?php if(!$isSuper): ?><section class="panel"><h2>Ganti Password Saya</h2><form method="post" class="form-grid"><input type="hidden" name="csrf" value="<?php echo unit_e($csrf); ?>"><input type="hidden" name="action" value="change_own_password"><label>Password saat ini<input type="password" name="current_password" autocomplete="current-password" required></label><label>Password baru<input type="password" name="new_password" autocomplete="new-password" minlength="8" required></label><div class="full"><button>Ganti Password</button></div></form></section><?php endif; ?>
 <label>Password <?php echo $editUser?'baru (kosongkan jika tidak diubah)':'*'; ?><input type="password" name="password" minlength="8" autocomplete="new-password" <?php echo $editUser?'':'required'; ?>></label>
 <div class="full actions"><button>Simpan Akun</button><a href="?tab=users&amp;unit=<?php echo unit_e($scope); ?>">Batal</a></div></form></section>
+<?php endif; ?>
+<?php if($isSuper) require __DIR__ . '/replace_admin_form.php'; ?>
+<?php if(!$isSuper && ($admin['role_key'] ?: 'unit_admin') === 'unit_admin'): ?>
+<section class="panel"><h2>Ganti Password Saya</h2><form method="post" class="form-grid"><input type="hidden" name="csrf" value="<?php echo unit_e($csrf); ?>"><input type="hidden" name="action" value="change_own_password"><label>Password saat ini<input type="password" name="current_password" autocomplete="current-password" required></label><label>Password baru<input type="password" name="new_password" autocomplete="new-password" minlength="8" required></label><div class="full"><button>Ganti Password</button></div></form></section>
 <?php endif; ?>

@@ -4,6 +4,8 @@
 
 - Orang tua mendaftar dari formulir yayasan atau formulir Daycare, TKIT, SDIT, dan SMPIT. Semua masuk ke `spmb_registrations` pada database utama.
 - Kasir atau superadmin yayasan dapat membuat pendaftar yang datang langsung melalui **Portal Yayasan → SPMB & Pembayaran → Input Pendaftar Manual**. Pilih unit dan kelas tujuan.
+- Petugas SPMB atau admin unit dapat memakai **Input Pendaftar** di dashboard atau halaman Pendaftar SPMB. Unit dikunci sesuai ruang kerja aktif. Tombol **Catat Pembayaran** ada pada menu **Aksi** setiap pendaftar; transaksi masuk antrean pemeriksaan.
+- Rekap unit dapat dicari menurut nama/kode/WhatsApp dan difilter berdasarkan kelas, tahun, serta status bayar. Ekspor Excel mengikuti filter tersebut. Menu Aksi juga menyediakan WhatsApp orang tua dan tautan bukti yang bisa disalin; tautan WhatsApp membuka draf tanpa mengirim pesan otomatis.
 - `id` database adalah primary key otomatis. Kode yang ditampilkan dibentuk dari tahun ajaran, unit, dan ID, misalnya `SPMB-2026-SDIT-000123`. Petugas tidak mengisi atau mengubah kode itu.
 - NISN disimpan sebagai data opsional 10 digit jika calon siswa sudah memilikinya. NIS internal dibuat otomatis dari unit, tahun, dan ID ketika status menjadi **Daftar Ulang**. NISN tidak dijadikan sumber nomor baru.
 

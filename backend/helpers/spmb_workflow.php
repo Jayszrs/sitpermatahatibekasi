@@ -30,6 +30,43 @@ function spmb_payment_url(string $token): string
     return SITE_URL . '/spmb/payment?token=' . rawurlencode($token);
 }
 
+function spmb_unit_registration(PDO $pdo, int $id, string $scope): array
+{
+    $query = $pdo->prepare('SELECT * FROM spmb_registrations WHERE id=?');
+    $query->execute([$id]);
+    $registration = $query->fetch();
+    if (!$registration || school_unit_slug($registration['level']) !== $scope) {
+        throw new RuntimeException('Pendaftar tidak ditemukan di unit ini.');
+    }
+    return $registration;
+}
+
+function spmb_unit_staff_action(PDO $pdo, string $scope, array $input, ?array $proof = null): string
+{
+    if (!isset(school_admin_units()[$scope])) throw new RuntimeException('Unit tidak valid.');
+    if (($input['action'] ?? '') === 'manual_spmb_registration') {
+        $level = school_unit_catalog()[$scope]['subtitle'];
+        $result = spmb_validate_and_save($pdo, $input, $level, null, 'manual');
+        if (!$result['success']) throw new RuntimeException(implode(' ', $result['errors']));
+        return 'Pendaftar dibuat: ' . $result['registration_number'] . '. Gunakan aksi Tautan Bukti untuk membagikan halaman pembayaran.';
+    }
+    if (($input['action'] ?? '') === 'record_spmb_payment') {
+        $registration = spmb_unit_registration($pdo, (int)($input['id'] ?? 0), $scope);
+        spmb_add_payment_claim($pdo, (int)$registration['id'], $input, $proof, 'staff');
+        return 'Pembayaran dicatat dan menunggu pemeriksaan. Total terbayar bertambah setelah diverifikasi.';
+    }
+    throw new RuntimeException('Tindakan SPMB tidak valid.');
+}
+
+function spmb_whatsapp_url(string $number, string $message): ?string
+{
+    $digits = preg_replace('/[^0-9]/', '', $number);
+    if (str_starts_with($digits, '0')) $digits = '62' . substr($digits, 1);
+    elseif (str_starts_with($digits, '8')) $digits = '62' . $digits;
+    if (!preg_match('/^[1-9][0-9]{8,14}$/', $digits)) return null;
+    return 'https://wa.me/' . $digits . '?text=' . rawurlencode($message);
+}
+
 function spmb_update_student_number(PDO $pdo, int $id): void
 {
     $stmt = $pdo->prepare('SELECT level,academic_year,registration_status,student_number FROM spmb_registrations WHERE id=?');

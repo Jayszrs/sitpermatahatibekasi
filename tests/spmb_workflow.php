@@ -3,6 +3,7 @@ require_once __DIR__ . '/../backend/helpers/functions.php';
 require_once __DIR__ . '/../backend/helpers/spmb_workflow.php';
 require_once __DIR__ . '/../backend/helpers/access_control.php';
 require_once __DIR__ . '/../backend/helpers/spmb_report.php';
+require_once __DIR__ . '/../backend/helpers/unit_admin_shared.php';
 
 function check(bool $condition, string $message): void {
     if (!$condition) throw new RuntimeException($message);
@@ -18,7 +19,8 @@ $pdo->exec("CREATE TABLE spmb_registrations (
     entry_class TEXT, academic_year TEXT, admission_track TEXT, previous_school TEXT, address TEXT,
     registration_source TEXT, registration_status TEXT DEFAULT 'baru', student_number TEXT,
     payment_amount NUMERIC DEFAULT 0, total_due NUMERIC DEFAULT 0,
-    payment_status TEXT DEFAULT 'belum_bayar', payment_updated_by INTEGER
+    payment_status TEXT DEFAULT 'belum_bayar', payment_updated_by INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
 )");
 $pdo->exec("CREATE TABLE spmb_payment_claims (
     id INTEGER PRIMARY KEY AUTOINCREMENT, registration_id INTEGER, source TEXT, payment_type TEXT,
@@ -80,6 +82,32 @@ check($voidTotal===0.0, 'Pembatalan tidak mengurangi akumulasi.');
 check($pdo->query('SELECT payment_status FROM spmb_registrations')->fetchColumn()==='belum_bayar', 'Status setelah pembatalan salah.');
 $invalid=$input;$invalid['nisn']='123';
 check(!spmb_validate_and_save($pdo,$invalid,null,['SDIT'=>'SDIT'])['success'], 'NISN tidak valid diterima.');
+check(unit_action_permission('manual_spmb_registration') === 'enrollments', 'Input manual tidak dibatasi izin SPMB.');
+check(unit_action_permission('record_spmb_payment') === 'enrollments', 'Pencatatan bayar tidak dibatasi izin SPMB.');
+$manualInput = $input + ['action'=>'manual_spmb_registration'];
+$manualInput['level'] = 'TKIT';
+$manualInput['student_name'] = 'Budi';
+spmb_unit_staff_action($pdo,'sdit',$manualInput);
+$manualId = (int)$pdo->lastInsertId();
+$manualRow = spmb_unit_registration($pdo,$manualId,'sdit');
+check($manualRow['level']==='SDIT' && $manualRow['registration_source']==='manual', 'Unit input manual dapat dipalsukan.');
+$staffInput = ['action'=>'record_spmb_payment','id'=>$manualId,'amount'=>'100000','payment_date'=>date('Y-m-d'),'payment_type'=>'Pembayaran SPMB','payment_method'=>'Tunai'];
+try {
+    spmb_unit_staff_action($pdo,'tkit',$staffInput);
+    throw new RuntimeException('Pembayaran manual lintas unit diterima.');
+} catch (RuntimeException $error) { check(str_contains($error->getMessage(),'unit ini'), 'Penolakan bayar manual lintas unit salah.'); }
+spmb_unit_staff_action($pdo,'sdit',$staffInput);
+check((float)spmb_unit_registration($pdo,$manualId,'sdit')['payment_amount']===0.0, 'Bayar manual langsung menaikkan total.');
+check(str_starts_with((string)spmb_whatsapp_url('08123456789','Pesan'),'https://wa.me/628123456789'), 'Nomor WhatsApp tidak dinormalisasi.');
+check(spmb_whatsapp_url('123','Pesan')===null, 'Nomor WhatsApp tidak valid dibuatkan tautan.');
+$pdo->exec('CREATE TABLE unit_enrollments (id INTEGER,unit_slug TEXT,child_name TEXT,parent_name TEXT,phone TEXT,status TEXT,created_at TEXT)');
+$searchRows = spmb_report_rows($pdo,$pdo,'sdit',spmb_report_filters('sdit',['q'=>'Budi','payment'=>'belum_bayar']));
+check(count($searchRows)===1 && (int)$searchRows[0]['id']===$manualId, 'Filter pencarian atau status bayar salah: ' . count($searchRows) . ' baris.');
+foreach(array_keys(school_admin_units()) as $unit){
+    spmb_unit_staff_action($pdo,$unit,['action'=>'manual_spmb_registration','student_name'=>'Uji '.$unit,'parent_name'=>'Orang Tua','whatsapp'=>'08123456789','entry_class'=>spmb_entry_classes($unit)[0],'academic_year'=>$year,'level'=>'UNIT_PALSU']);
+    $unitRegistration = spmb_unit_registration($pdo,(int)$pdo->lastInsertId(),$unit);
+    check(school_unit_slug($unitRegistration['level'])===$unit && str_contains($unitRegistration['registration_number'],'-'.strtoupper($unit).'-'), 'Pendaftaran manual unit '.$unit.' salah.');
+}
 $exportRow = $pdo->query('SELECT * FROM spmb_registrations LIMIT 1')->fetch();
 $exportRow += ['birth_date'=>null,'birth_place'=>null,'created_at'=>date('Y-m-d H:i:s')];
 ob_start();
