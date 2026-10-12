@@ -1,0 +1,500 @@
+/* Final shared UI layer for Daycare, TKIT, SDIT, and SMPIT admin portals. */
+:root {
+  --unit-action: var(--portal-dark);
+  --unit-action-hover: color-mix(in srgb, var(--portal-dark) 82%, #000);
+  --unit-action-soft: color-mix(in srgb, var(--portal-primary) 12%, #fff);
+  --unit-action-line: color-mix(in srgb, var(--portal-primary) 38%, #fff);
+}
+
+body:has(.wrap) {
+  line-height: 1.5;
+}
+
+body:has(.wrap) .top {
+  width: 260px !important;
+  padding: 22px 16px !important;
+}
+
+body:has(.wrap) .top > div {
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  column-gap: 11px !important;
+  padding: 8px 4px 20px !important;
+}
+
+body:has(.wrap) .top strong {
+  font-size: .96rem !important;
+  line-height: 1.3 !important;
+  overflow-wrap: anywhere;
+}
+
+body:has(.wrap) .top small {
+  color: #e7eee8 !important;
+  opacity: 1 !important;
+}
+
+body:has(.wrap) .top > a {
+  background: rgba(255, 255, 255, .16) !important;
+  border: 1px solid rgba(255, 255, 255, .48) !important;
+  color: #fff !important;
+  text-align: center;
+}
+
+body:has(.wrap) .top > a:hover {
+  background: rgba(255, 255, 255, .25) !important;
+}
+
+body:has(.wrap) .tabs {
+  left: 16px !important;
+  top: 158px !important;
+  width: 228px !important;
+  max-height: calc(100vh - 245px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+body:has(.wrap) .tabs a,
+body:has(.wrap) .tabs a:last-child {
+  min-height: 44px !important;
+  background: rgba(255, 255, 255, .08) !important;
+  border: 1px solid rgba(255, 255, 255, .16) !important;
+  color: #fff !important;
+  font-size: .78rem !important;
+}
+
+body:has(.wrap) .tabs a:hover,
+body:has(.wrap) .tabs a:focus-visible {
+  background: rgba(255, 255, 255, .21) !important;
+}
+
+body:has(.wrap) .tabs a.active {
+  background: rgba(255, 255, 255, .25) !important;
+  border-color: rgba(255, 255, 255, .5) !important;
+  box-shadow: inset 4px 0 var(--portal-accent) !important;
+}
+
+body:has(.wrap) .wrap {
+  width: calc(100% - 260px) !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 0 0 260px !important;
+  padding: 112px clamp(18px, 3vw, 42px) 64px !important;
+}
+
+body:has(.wrap) .wrap::before {
+  left: 260px !important;
+  height: 78px !important;
+  padding-inline: clamp(18px, 3vw, 42px) !important;
+}
+
+body:has(.wrap) .wrap::after {
+  left: calc(260px + clamp(18px, 3vw, 42px)) !important;
+  top: 50px !important;
+}
+
+body:has(.wrap) .panel {
+  min-width: 0;
+  background: #fff !important;
+  border: 1px solid var(--portal-line) !important;
+  box-shadow: 0 8px 28px rgba(22, 36, 29, .07) !important;
+}
+
+body:has(.wrap) .panel h2 {
+  color: var(--portal-ink) !important;
+  line-height: 1.3;
+}
+
+body:has(.wrap) .panel > p,
+body:has(.wrap) .muted {
+  line-height: 1.55;
+}
+
+body:has(.wrap) button:not(.password-toggle):not(.unit-menu-toggle),
+body:has(.wrap) .spmb-export {
+  background: var(--unit-action) !important;
+  border: 1px solid var(--unit-action) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--portal-dark) 18%, transparent) !important;
+  cursor: pointer;
+}
+
+body:has(.wrap) button:not(.password-toggle):not(.unit-menu-toggle):hover,
+body:has(.wrap) .spmb-export:hover {
+  background: var(--unit-action-hover) !important;
+  border-color: var(--unit-action-hover) !important;
+}
+
+body:has(.wrap) button.danger,
+body:has(.wrap) button.reject {
+  background: #a5272d !important;
+  border-color: #a5272d !important;
+  color: #fff !important;
+}
+
+body:has(.wrap) button.danger:hover,
+body:has(.wrap) button.reject:hover {
+  background: #831a22 !important;
+  border-color: #831a22 !important;
+}
+
+body:has(.wrap) .actions a,
+body:has(.wrap) .panel a.spmb-export,
+body:has(.wrap) .panel a:not(.spmb-export):not([href^="tel:"]):not([href^="http"]):not(.muted) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+body:has(.wrap) .actions a {
+  background: var(--unit-action-soft) !important;
+  border: 1px solid var(--unit-action-line) !important;
+  color: var(--unit-action) !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  font-weight: 800 !important;
+}
+
+body:has(.wrap) .actions a:hover {
+  background: color-mix(in srgb, var(--portal-primary) 22%, #fff) !important;
+  border-color: var(--unit-action) !important;
+}
+
+body:has(.wrap) .panel > .actions a,
+body:has(.wrap) .panel .spmb-table a,
+body:has(.wrap) .panel .spmb-claim a {
+  color: var(--unit-action) !important;
+  font-weight: 800;
+}
+
+body:has(.wrap) .panel .spmb-table td a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  margin-top: 6px;
+  padding: 7px 10px;
+  border: 1px solid var(--unit-action-line);
+  border-radius: 8px;
+  background: var(--unit-action-soft);
+  text-decoration: none;
+}
+
+body:has(.wrap) input,
+body:has(.wrap) select,
+body:has(.wrap) textarea {
+  max-width: 100%;
+  border-color: color-mix(in srgb, var(--portal-ink) 24%, #fff) !important;
+}
+
+body:has(.wrap) input:focus-visible,
+body:has(.wrap) select:focus-visible,
+body:has(.wrap) textarea:focus-visible,
+body:has(.wrap) button:focus-visible,
+body:has(.wrap) a:focus-visible,
+body:has(.login) button:focus-visible,
+body:has(.login) input:focus-visible {
+  outline: 3px solid var(--portal-accent) !important;
+  outline-offset: 2px !important;
+}
+
+body:has(.wrap) table {
+  width: 100%;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+body:has(.wrap) th {
+  color: var(--portal-ink) !important;
+  background: color-mix(in srgb, var(--portal-paper) 76%, #fff) !important;
+  font-size: .72rem !important;
+  line-height: 1.3 !important;
+}
+
+body:has(.wrap) td {
+  color: var(--portal-ink);
+  overflow-wrap: anywhere;
+}
+
+body:has(.wrap) tr:hover td {
+  background: color-mix(in srgb, var(--portal-paper) 30%, #fff) !important;
+}
+
+body:has(.wrap) .notice {
+  background: #e8f7ed !important;
+  border-color: #a5d9b6 !important;
+  color: #175536 !important;
+}
+
+body:has(.wrap) .error,
+body:has(.login) .error {
+  background: #fff0ef !important;
+  border: 1px solid #e6b4b0 !important;
+  color: #8d2228 !important;
+}
+
+/* Login stays split on wide screens and becomes a single readable card on tablets. */
+body:has(.login) {
+  grid-template-columns: minmax(0, 48%) minmax(0, 52%) !important;
+}
+
+body:has(.login)::before {
+  inset: 0 52% 0 0 !important;
+}
+
+body:has(.login) .login,
+body:has(.login) .login:has(input) {
+  width: min(500px, calc(100% - 64px)) !important;
+  min-height: 0 !important;
+  margin: 24px auto !important;
+  padding: 34px clamp(24px, 3vw, 42px) 38px !important;
+  border: 1px solid var(--portal-line) !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 24px 55px rgba(30, 38, 28, .12) !important;
+}
+
+body:has(.login) .login-card-top {
+  margin-bottom: 22px !important;
+  padding-bottom: 18px !important;
+}
+
+body:has(.login) .login-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+body:has(.login) .login-brand .login-logo {
+  display: block !important;
+  flex: 0 0 50px !important;
+  width: 50px !important;
+  height: 50px !important;
+}
+
+body:has(.login) .login-brand strong {
+  font-family: Manrope, Segoe UI, sans-serif !important;
+  font-size: 1rem !important;
+  line-height: 1.22 !important;
+}
+
+body:has(.login) .login-brand small {
+  display: block !important;
+  font-size: .71rem !important;
+}
+
+body:has(.login) .login h1 {
+  font-family: Manrope, Segoe UI, sans-serif !important;
+  font-size: clamp(1.85rem, 3vw, 2.3rem) !important;
+  line-height: 1.15 !important;
+}
+
+body:has(.login) .login label {
+  color: var(--portal-ink) !important;
+}
+
+body:has(.login) .login input {
+  min-height: 49px !important;
+  border: 1px solid color-mix(in srgb, var(--portal-ink) 26%, #fff) !important;
+  background: #fff !important;
+  color: var(--portal-ink) !important;
+}
+
+body:has(.login) .password-field {
+  display: block !important;
+  position: relative !important;
+  min-height: 49px !important;
+}
+
+body:has(.login) .password-field input {
+  width: 100% !important;
+  padding-right: 54px !important;
+}
+
+body:has(.login) button.password-toggle {
+  display: grid !important;
+  place-items: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  right: 6px !important;
+  background: var(--unit-action-soft) !important;
+  border: 1px solid var(--unit-action-line) !important;
+  color: var(--unit-action) !important;
+}
+
+body:has(.login) button.password-toggle:hover,
+body:has(.login) button.password-toggle.is-visible {
+  background: var(--unit-action) !important;
+  color: #fff !important;
+}
+
+body:has(.login) .login-submit {
+  min-height: 50px !important;
+  background: var(--unit-action) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+body:has(.login) .login-submit:hover {
+  background: var(--unit-action-hover) !important;
+}
+
+@media (max-width: 980px) {
+  body:has(.wrap) { overflow-x: hidden !important; }
+  body:has(.wrap) .top {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 70 !important;
+    width: 100% !important;
+    min-height: 72px !important;
+    padding: 10px 16px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+  body:has(.wrap) .top > div {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+  body:has(.wrap) .top .portal-logo {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  body:has(.wrap) .top strong {
+    font-size: .9rem !important;
+    max-width: 28ch !important;
+  }
+  body:has(.wrap) .unit-menu-toggle {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 48px !important;
+    background: rgba(255, 255, 255, .2) !important;
+    border: 1px solid rgba(255, 255, 255, .56) !important;
+    color: #fff !important;
+  }
+  body:has(.wrap) .top > a {
+    position: fixed !important;
+    left: 14px !important;
+    bottom: 16px !important;
+    z-index: 66 !important;
+    width: calc(min(86vw, 320px) - 28px) !important;
+    display: none !important;
+    margin: 0 !important;
+  }
+  body.unit-menu-open .top > a { display: block !important; }
+  body:has(.wrap) .tabs {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 65 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 7px !important;
+    width: min(86vw, 320px) !important;
+    max-height: none !important;
+    height: 100dvh !important;
+    padding: 88px 14px 78px !important;
+    overflow-y: auto !important;
+    background: linear-gradient(165deg, var(--portal-dark), var(--portal-primary)) !important;
+    transform: translateX(-105%) !important;
+    transition: transform .2s ease !important;
+  }
+  body.unit-menu-open .tabs { transform: translateX(0) !important; }
+  body:has(.wrap) .tabs a:last-child { margin-top: 6px !important; }
+  body:has(.wrap) .unit-menu-backdrop {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 60 !important;
+    background: rgba(9, 20, 17, .56) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity .2s ease !important;
+  }
+  body.unit-menu-open .unit-menu-backdrop {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+  body.unit-menu-open { overflow: hidden !important; }
+  body:has(.wrap) .wrap {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 24px 16px 48px !important;
+  }
+  body:has(.wrap) .wrap::before,
+  body:has(.wrap) .wrap::after { display: none !important; }
+  body:has(.wrap) .panel { padding: 20px !important; }
+  body:has(.wrap) .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  body:has(.wrap) .grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  body:has(.wrap) .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  body:has(.wrap) .form-grid .full { grid-column: 1 / -1 !important; }
+  body:has(.wrap) .panel:has(table),
+  body:has(.wrap) .spmb-table-wrap {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  body:has(.wrap) table { min-width: 640px !important; }
+
+  body:has(.login) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    place-items: center !important;
+    min-height: 100dvh !important;
+    padding: 24px 0 !important;
+    background: var(--portal-paper) !important;
+  }
+  body:has(.login)::before,
+  body:has(.login)::after { display: none !important; }
+  body:has(.login) .login,
+  body:has(.login) .login:has(input) {
+    grid-column: 1 !important;
+    width: min(500px, calc(100% - 32px)) !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    padding: 30px 26px 34px !important;
+    border-radius: 20px !important;
+    background: #fff !important;
+    box-shadow: 0 16px 40px rgba(30, 38, 28, .1) !important;
+  }
+  body:has(.login) .login-card-top,
+  body:has(.login) .login-brand { display: flex !important; }
+  body:has(.login) .login-brand .login-logo { display: block !important; }
+  body:has(.login) .login-brand small { display: block !important; }
+  body:has(.login) .login label::before { display: none !important; }
+  body:has(.login) .login input { padding-left: 12px !important; }
+}
+
+@media (max-width: 600px) {
+  body:has(.wrap) .top strong { max-width: 22ch !important; }
+  body:has(.wrap) .wrap { padding: 18px 12px 36px !important; }
+  body:has(.wrap) .panel { padding: 16px !important; }
+  body:has(.wrap) .grid { gap: 10px !important; }
+  body:has(.wrap) .stat { min-height: 112px !important; padding: 14px !important; }
+  body:has(.wrap) .stat b { font-size: 1.45rem !important; }
+  body:has(.wrap) .form-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  body:has(.wrap) .form-grid .full { grid-column: 1 !important; }
+  body:has(.wrap) .form-grid > button,
+  body:has(.wrap) .form-grid > div:has(> button) > button { width: 100% !important; }
+  body:has(.wrap) .panel .actions { display: flex; flex-wrap: wrap; }
+  body:has(.wrap) .panel .actions > * { flex: 1 1 auto; }
+  body:has(.wrap) table { min-width: 620px !important; }
+  body:has(.login) .login,
+  body:has(.login) .login:has(input) {
+    width: calc(100% - 24px) !important;
+    padding: 24px 20px 28px !important;
+  }
+}
+
+@media (max-width: 370px) {
+  body:has(.wrap) .grid { grid-template-columns: 1fr !important; }
+  body:has(.wrap) .grid > :last-child:nth-child(odd) { grid-column: 1; }
+  body:has(.wrap) .top strong { font-size: .8rem !important; }
+  body:has(.login) .login-brand strong { font-size: .9rem !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.wrap) .tabs,
+  body:has(.wrap) button,
+  body:has(.wrap) .stat { transition: none !important; }
+}
