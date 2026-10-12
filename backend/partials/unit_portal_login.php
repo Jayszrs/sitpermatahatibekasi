@@ -16,7 +16,7 @@ $unitLogo = unit_asset('assets/images/logo.png');
     <link rel="stylesheet" href="<?php echo unit_e(asset_url('frontend/assets/css/portal.css')); ?>">
     <link rel="stylesheet" href="<?php echo unit_e(asset_url('frontend/assets/css/unit-portal.css')); ?>">
 </head>
-<body class="login-page unit-portal">
+<body class="login-page unit-portal" data-unit="<?php echo unit_e($unit_config['slug']); ?>">
 <main class="login-shell">
     <section class="login-visual">
         <div class="login-visual-overlay"></div>
