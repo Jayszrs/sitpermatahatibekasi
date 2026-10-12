@@ -83,6 +83,7 @@ require_once __DIR__ . '/../components/header.php';
                             <?php endforeach; ?>
                         </select>
                     </div><div class="form-group"><label for="academic_year">Tahun Ajaran *</label><select id="academic_year" name="academic_year" class="form-control" required><?php foreach($academicYears as $year=>$track): ?><option value="<?php echo esc($year); ?>" <?php echo $old['academic_year']===$year?'selected':''; ?>><?php echo esc($year.' — '.$track); ?></option><?php endforeach; ?></select><small class="field-help">Tahun berikutnya otomatis tercatat sebagai waiting list.</small></div></div>
+                    <div class="form-group"><label for="entry_class">Kelas Tujuan *</label><select id="entry_class" name="entry_class" class="form-control" required></select></div>
                     <div class="form-group">
                         <label for="previous_school">Asal Sekolah</label>
                         <input type="text" id="previous_school" name="previous_school" class="form-control" value="<?php echo esc($old['previous_school']); ?>" placeholder="Contoh: TK Islam Ceria">
@@ -90,6 +91,25 @@ require_once __DIR__ . '/../components/header.php';
                     <div class="form-group"><label for="address">Alamat Lengkap</label><textarea id="address" name="address" class="form-control" rows="4" placeholder="Contoh: Perumahan ..., Tambun Selatan, Kabupaten Bekasi"><?php echo esc($old['address']); ?></textarea></div>
                     <button type="submit" class="btn btn-primary btn-block">Kirim Pendaftaran</button>
                 </form>
+                <script>
+                (() => {
+                    const level = document.getElementById('level');
+                    const entryClass = document.getElementById('entry_class');
+                    const classes = <?php echo json_encode(array_map('spmb_entry_classes', array_keys($spmbLevels)), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?>;
+                    const levels = <?php echo json_encode(array_keys($spmbLevels), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?>;
+                    const saved = <?php echo json_encode($old['entry_class'], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG); ?>;
+                    function refresh(keep) {
+                        const selected = keep ? entryClass.value || saved : '';
+                        entryClass.replaceChildren(new Option('-- Pilih Kelas --', ''));
+                        const index = levels.indexOf(level.value);
+                        for (const name of index < 0 ? [] : classes[index]) entryClass.add(new Option(name, name));
+                        entryClass.value = selected;
+                        if (entryClass.selectedIndex < 0) entryClass.value = '';
+                    }
+                    level.addEventListener('change', () => refresh(false));
+                    refresh(true);
+                })();
+                </script>
             </div>
         </div>
     </div>

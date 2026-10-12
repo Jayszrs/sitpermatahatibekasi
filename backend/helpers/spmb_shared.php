@@ -16,6 +16,16 @@ function spmb_academic_years(): array {
     return $years;
 }
 
+function spmb_entry_classes(string $level): array {
+    return match (school_unit_slug($level)) {
+        'daycare' => ['Bayi', 'Toddler', 'Prasekolah'],
+        'tkit' => ['TK A', 'TK B'],
+        'sdit' => ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'],
+        'smpit' => ['Kelas 7', 'Kelas 8', 'Kelas 9'],
+        default => [],
+    };
+}
+
 function spmb_fields_from_post(array $post, ?string $lockedLevel = null): array {
     return [
         'student_name' => trim((string) ($post['student_name'] ?? '')),
@@ -28,6 +38,7 @@ function spmb_fields_from_post(array $post, ?string $lockedLevel = null): array 
         'family_card_number' => trim((string) ($post['family_card_number'] ?? '')),
         'whatsapp' => trim((string) ($post['whatsapp'] ?? '')),
         'level' => $lockedLevel ?? trim((string) ($post['level'] ?? '')),
+        'entry_class' => trim((string) ($post['entry_class'] ?? '')),
         'academic_year' => trim((string) ($post['academic_year'] ?? '')),
         'previous_school' => trim((string) ($post['previous_school'] ?? '')),
         'address' => trim((string) ($post['address'] ?? '')),
@@ -55,12 +66,15 @@ function spmb_validate_and_save(PDO $pdo, array $post, ?string $lockedLevel = nu
     if ($old['level'] === '' || ($validLevels !== null && !isset($validLevels[$old['level']]))) {
         $errors[] = 'Jenjang yang dipilih tidak valid.';
     }
+    if ($old['entry_class'] === '' || !in_array($old['entry_class'], spmb_entry_classes($old['level']), true)) {
+        $errors[] = 'Kelas tujuan wajib dipilih sesuai jenjang.';
+    }
     if (!isset($academicYears[$old['academic_year']])) $errors[] = 'Tahun ajaran yang dipilih tidak valid.';
 
     if ($errors) return ['success' => false, 'errors' => $errors, 'old' => $old];
 
     $admissionTrack = $academicYears[$old['academic_year']] === 'Waiting List' ? 'waiting_list' : 'reguler';
-    $stmt = $pdo->prepare("INSERT INTO spmb_registrations (student_name,student_nik,gender,birth_place,birth_date,parent_name,parent_nik,family_card_number,whatsapp,level,academic_year,admission_track,previous_school,address) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    $stmt = $pdo->prepare("INSERT INTO spmb_registrations (student_name,student_nik,gender,birth_place,birth_date,parent_name,parent_nik,family_card_number,whatsapp,level,entry_class,academic_year,admission_track,previous_school,address) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     $stmt->execute([
         $old['student_name'],
         $old['student_nik'] ?: null, $old['gender'] ?: null, $old['birth_place'] ?: null, $old['birth_date'] ?: null,
@@ -68,6 +82,7 @@ function spmb_validate_and_save(PDO $pdo, array $post, ?string $lockedLevel = nu
         $old['parent_nik'] ?: null, $old['family_card_number'] ?: null,
         $old['whatsapp'],
         $old['level'],
+        $old['entry_class'],
         $old['academic_year'],
         $admissionTrack,
         $old['previous_school'] ?: null,

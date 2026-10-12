@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS `spmb_registrations` (
     `whatsapp` VARCHAR(30) NOT NULL,
     `email` VARCHAR(150) DEFAULT NULL,
     `level` VARCHAR(20) NOT NULL,
+    `entry_class` VARCHAR(40) DEFAULT NULL,
     `academic_year` VARCHAR(9) DEFAULT NULL,
     `admission_track` ENUM('reguler','waiting_list') NOT NULL DEFAULT 'reguler',
     `previous_school` VARCHAR(150) DEFAULT NULL,

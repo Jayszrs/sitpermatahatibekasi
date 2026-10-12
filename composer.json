@@ -7,7 +7,8 @@
         "ext-fileinfo": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
-        "ext-pdo_mysql": "*"
+        "ext-pdo_mysql": "*",
+        "ext-zip": "*"
     },
     "config": {
         "optimize-autoloader": true,

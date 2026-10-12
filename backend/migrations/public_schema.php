@@ -69,6 +69,7 @@ function ensure_public_schema(PDO $pdo): void
         whatsapp VARCHAR(30) NOT NULL,
         email VARCHAR(150) NULL,
         level VARCHAR(20) NOT NULL,
+        entry_class VARCHAR(40) NULL,
         academic_year VARCHAR(9) NULL,
         admission_track ENUM('reguler','waiting_list') NOT NULL DEFAULT 'reguler',
         previous_school VARCHAR(150) NULL,
@@ -489,6 +490,9 @@ function ensure_public_schema(PDO $pdo): void
     $recordMigration('20260901-gallery-unit-publications', 'Publikasi galeri Instagram berdasarkan empat unit');
 
     if ($tableExists('spmb_registrations')) {
+        if (!$columnExists('spmb_registrations', 'entry_class')) {
+            $pdo->exec("ALTER TABLE spmb_registrations ADD COLUMN entry_class VARCHAR(40) NULL AFTER level");
+        }
         if (!$columnExists('spmb_registrations', 'academic_year')) {
             $pdo->exec("ALTER TABLE spmb_registrations ADD COLUMN academic_year VARCHAR(9) NULL AFTER level");
         }

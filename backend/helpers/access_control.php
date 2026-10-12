@@ -54,7 +54,10 @@ function unit_permissions(PDO $pdo, array $user): array
     $query = $pdo->prepare('SELECT permissions FROM unit_roles WHERE role_key=?');
     $query->execute([$user['role_key'] ?: 'unit_admin']);
     $permissions = json_decode((string) $query->fetchColumn(), true);
-    return is_array($permissions) ? array_values(array_intersect(array_keys(unit_permission_labels()), $permissions)) : [];
+    $allowed = is_array($permissions) ? array_values(array_intersect(array_keys(unit_permission_labels()), $permissions)) : [];
+    // Admin unit dapat mengelola petugas Humas dan SPMB di unitnya sendiri.
+    if ($user['role'] === 'unit_admin' && ($user['role_key'] ?: 'unit_admin') === 'unit_admin') $allowed[] = 'users';
+    return $allowed;
 }
 
 function unit_action_permission(string $action): ?string
@@ -66,9 +69,70 @@ function unit_action_permission(string $action): ?string
         'save_job','archive_job','update_application' => 'careers',
         'update_spmb_status' => 'enrollments',
         'save_settings','save_hero','reset_hero' => 'settings',
-        'save_user','replace_foundation_admin' => 'users',
+        'save_user','manage_staff','change_own_password','replace_foundation_admin' => 'users',
         default => null,
     };
+}
+
+function unit_admin_change_own_password(PDO $pdo, array $actor, string $current, string $new): int
+{
+    if (($actor['role'] ?? '') !== 'unit_admin' || ($actor['role_key'] ?: 'unit_admin') !== 'unit_admin') {
+        throw new RuntimeException('Akses perubahan password ditolak.');
+    }
+    if (strlen($new) < 8) throw new RuntimeException('Password baru minimal 8 karakter.');
+    $pdo->beginTransaction();
+    try {
+        $query = $pdo->prepare('SELECT password_hash,session_version FROM unit_users WHERE id=? AND is_active=1 FOR UPDATE');
+        $query->execute([(int)$actor['id']]);
+        $account = $query->fetch();
+        if (!$account || !password_verify($current, $account['password_hash'])) {
+            throw new RuntimeException('Password saat ini tidak sesuai.');
+        }
+        $version = (int)$account['session_version'] + 1;
+        $pdo->prepare('UPDATE unit_users SET password_hash=?,session_version=? WHERE id=?')
+            ->execute([password_hash($new, PASSWORD_DEFAULT), $version, (int)$actor['id']]);
+        $pdo->commit();
+        return $version;
+    } catch (Throwable $error) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $error;
+    }
+}
+
+function unit_admin_manage_staff(PDO $pdo, array $actor, array $input): int
+{
+    if (($actor['role'] ?? '') !== 'unit_admin' || ($actor['role_key'] ?: 'unit_admin') !== 'unit_admin') {
+        throw new RuntimeException('Hanya admin unit yang dapat mengubah akun petugas.');
+    }
+    $id = (int) ($input['id'] ?? 0);
+    $roleKey = (string) ($input['role_key'] ?? '');
+    $unit = (string) ($actor['unit_slug'] ?? '');
+    if ($id <= 0 || !in_array($roleKey, ['unit_editor', 'unit_admissions'], true) || !isset(school_admin_units()[$unit])) {
+        throw new RuntimeException('Akun atau role petugas tidak valid.');
+    }
+    $pdo->beginTransaction();
+    try {
+        $query = $pdo->prepare('SELECT * FROM unit_users WHERE id=? FOR UPDATE');
+        $query->execute([$id]);
+        $old = $query->fetch();
+        if (!$old || $old['unit_slug'] !== $unit || !in_array($old['role_key'], ['unit_editor', 'unit_admissions'], true)) {
+            throw new RuntimeException('Admin hanya dapat mengubah petugas Humas atau SPMB di unit sendiri.');
+        }
+        $saved = admin_save_unit_user_locked($pdo, [
+            'id' => $id,
+            'name' => $old['name'] ?: $old['username'],
+            'username' => $old['username'],
+            'role_key' => $roleKey,
+            'user_unit' => $unit,
+            'is_active' => $old['is_active'],
+            'password' => (string) ($input['password'] ?? ''),
+        ]);
+        $pdo->commit();
+        return $saved;
+    } catch (Throwable $error) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $error;
+    }
 }
 
 /** Both the legacy CMS form and central portal use the same validation. */

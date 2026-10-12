@@ -243,6 +243,7 @@ if($page==='profile'): require_once __DIR__ . '/../backend/helpers/unit_profile.
         </div>
         <label>Nomor WhatsApp *<input required name="whatsapp" inputmode="tel" value="<?php echo unit_e($spmbOld['whatsapp']); ?>"></label>
         <label>Tahun Ajaran *<select required name="academic_year"><?php foreach ($spmbAcademicYears as $year => $track): ?><option value="<?php echo unit_e($year); ?>" <?php echo $spmbOld['academic_year']===$year?'selected':''; ?>><?php echo unit_e($year.' — '.$track); ?></option><?php endforeach; ?></select><small class="field-help">Tahun berikutnya otomatis tercatat sebagai waiting list.</small></label>
+        <label>Kelas Tujuan *<select required name="entry_class"><option value="">-- Pilih Kelas --</option><?php foreach(spmb_entry_classes($lockedLevel) as $class): ?><option value="<?php echo unit_e($class); ?>" <?php echo $spmbOld['entry_class']===$class?'selected':''; ?>><?php echo unit_e($class); ?></option><?php endforeach; ?></select></label>
         <label>Asal Sekolah<input name="previous_school" value="<?php echo unit_e($spmbOld['previous_school']); ?>"></label>
         <label>Alamat Lengkap<textarea name="address" rows="4"><?php echo unit_e($spmbOld['address']); ?></textarea></label>
         <button class="button button-primary" type="submit">Kirim Pendaftaran</button>

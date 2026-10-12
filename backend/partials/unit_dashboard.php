@@ -3,6 +3,6 @@
 <div class="actions">
 <?php foreach(unit_permission_labels() as $key=>$label): if($key==='dashboard'||!in_array($key,$permissions,true))continue; ?>
 <a href="?tab=<?php echo unit_e($key); ?>&amp;unit=<?php echo unit_e($scope); ?>"><?php echo unit_e($label); ?></a>
-<?php endforeach; ?></div>
+<?php endforeach; ?><?php if(in_array('users',$permissions,true)): ?><a href="?tab=users&amp;unit=<?php echo unit_e($scope); ?>">Manajemen Pengguna</a><?php endif; ?></div>
 <?php if($isSuper): ?><p><a href="<?php echo unit_e(SITE_URL.'/portal/users?scope=unit'); ?>">Kelola seluruh pengguna &amp; role di Portal Yayasan</a></p><?php endif; ?>
 </section>
